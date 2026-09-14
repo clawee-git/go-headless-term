@@ -75,3 +75,18 @@ func (t *Terminal) popScrollbackLines(n int) [][]Cell {
 	slices.Reverse(lines)
 	return lines
 }
+
+// scrollActiveRegionUp scrolls the active buffer's scroll region up by n lines
+// for output (line feeds past the bottom margin, SU, image placement). Lines
+// scrolled off the primary screen's top would have fit in the rows an
+// alternate-screen shrink cut, so they use up primaryRowsCutOnAlternate and a
+// later grow pops them back instead of handing back blank rows. Resize's own
+// shrink scroll does not come through here. Caller must hold the lock.
+func (t *Terminal) scrollActiveRegionUp(n int) {
+	t.activeBuffer.ScrollUp(t.scrollTop, t.scrollBottom, n)
+	if t.activeBuffer != t.primaryBuffer || t.scrollTop != 0 || n <= 0 {
+		return
+	}
+	scrolled := min(n, t.scrollBottom-t.scrollTop)
+	t.primaryRowsCutOnAlternate = max(0, t.primaryRowsCutOnAlternate-scrolled)
+}

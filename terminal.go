@@ -107,7 +107,9 @@ type Terminal struct {
 	// primaryRowsCutOnAlternate counts rows a shrink made while the alternate
 	// screen was active cut from the bottom of the primary screen without
 	// scrolling anything into scrollback. Growing gives those rows back as blank
-	// rows instead of popping unrelated scrollback lines.
+	// rows instead of popping unrelated scrollback lines. Output that later
+	// scrolls lines off the primary's top uses those rows up (see
+	// scrollActiveRegionUp).
 	primaryRowsCutOnAlternate int
 
 	// Current cell attributes
@@ -498,6 +500,8 @@ func (t *Terminal) Resize(rows, cols int) {
 	t.cursor.Row = clamp(t.cursor.Row, 0, rows-1)
 	t.cursor.Col = clamp(t.cursor.Col, 0, cols-1)
 	if t.activeBuffer != t.primaryBuffer && t.savedCursor != nil {
+		// The resize helpers already keep the saved row inside the new height;
+		// the row clamp only guards that invariant. The column clamp is needed.
 		t.savedCursor.Row = clamp(t.savedCursor.Row, 0, rows-1)
 		t.savedCursor.Col = clamp(t.savedCursor.Col, 0, cols-1)
 	}
@@ -550,7 +554,7 @@ func (t *Terminal) scrollIfNeeded() {
 			t.scrollBottom = t.rows
 		} else {
 			linesToScroll := t.cursor.Row - t.scrollBottom + 1
-			t.activeBuffer.ScrollUp(t.scrollTop, t.scrollBottom, linesToScroll)
+			t.scrollActiveRegionUp(linesToScroll)
 			t.cursor.Row = t.scrollBottom - 1
 		}
 	} else if t.cursor.Row < t.scrollTop {

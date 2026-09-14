@@ -224,3 +224,58 @@ func assertPushPopPairing(t *testing.T, events []string) {
 		t.Errorf("events = %v, want N pushes then N pops with N > 0", events)
 	}
 }
+
+// TestResizeOnAlternateScreenThenPrimaryOutputKeepsPrimary lets the primary
+// scroll at the reduced height between leaving the alternate screen and the
+// grow. Lines output scrolls off the top use up the rows the shrink cut, so the
+// grow must pop those lines back rather than hand back blank rows.
+func TestResizeOnAlternateScreenThenPrimaryOutputKeepsPrimary(t *testing.T) {
+	for _, lines := range []int{19, 20, 30} { // scrolls 3, 4 and 14 lines at 18 rows
+		t.Run(fmt.Sprintf("lines=%d", lines), func(t *testing.T) {
+			setup := func(term *Terminal) {
+				writeShellOutput(term)
+				term.WriteString("\x1b[H\x1b[2J$ less log\r\n")
+			}
+			output := func(term *Terminal) {
+				for i := 1; i <= lines; i++ {
+					term.WriteString(fmt.Sprintf("after %02d\r\n", i))
+				}
+				term.WriteString("$ ")
+			}
+			control, controlStorage := newResizeTerminal()
+			setup(control)
+			control.WriteString(enterAlternateScreen + leaveAlternateScreen)
+			output(control)
+			want := capturePrimary(t, control, controlStorage)
+
+			term, storage := newResizeTerminal()
+			setup(term)
+			term.WriteString(enterAlternateScreen)
+			term.Resize(18, 80)
+			term.WriteString(leaveAlternateScreen)
+			output(term)
+			term.Resize(24, 80)
+
+			diffPrimary(t, capturePrimary(t, term, storage), want)
+		})
+	}
+}
+
+// TestResizeColumnsOnAlternateScreenClampsSavedCursor shrinks the columns while
+// the alternate screen is active: the primary resumes on the last column, not
+// past the edge of the grid.
+func TestResizeColumnsOnAlternateScreenClampsSavedCursor(t *testing.T) {
+	term, _ := newResizeTerminal()
+	term.WriteString("\x1b[5;71H") // row 4, col 70
+	term.WriteString(enterAlternateScreen)
+	term.Resize(24, 40)
+	term.WriteString(leaveAlternateScreen)
+
+	if row, col := term.CursorPos(); row != 4 || col != 39 {
+		t.Fatalf("cursor = (%d,%d), want (4,39)", row, col)
+	}
+	term.WriteString("X")
+	if c := term.Cell(4, 39); c == nil || c.Char != 'X' {
+		t.Errorf("cell (4,39) = %v, want 'X'", c)
+	}
+}
