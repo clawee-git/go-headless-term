@@ -104,6 +104,12 @@ type Terminal struct {
 	cursor      *Cursor
 	savedCursor *SavedCursor
 
+	// primaryRowsCutOnAlternate counts rows a shrink made while the alternate
+	// screen was active cut from the bottom of the primary screen without
+	// scrolling anything into scrollback. Growing gives those rows back as blank
+	// rows instead of popping unrelated scrollback lines.
+	primaryRowsCutOnAlternate int
+
 	// Current cell attributes
 	template CellTemplate
 
@@ -459,8 +465,11 @@ func (t *Terminal) HasMode(mode TerminalMode) bool {
 }
 
 // Resize changes the terminal dimensions and adjusts buffers accordingly.
-// When shrinking rows, lines above cursor are moved to scrollback to preserve
-// content near the cursor. Cursor position is clamped to the new bounds.
+// When shrinking rows, the primary screen's lines above its cursor are moved to
+// scrollback to preserve content near the cursor, and a later grow pulls them
+// back. The primary screen is treated the same whichever buffer is active: with
+// the alternate screen active, the cursor used is the one the primary resumes
+// with. Cursor position is clamped to the new bounds.
 // Invalid dimensions (<= 0) are ignored.
 func (t *Terminal) Resize(rows, cols int) {
 	if rows <= 0 || cols <= 0 {
@@ -472,83 +481,25 @@ func (t *Terminal) Resize(rows, cols int) {
 
 	oldRows := t.rows
 
-	// When shrinking rows on primary buffer, scroll lines to scrollback
-	// to preserve content near cursor
-	if rows < oldRows && t.activeBuffer == t.primaryBuffer {
-		linesToScroll := oldRows - rows
-		// Only scroll if cursor would be pushed off screen
-		if t.cursor.Row >= rows {
-			// Scroll up to keep cursor visible
-			t.primaryBuffer.ScrollUp(0, oldRows, linesToScroll)
-			t.cursor.Row -= linesToScroll
-			if t.cursor.Row < 0 {
-				t.cursor.Row = 0
-			}
-		}
+	if rows < oldRows {
+		t.shrinkPrimaryRows(oldRows, rows)
 	}
 
-	// Update dimensions and resize buffers FIRST
 	t.rows = rows
 	t.cols = cols
 	t.primaryBuffer.Resize(rows, cols)
 	t.alternateBuffer.Resize(rows, cols)
 
-	// When growing rows on primary buffer, pull lines from scrollback
-	// to restore previously scrolled content
-	// NOTE: This must happen AFTER buffer resize so ScrollDown has room to shift content
-	if rows > oldRows && t.activeBuffer == t.primaryBuffer {
-		scrollback := t.primaryBuffer.ScrollbackProvider()
-		if scrollback != nil && scrollback.Len() > 0 {
-			linesToPull := rows - oldRows
-			if linesToPull > scrollback.Len() {
-				linesToPull = scrollback.Len()
-			}
-
-			// Pop lines from scrollback (most recent first) and collect them
-			// We need to reverse because Pop returns newest first
-			lines := make([][]Cell, linesToPull)
-			for i := linesToPull - 1; i >= 0; i-- {
-				line := scrollback.Pop()
-				if line == nil {
-					linesToPull = linesToPull - 1 - i
-					lines = lines[linesToPull-1-i:]
-					break
-				}
-				lines[i] = line
-			}
-
-			if len(lines) > 0 {
-				// Shift existing content down to make room at top
-				// Now buffer has 'rows' height, so there's room to shift
-				t.primaryBuffer.ScrollDown(0, rows, len(lines))
-
-				// Copy popped lines to the top of the buffer
-				for i, line := range lines {
-					for col, cell := range line {
-						if col < t.cols {
-							t.primaryBuffer.SetCell(i, col, cell)
-						}
-					}
-				}
-
-				// Adjust cursor position to account for the shift
-				t.cursor.Row += len(lines)
-			}
-		}
+	// Growing must follow the buffer resize so ScrollDown has room to shift content.
+	if rows > oldRows {
+		t.growPrimaryRows(oldRows, rows)
 	}
 
-	// Clamp cursor to bounds
-	if t.cursor.Row >= rows {
-		t.cursor.Row = rows - 1
-	}
-	if t.cursor.Row < 0 {
-		t.cursor.Row = 0
-	}
-	if t.cursor.Col >= cols {
-		t.cursor.Col = cols - 1
-	}
-	if t.cursor.Col < 0 {
-		t.cursor.Col = 0
+	t.cursor.Row = clamp(t.cursor.Row, 0, rows-1)
+	t.cursor.Col = clamp(t.cursor.Col, 0, cols-1)
+	if t.activeBuffer != t.primaryBuffer && t.savedCursor != nil {
+		t.savedCursor.Row = clamp(t.savedCursor.Row, 0, rows-1)
+		t.savedCursor.Col = clamp(t.savedCursor.Col, 0, cols-1)
 	}
 
 	// Adjust scroll region
