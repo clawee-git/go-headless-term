@@ -145,10 +145,10 @@ Represents one grid position:
 - `IsWideSpacer()`: True if this is the second cell of a wide character
 
 A rune is 2 columns when its Unicode `East_Asian_Width` is `W` or `F` or it has
-`Emoji_Presentation=Yes`, 0 for controls, combining marks and zero-width format
-characters, and 1 otherwise — so text-presentation symbols such as `⏺` and `❯`
-take one column, as terminals draw them. The table in `width_table.go` is
-generated from Unicode 16.0.0 data; regenerate it with `go generate`.
+`Emoji_Presentation=Yes`, 0 for controls, format characters and combining marks,
+and 1 otherwise — so text-presentation symbols such as `⏺` and `❯` take one
+column, as terminals draw them. The table in `width_table.go` is generated from
+Unicode 16.0.0 data; regenerate it with `go generate`.
 
 ### Options
 

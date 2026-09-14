@@ -47,10 +47,13 @@ func TestRuneWidth(t *testing.T) {
 		{'\u23BF', 1}, // ⎿ BOTTOM LEFT CORNER
 
 		// Zero width.
-		{'\u0301', 0}, // COMBINING ACUTE ACCENT
-		{'\u200B', 0}, // ZERO WIDTH SPACE
-		{'\u3099', 0}, // COMBINING KATAKANA-HIRAGANA VOICED SOUND MARK: Mn outranks East_Asian_Width W
-		{0x7F, 0},     // DELETE
+		{'\u0301', 0},     // COMBINING ACUTE ACCENT
+		{'\u200B', 0},     // ZERO WIDTH SPACE
+		{'\u3099', 0},     // COMBINING KATAKANA-HIRAGANA VOICED SOUND MARK: Mn outranks East_Asian_Width W
+		{'\u2060', 0},     // WORD JOINER (Cf)
+		{'\u2066', 0},     // LEFT-TO-RIGHT ISOLATE (Cf)
+		{'\U000E0067', 0}, // TAG LATIN SMALL LETTER G (Cf)
+		{0x7F, 0},         // DELETE
 	}
 
 	for _, tt := range tests {
@@ -98,6 +101,7 @@ func TestStringWidth(t *testing.T) {
 		{"\u23FA Bash", 6},
 		{"\u276F hi", 4},
 		{"e\u0301", 1},
+		{"\U0001F3F4\U000E0067\U000E0062\U000E0065\U000E006E\U000E0067\U000E007F", 2}, // England flag: black flag + tag sequence
 	}
 
 	for _, tt := range tests {

@@ -6,8 +6,7 @@
 //
 // The rule it encodes, in priority order:
 //
-//   - width 0: General_Category Cc, Mn, Me or Mc, plus U+00AD, U+200B..U+200F
-//     and U+FEFF;
+//   - width 0: General_Category Cc, Cf, Mn, Me or Mc;
 //   - width 2: East_Asian_Width W or F, or Emoji_Presentation=Yes;
 //   - width 1: everything else, East_Asian_Width A (ambiguous) included.
 //
@@ -35,15 +34,6 @@ import (
 // span is an inclusive range of code points.
 type span struct {
 	lo, hi rune
-}
-
-// extraZeroWidth lists the format characters (General_Category Cf) that are
-// zero width in addition to the categories above: soft hyphen, the zero-width
-// space/joiners and directional marks, and the byte order mark.
-var extraZeroWidth = []span{
-	{0x00AD, 0x00AD},
-	{0x200B, 0x200F},
-	{0xFEFF, 0xFEFF},
 }
 
 var errBadLine = errors.New("malformed data line")
@@ -91,14 +81,14 @@ func loadTables(base, version string) (zero, wide []span, err error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	zero = mergeSpans(slices.Concat(categories, extraZeroWidth))
+	zero = mergeSpans(categories)
 	wide = subtractSpans(mergeSpans(slices.Concat(eastAsian, emoji)), zero)
 	return zero, wide, nil
 }
 
 func isZeroWidthCategory(value string) bool {
 	switch value {
-	case "Cc", "Mn", "Me", "Mc":
+	case "Cc", "Cf", "Mn", "Me", "Mc":
 		return true
 	}
 	return false
@@ -245,7 +235,7 @@ func render(version string, zero, wide []span) ([]byte, error) {
 	buf.WriteString("package headlessterm\n\nimport \"unicode\"\n\n")
 	buf.WriteString("// widthTableUnicodeVersion is the Unicode Character Database version the\n// width tables below were generated from.\n")
 	fmt.Fprintf(&buf, "const widthTableUnicodeVersion = %q\n\n", version)
-	buf.WriteString("// zeroWidthTable holds General_Category Cc, Mn, Me and Mc, plus U+00AD,\n// U+200B..U+200F and U+FEFF.\n")
+	buf.WriteString("// zeroWidthTable holds General_Category Cc, Cf, Mn, Me and Mc.\n")
 	writeRangeTable(&buf, "zeroWidthTable", zero)
 	buf.WriteString("// wideTable holds East_Asian_Width W and F, and Emoji_Presentation=Yes,\n// minus anything in zeroWidthTable.\n")
 	writeRangeTable(&buf, "wideTable", wide)

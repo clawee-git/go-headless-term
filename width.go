@@ -6,8 +6,7 @@ import "unicode"
 
 // runeWidth returns the number of columns a printed rune occupies, answered
 // from the tables in width_table.go (see widthTableUnicodeVersion):
-//   - 0 for controls (Cc), combining marks (Mn, Me, Mc), U+00AD, U+200B..U+200F
-//     and U+FEFF;
+//   - 0 for controls (Cc), format characters (Cf) and combining marks (Mn, Me, Mc);
 //   - 2 for East_Asian_Width W or F, and Emoji_Presentation=Yes;
 //   - 1 for everything else, East Asian ambiguous width included.
 //
