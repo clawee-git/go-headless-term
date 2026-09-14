@@ -172,6 +172,53 @@ func TestTerminalDirtyTracking(t *testing.T) {
 	}
 }
 
+// TestTerminalNarrowPictographCursorWrite reproduces the eaten space after
+// Claude Code's status dot: the app draws "⏺ ", then places "Bash" at
+// column 3 by cursor position. A one-column glyph must leave the space intact.
+func TestTerminalNarrowPictographCursorWrite(t *testing.T) {
+	term := New(WithSize(24, 80))
+
+	term.WriteString("\u23FA \x1b[1;3HBash")
+
+	if got := term.LineContent(0); got != "\u23FA Bash" {
+		t.Errorf("line = %q, want %q", got, "\u23FA Bash")
+	}
+	if c := term.Cell(0, 1); c.Char != ' ' {
+		t.Errorf("cell 1 = %q, want a space", c.Char)
+	}
+	if c := term.Cell(0, 2); c.Char != 'B' {
+		t.Errorf("cell 2 = %q, want 'B'", c.Char)
+	}
+	for col := range term.Cols() {
+		c := term.Cell(0, col)
+		if c.IsWide() || c.IsWideSpacer() {
+			t.Errorf("cell %d carries a wide flag (%q)", col, c.Char)
+		}
+	}
+}
+
+// TestTerminalWideCharacterCursorWrite is the control for the test above: a
+// genuinely wide rune keeps its spacer, so the cursor-positioned write lands
+// after it.
+func TestTerminalWideCharacterCursorWrite(t *testing.T) {
+	term := New(WithSize(24, 80))
+
+	term.WriteString("\u4E2D\x1b[1;3HBash")
+
+	if got := term.LineContent(0); got != "\u4E2DBash" {
+		t.Errorf("line = %q, want %q", got, "\u4E2DBash")
+	}
+	if c := term.Cell(0, 0); !c.IsWide() {
+		t.Error("cell 0 is not marked wide")
+	}
+	if c := term.Cell(0, 1); !c.IsWideSpacer() {
+		t.Error("cell 1 is not a wide spacer")
+	}
+	if c := term.Cell(0, 2); c.Char != 'B' {
+		t.Errorf("cell 2 = %q, want 'B'", c.Char)
+	}
+}
+
 func TestTerminalWideCharacter(t *testing.T) {
 	term := New(WithSize(24, 80))
 

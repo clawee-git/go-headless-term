@@ -15,5 +15,4 @@ require (
 	github.com/danielgatis/go-utf8 v1.0.1 // indirect
 	github.com/danielgatis/go-vte v1.0.11 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
-	github.com/unilibs/uniwidth v0.1.0 // indirect
 )
