@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	headlessterm "github.com/danielgatis/go-headless-term"
+	headlessterm "github.com/clawee-git/go-headless-term"
 )
 
 func main() {

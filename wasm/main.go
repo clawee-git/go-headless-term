@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"syscall/js"
 
-	headlessterm "github.com/danielgatis/go-headless-term"
+	headlessterm "github.com/clawee-git/go-headless-term"
 )
 
 // Global terminal registry

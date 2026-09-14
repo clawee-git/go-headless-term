@@ -1,12 +1,12 @@
-module github.com/danielgatis/go-headless-term/wasm
+module github.com/clawee-git/go-headless-term/wasm
 
 go 1.25.1
 
-replace github.com/danielgatis/go-headless-term => ..
+replace github.com/clawee-git/go-headless-term => ..
 
 require (
+	github.com/clawee-git/go-headless-term v0.0.0-00010101000000-000000000000
 	github.com/danielgatis/go-ansicode v1.0.14
-	github.com/danielgatis/go-headless-term v0.0.0-00010101000000-000000000000
 )
 
 require (

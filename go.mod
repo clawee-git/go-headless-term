@@ -1,4 +1,4 @@
-module github.com/danielgatis/go-headless-term
+module github.com/clawee-git/go-headless-term
 
 go 1.25.1
 

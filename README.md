@@ -1,10 +1,12 @@
 # go-headless-term
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/danielgatis/go-headless-term?style=flat-square)](https://goreportcard.com/report/github.com/danielgatis/go-headless-term)
+[![Go Report Card](https://goreportcard.com/badge/github.com/clawee-git/go-headless-term?style=flat-square)](https://goreportcard.com/report/github.com/clawee-git/go-headless-term)
 [![License MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/danielgatis/go-headless-term/master/LICENSE)
-[![Go Doc](https://img.shields.io/badge/godoc-reference-blue.svg?style=flat-square)](https://godoc.org/github.com/danielgatis/go-headless-term)
+[![Go Doc](https://img.shields.io/badge/godoc-reference-blue.svg?style=flat-square)](https://pkg.go.dev/github.com/clawee-git/go-headless-term)
 
 ![logo](./logo.png)
+
+> Fork of [danielgatis/go-headless-term](https://github.com/danielgatis/go-headless-term), published under its own module path `github.com/clawee-git/go-headless-term`.
 
 A VT220-compatible terminal emulator for Go that processes ANSI escape sequences and maintains terminal state without a display. You feed it bytes, it updates internal buffers, cursor position, colors, and modes. Useful for parsing terminal output, testing ANSI applications, or building terminal UIs.
 
@@ -53,7 +55,7 @@ Raw bytes → ANSI decoder → Handler methods → State updates
 ## Installation
 
 ```bash
-go get github.com/danielgatis/go-headless-term
+go get github.com/clawee-git/go-headless-term
 ```
 
 ## Minimal example
@@ -63,7 +65,7 @@ package main
 
 import (
 	"fmt"
-	headlessterm "github.com/danielgatis/go-headless-term"
+	headlessterm "github.com/clawee-git/go-headless-term"
 )
 
 func main() {
