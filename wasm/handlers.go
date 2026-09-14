@@ -5,8 +5,8 @@ package main
 import (
 	"syscall/js"
 
+	headlessterm "github.com/clawee-git/go-headless-term"
 	"github.com/danielgatis/go-ansicode"
-	headlessterm "github.com/danielgatis/go-headless-term"
 )
 
 // jsHandlers holds all JavaScript callback handlers for a terminal instance

@@ -2108,7 +2108,7 @@ func (t *Terminal) assignImageToCells(imageID, placementID uint32, p *ImagePlace
 	if endRow > t.scrollBottom {
 		// Need to scroll to make room
 		linesToScroll := endRow - t.scrollBottom
-		t.activeBuffer.ScrollUp(t.scrollTop, t.scrollBottom, linesToScroll)
+		t.scrollActiveRegionUp(linesToScroll)
 
 		// Adjust placement position to account for scroll
 		p.Row -= linesToScroll
