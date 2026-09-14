@@ -77,14 +77,17 @@ func (t *Terminal) popScrollbackLines(n int) [][]Cell {
 }
 
 // scrollActiveRegionUp scrolls the active buffer's scroll region up by n lines
-// for output (line feeds past the bottom margin, SU, image placement). Lines
-// scrolled off the primary screen's top would have fit in the rows an
+// for output that runs past the bottom margin (line feeds, image placement).
+// When that region is the whole primary screen, the scroll happened only
+// because the screen is shorter: the lines would have fit in the rows an
 // alternate-screen shrink cut, so they use up primaryRowsCutOnAlternate and a
-// later grow pops them back instead of handing back blank rows. Resize's own
-// shrink scroll does not come through here. Caller must hold the lock.
+// later grow pops them back instead of handing back blank rows. Scrolls a
+// terminal performs the same at any height (SU, a region ending above the last
+// row) and Resize's own shrink scroll do not use up the counter.
+// Caller must hold the lock.
 func (t *Terminal) scrollActiveRegionUp(n int) {
 	t.activeBuffer.ScrollUp(t.scrollTop, t.scrollBottom, n)
-	if t.activeBuffer != t.primaryBuffer || t.scrollTop != 0 || n <= 0 {
+	if t.activeBuffer != t.primaryBuffer || t.scrollTop != 0 || t.scrollBottom != t.rows || n <= 0 {
 		return
 	}
 	scrolled := min(n, t.scrollBottom-t.scrollTop)

@@ -1282,7 +1282,7 @@ func (t *Terminal) scrollUpInternal(n int) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
-	t.scrollActiveRegionUp(n)
+	t.activeBuffer.ScrollUp(t.scrollTop, t.scrollBottom, n)
 }
 
 // SetActiveCharset selects which charset slot (0-3, G0-G3) is currently active for character rendering.

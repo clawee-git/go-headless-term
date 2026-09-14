@@ -279,3 +279,41 @@ func TestResizeColumnsOnAlternateScreenClampsSavedCursor(t *testing.T) {
 		t.Errorf("cell (4,39) = %v, want 'X'", c)
 	}
 }
+
+// TestResizeOnAlternateScreenThenHeightIndependentScrollKeepsPrimary runs
+// scrolls between leaving the alternate screen and the grow that a terminal
+// performs the same at any height: SU, and output at the bottom of a scroll
+// region that ends above the last row. They must not use up the rows the
+// shrink cut.
+func TestResizeOnAlternateScreenThenHeightIndependentScrollKeepsPrimary(t *testing.T) {
+	regionOutput := "\x1b[1;10r\x1b[10;1H"
+	for i := 1; i <= 5; i++ {
+		regionOutput += fmt.Sprintf("region %02d\r\n", i)
+	}
+	regionOutput += "\x1b[r"
+	for name, between := range map[string]string{
+		"SU 3":               "\x1b[3S",
+		"region 1;10 scroll": regionOutput,
+	} {
+		t.Run(name, func(t *testing.T) {
+			setup := func(term *Terminal) {
+				writeShellOutput(term)
+				term.WriteString("\x1b[H\x1b[2J$ less log\r\n")
+			}
+			control, controlStorage := newResizeTerminal()
+			setup(control)
+			control.WriteString(enterAlternateScreen + leaveAlternateScreen + between + "$ ")
+			want := capturePrimary(t, control, controlStorage)
+
+			term, storage := newResizeTerminal()
+			setup(term)
+			term.WriteString(enterAlternateScreen)
+			term.Resize(18, 80)
+			term.WriteString(leaveAlternateScreen + between)
+			term.Resize(24, 80)
+			term.WriteString("$ ")
+
+			diffPrimary(t, capturePrimary(t, term, storage), want)
+		})
+	}
+}

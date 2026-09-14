@@ -108,8 +108,8 @@ type Terminal struct {
 	// screen was active cut from the bottom of the primary screen without
 	// scrolling anything into scrollback. Growing gives those rows back as blank
 	// rows instead of popping unrelated scrollback lines. Output that later
-	// scrolls lines off the primary's top uses those rows up (see
-	// scrollActiveRegionUp).
+	// scrolls the whole primary screen past its bottom row uses those rows up
+	// (see scrollActiveRegionUp).
 	primaryRowsCutOnAlternate int
 
 	// Current cell attributes
