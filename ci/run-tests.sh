@@ -773,7 +773,10 @@ fetch_artifacts() {
     for pair in json:test.json cover.out:cover.out covered.txt:covered.txt; do
         from="$RUN_BASE.${pair%%:*}"
         to="$ARTIFACTS_DIR/${pair#*:}"
-        if remote_n "$(printf 'cat -- %q' "$from")" >"$to.part" && mv "$to.part" "$to"; then
+        # In a subshell: bash runs a trap while a redirected function call still
+        # holds its redirection, so a signal here wrote cleanup's "released"
+        # into the evidence file.
+        if (remote_n "$(printf 'cat -- %q' "$from")") >"$to.part" && mv "$to.part" "$to"; then
             continue
         fi
         rm -f "$to.part"
