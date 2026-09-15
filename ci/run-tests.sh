@@ -84,7 +84,8 @@
 #            is not writable — never waited for, never broken; a MISSING root
 #            is exit 1: it is the machine's to create, not this script's
 #   130/143/129/141  interrupted by INT/TERM/HUP, or stdout closed (PIPE); the
-#            lock is released first
+#            run is stopped and the lock released first, within a few seconds
+#            of the signal even when it is sent to this script's pid alone
 set -euo pipefail
 
 PROG="ci/run-tests.sh"
@@ -597,14 +598,23 @@ poll_cmd() {
     printf '%s' 'echo "$alive $rc $size"; tail -c +$((off + 1)) "$base.log" 2>/dev/null | head -c $((size - off)); printf .'
 }
 
-# Follow the remote log until the status file appears. A failed poll is the
+# Follow the remote log until the status file appears. The poll's ssh and the
+# pause between polls run as background children the loop waits on: bash defers
+# a trap until a foreground command ends, so a TERM sent to this script alone
+# waited out the pause (CLAWEE_CI_POLL_S) or a slow poll before the stop and
+# release. `wait` returns at once on a trapped signal, and cleanup kills the
+# child. A failed poll is the
 # transport, not the suite: retried up to FOLLOW_MAX_MISSES in a row. A runner
 # gone without a status is reported after DEAD_POLLS polls. Sets
 # FOLLOW_OUTCOME; returns the status, or 1 without one.
 follow() {
-    local offset=0 misses=0 dead=0 out header alive rc size
+    local offset=0 misses=0 dead=0 out header alive rc size cmd polled
     while :; do
-        if out="$(remote_n "$(poll_cmd "$offset")")"; then
+        cmd="$(poll_cmd "$offset")"
+        remote_n "$cmd" >"$POLL_OUT" 2>/dev/null & FOLLOW_CHILD=$!
+        polled=0; wait "$FOLLOW_CHILD" || polled=$?
+        FOLLOW_CHILD=""
+        if [ "$polled" = 0 ] && out="$(cat "$POLL_OUT")"; then
             misses=0
             header="${out%%$'\n'*}"
             out="${out#*$'\n'}"
@@ -626,7 +636,9 @@ follow() {
                 FOLLOW_OUTCOME=lost; return 1
             fi
         fi
-        sleep "$POLL_S"
+        sleep "$POLL_S" & FOLLOW_CHILD=$!
+        wait "$FOLLOW_CHILD" || true
+        FOLLOW_CHILD=""
     done
 }
 
@@ -727,6 +739,8 @@ cleanup() {
     trap '' INT TERM HUP PIPE
     trap - EXIT
     [ "$rc" != 141 ] || stdout_closed
+    [ -z "${FOLLOW_CHILD:-}" ] || kill "$FOLLOW_CHILD" 2>/dev/null
+    [ -z "${POLL_OUT:-}" ] || rm -f "$POLL_OUT"
     if [ "${LAUNCHED:-0}" = 1 ] && [ "$FOLLOW_OUTCOME" != status ] && ! stop_runner; then
         stop_heartbeat
         report_kept_lock
@@ -767,6 +781,8 @@ main() {
     check_remote_dir
     check_numeric_env
     build_teardown_cmds
+    POLL_OUT="$(mktemp "${TMPDIR:-/tmp}/ght-ci-poll.XXXXXX")" || { warn "could not create a temporary file"; exit 1; }
+    trap 'rm -f "$POLL_OUT"' EXIT
     probe_machine
     trap cleanup EXIT
     trap 'exit 130' INT
