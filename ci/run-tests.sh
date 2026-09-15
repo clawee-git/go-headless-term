@@ -12,11 +12,14 @@
 #     or a plain-run runtime quoted before this file existed still compares.
 #   - One CI run per product at a time: the Clawee CI lock is the directory
 #     /tmp/ci-lock/clawee ON THE MACHINE, taken with one atomic mkdir, a `holder`
-#     file saying who, and a `heartbeat` refreshed every CI_LOCK_HEARTBEAT_S
+#     file saying who, and a `heartbeat` refreshed every CLAWEE_CI_LOCK_HEARTBEAT_S
 #     seconds while the lock is held. The exit trap releases it on success,
-#     failure and interrupt. A held lock is reported — holder, heartbeat age and
-#     the STALE threshold that judged it — and this script exits 3. It never
-#     breaks a lock.
+#     failure and interrupt — also when the take itself was interrupted or its
+#     ssh dropped, since the mkdir may have landed; the release only ever removes
+#     a lock whose holder names this run, and does it by rename then delete, so
+#     a late heartbeat cannot leave a holderless directory behind. A held lock is
+#     reported — holder, heartbeat age and the STALE threshold that judged it —
+#     and this script exits 3. It never waits for a lock and never breaks one.
 #   - Long ssh sessions to the machine get dropped, and a dropped session (exit
 #     255) is not a suite result. So the suite runs DETACHED there, writing its
 #     log and exit status to files named for this run, and this script follows
@@ -27,11 +30,12 @@
 #     whole module, test and case counts with skips, failure names, and
 #     shuffled and repeated runs, all returned to the workstation. The options
 #     below produce them through this same command.
-#   - A local go.work is mirrored (its `use` modules travel with the tree and a
-#     go.work naming the remote copies is written there), exactly as `ci-test`
-#     does. In the evidence mode every mirrored module also joins -coverpkg, so
-#     code in another module reached by this module's tests lands in the
-#     profile under that module's path.
+#   - A local go.work is mirrored (its `use` modules travel with the tree, each
+#     to a directory keyed by its full module path, and a go.work naming the
+#     remote copies is written there), exactly as `ci-test` resolves one. It
+#     never widens -coverpkg: this module imports no other Clawee module, so
+#     cross-module coverage (an explicit --cover-module) belongs to the
+#     consuming modules' runners, not this one.
 #   - No GitHub token is minted: every dependency of this module is public. A
 #     go.work naming a private module fails the run loudly inside go.
 #
@@ -43,51 +47,63 @@
 # go test -json, its readable lines streamed, then per-package and module test
 # and case counts (pass/fail/skip), each skipped and failed name, and each
 # shuffle seed. Without options the plain suite runs, unchanged.
-#   --artifacts <dir>   also -covermode=set -coverpkg=./... (plus each go.work
-#                       module) -coverprofile, whatever packages are named, and
-#                       copy test.json, cover.out and covered.txt (the sorted
-#                       covered blocks) to <dir>. <dir> must not exist — evidence
-#                       is never overwritten — and its parent must.
+#   --artifacts <dir>   also -covermode=set -coverpkg=./... -coverprofile,
+#                       whatever packages are named, and copy test.json,
+#                       cover.out and covered.txt to <dir>. covered.txt is the
+#                       sorted set of covered blocks, without blocks in
+#                       `<pkg>_test/` support packages (lang/go.md). Named
+#                       packages with no test files are left out of the run and
+#                       listed. <dir> must not exist — evidence is never
+#                       overwritten — and its parent must.
 #   --shuffle           -shuffle=on; the seed per package is in the log
 #   --repeat <n>        -count=<n> instead of -count=1
 #
 # Environment:
-#   CI_MACHINE            the machine (default burrowee-ci)
-#   CI_TEST_DIR           remote tree (default /tmp/clawee-ght-<user>-<cksum of
-#                         this checkout>); absolute, letters, digits and ._/- only
-#   CI_LOCK_PROJECT       project id recorded on the lock (default: the branch)
-#   CI_LOCK_SESSION       session id recorded on the lock (default: unrecorded)
-#   CI_LOCK_HEARTBEAT_S   heartbeat interval in seconds (default 30); stale after 4
-#   CI_POLL_S             seconds between log polls (default 3)
-#   CI_FOLLOW_MAX_MISSES  failed polls in a row before following gives up (default 40)
+#   CLAWEE_CI_MACHINE             the machine (default burrowee-ci)
+#   CLAWEE_CI_DIR                 remote tree (default /tmp/clawee-ght-<user>-<cksum
+#                                 of this checkout>); absolute, letters, digits, ._/-
+#   CLAWEE_CI_LOCK_PROJECT        project id recorded on the lock (default: the branch)
+#   CLAWEE_CI_LOCK_SESSION        session id recorded on the lock (default: unrecorded)
+#   CLAWEE_CI_LOCK_HEARTBEAT_S    heartbeat interval in seconds (default 30); stale after 4
+#   CLAWEE_CI_POLL_S              seconds between log polls (default 3)
+#   CLAWEE_CI_FOLLOW_MAX_MISSES   failed polls in a row before following gives up (default 40)
+# The three numbers must be whole numbers of at least 1; anything else is a
+# usage error before the machine is contacted.
 #
-# Exit status: the suite's (go build's, then go test's), 2 for a usage error,
-# 3 when the CI lock is held or cannot be taken, 1 when the machine cannot be
-# reached, the run ended without a status, or its evidence could not be copied
-# home, 130/143/129 on INT/TERM/HUP.
+# Exit status:
+#   0        the build and every test passed
+#   1        the build or a test failed (any non-zero status from go is reported
+#            as 1, so 2 and 3 below always mean this script), or the machine
+#            could not be reached, the tree not synced, the run ended without a
+#            status, or its evidence could not be copied home
+#   2        usage error: bad option, option after packages, existing --artifacts
+#            directory, bad environment value
+#   3        the Clawee CI lock is held (or changed while checking), or its root
+#            is not writable — never waited for, never broken
+#   130/143/129  interrupted by INT/TERM/HUP; the lock is released first
 set -euo pipefail
 
 PROG="ci/run-tests.sh"
-MACHINE="${CI_MACHINE:-burrowee-ci}"
+MACHINE="${CLAWEE_CI_MACHINE:-burrowee-ci}"
 SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # Keyed by the checkout, so a run from the project worktree and one from dev —
 # or two terminals — never rsync over each other's tree mid-run.
-REMOTE_DIR="${CI_TEST_DIR:-/tmp/clawee-ght-$(id -un)-$(printf '%s' "$SRC" | cksum | cut -d' ' -f1)}"
+REMOTE_DIR="${CLAWEE_CI_DIR:-/tmp/clawee-ght-$(id -un)-$(printf '%s' "$SRC" | cksum | cut -d' ' -f1)}"
 DEPS_DIR="$REMOTE_DIR.deps"
 
 LOCK_ROOT="/tmp/ci-lock"
 LOCK="$LOCK_ROOT/clawee"
-LOCK_HEARTBEAT_S="${CI_LOCK_HEARTBEAT_S:-30}"
+LOCK_HEARTBEAT_S="${CLAWEE_CI_LOCK_HEARTBEAT_S:-30}"
 LOCK_STALE_MULTIPLE=4
-LOCK_PROJECT="${CI_LOCK_PROJECT:-$(git -C "$SRC" rev-parse --abbrev-ref HEAD 2>/dev/null || echo unknown)}"
-LOCK_SESSION="${CI_LOCK_SESSION:-unrecorded}"
+LOCK_PROJECT="${CLAWEE_CI_LOCK_PROJECT:-$(git -C "$SRC" rev-parse --abbrev-ref HEAD 2>/dev/null || echo unknown)}"
+LOCK_SESSION="${CLAWEE_CI_LOCK_SESSION:-unrecorded}"
 # Names THIS run: on the holder file, so only a lock this run took is refreshed
 # or released, and in every remote run file.
 RUN_ID="$(id -un | tr -c 'A-Za-z0-9\n' '_')-$$-$(date +%s)"
 RUN_BASE="$REMOTE_DIR.run.$RUN_ID"
-POLL_S="${CI_POLL_S:-3}"
-FOLLOW_MAX_MISSES="${CI_FOLLOW_MAX_MISSES:-40}"
+POLL_S="${CLAWEE_CI_POLL_S:-3}"
+FOLLOW_MAX_MISSES="${CLAWEE_CI_FOLLOW_MAX_MISSES:-40}"
 DEAD_POLLS=3
 
 # Set by parse_args. EVIDENCE=0 is the plain suite.
@@ -96,8 +112,9 @@ ARTIFACTS_DIR=""
 SHUFFLE=0
 REPEAT=1
 PACKAGES=(./...)
-# Module paths of the go.work `use` entries mirrored by sync_tree.
-WORKSPACE_MODULES=""
+# Where the lock stands: empty (not tried), trying (the take's ssh has not
+# answered, so the mkdir may have landed) or taken.
+LOCK_STATE=""
 # How the run ended: status (the runner wrote one), lost, dead or unstarted.
 FOLLOW_OUTCOME=""
 
@@ -159,16 +176,38 @@ set_repeat() {
 check_remote_dir() {
     case "$REMOTE_DIR" in
         /*) ;;
-        *) usage_error "CI_TEST_DIR must be an absolute path: '$REMOTE_DIR'" ;;
+        *) usage_error "CLAWEE_CI_DIR must be an absolute path: '$REMOTE_DIR'" ;;
     esac
     case "$REMOTE_DIR" in
-        *[!A-Za-z0-9._/-]*) usage_error "CI_TEST_DIR may hold only letters, digits and ._/-: '$REMOTE_DIR'" ;;
+        *[!A-Za-z0-9._/-]*) usage_error "CLAWEE_CI_DIR may hold only letters, digits and ._/-: '$REMOTE_DIR'" ;;
     esac
+}
+
+# The numeric settings, refused before any contact unless a whole number of at
+# least 1. A heartbeat of 0 or "abc" makes the remote refresher loop without
+# sleeping on the shared machine and records a heartbeat_s every sibling
+# misjudges; a bad poll count breaks the follower's give-up test.
+check_numeric_env() {
+    local pair name value
+    for pair in "CLAWEE_CI_LOCK_HEARTBEAT_S=$LOCK_HEARTBEAT_S" "CLAWEE_CI_POLL_S=$POLL_S" \
+        "CLAWEE_CI_FOLLOW_MAX_MISSES=$FOLLOW_MAX_MISSES"; do
+        name="${pair%%=*}"
+        value="${pair#*=}"
+        case "$value" in
+            '' | 0* | *[!0-9]*) usage_error "$name must be a whole number of at least 1: '$value'" ;;
+        esac
+    done
 }
 
 # A loaded machine times out the ssh banner exchange; that is a slow machine,
 # not a failed suite, so every call waits longer than ssh's default.
-remote() {
+# remote_n carries no stdin (ssh -n); remote_stdin is for the three calls that
+# pipe something in on purpose: the holder text, the run script, the go.work.
+remote_n() {
+    ssh -n -o BatchMode=yes -o ConnectTimeout=30 -o ServerAliveInterval=15 "$MACHINE" "$@"
+}
+
+remote_stdin() {
     ssh -o BatchMode=yes -o ConnectTimeout=30 -o ServerAliveInterval=15 "$MACHINE" "$@"
 }
 
@@ -176,7 +215,7 @@ remote() {
 # it) and an account that is not enrolled (fixed by that account). Port 22
 # answering tells them apart.
 probe_machine() {
-    remote true </dev/null 2>/dev/null && return 0
+    remote_n true 2>/dev/null && return 0
     echo "$PROG: $MACHINE is not answering ssh." >&2
     if (exec 3<>"/dev/tcp/$MACHINE/22") 2>/dev/null; then
         echo "$PROG: port 22 answered — the machine is up; it is loaded, or this account is not enrolled (vm enroll)." >&2
@@ -188,12 +227,13 @@ probe_machine() {
 
 # One atomic mkdir, so two runs cannot both succeed. The holder text travels on
 # stdin, so a quote in a branch or session name cannot break the command.
-# Remote exit: 0 taken, 3 held (holder and heartbeat age printed), 4 the lock
-# root is not writable by this account.
+# Remote exit: 0 taken, 3 held (holder and heartbeat age printed) or released
+# between the mkdir and the check (`changed`), 4 the lock root is not writable
+# by this account.
 take_lock() {
     printf 'project=%s\nsession=%s\nuser=%s\ntaken=%s\nrepo=%s\nrun=%s\nheartbeat_s=%s\n' "$LOCK_PROJECT" "$LOCK_SESSION" \
         "$(id -un)" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$SRC" "$RUN_ID" "$LOCK_HEARTBEAT_S" |
-        remote "$(printf 'root=%q lock=%q; ' "$LOCK_ROOT" "$LOCK")"'
+        remote_stdin "$(printf 'root=%q lock=%q; ' "$LOCK_ROOT" "$LOCK")"'
             [ -d "$root" ] || mkdir -m 1777 "$root" 2>/dev/null
             if mkdir "$lock" 2>/dev/null; then
                 cat > "$lock/holder" && date -u +%Y-%m-%dT%H:%M:%SZ > "$lock/heartbeat" && exit 0
@@ -209,6 +249,7 @@ take_lock() {
                 fi
                 exit 3
             fi
+            if [ -d "$root" ] && [ -w "$root" ]; then echo changed; exit 3; fi
             stat -c "root %n is %U:%G mode %a" "$root"; exit 4'
 }
 
@@ -225,6 +266,10 @@ refuse_lock() {
     if [ "$rc" != 3 ]; then
         echo "$PROG: cannot take $MACHINE:$LOCK — the lock root is not writable by $(id -un):" >&2
         printf '%s\n' "$out" | sed "s|^|$PROG:   |" >&2
+        exit 3
+    fi
+    if [ "$out" = changed ]; then
+        echo "$PROG: the Clawee CI lock $MACHINE:$LOCK was released while this run checked it — re-run" >&2
         exit 3
     fi
     age="$(printf '%s\n' "$out" | sed -n 's/.* age=\([0-9-]*\)s$/\1/p')"
@@ -248,13 +293,19 @@ heartbeat_cmd() {
 # Refresh the heartbeat from here for as long as the lock is held — the sync and
 # the teardown are gaps the detached runner does not cover. It refreshes only
 # while this script is alive: a SIGKILLed script runs no trap, and a refresher
-# that outlived it would keep the lock looking live.
+# that outlived it would keep the lock looking live. Its sleep and its ssh run
+# as a child it waits on, and TERM kills that child: an ssh left running past
+# stop_heartbeat could write a heartbeat into the lock while it is released.
 start_heartbeat() {
     local cmd parent=$$
     cmd="$(heartbeat_cmd)"
     (
-        while sleep "$LOCK_HEARTBEAT_S" && kill -0 "$parent" 2>/dev/null; do
-            remote "$cmd" </dev/null >/dev/null 2>&1 || true
+        child=""
+        trap '[ -z "$child" ] || kill "$child" 2>/dev/null; exit 0' TERM
+        while :; do
+            sleep "$LOCK_HEARTBEAT_S" & child=$!; wait "$child"
+            kill -0 "$parent" 2>/dev/null || exit 0
+            remote_n "$cmd" >/dev/null 2>&1 & child=$!; wait "$child"
         done
     ) &
     HEARTBEAT_PID=$!
@@ -268,11 +319,16 @@ stop_heartbeat() {
     fi
 }
 
-# Release only the lock this run took (its run id on the holder file).
+# Release only the lock this run took (its run id on the holder file), by an
+# atomic rename and then a delete: the lock path is free the moment the rename
+# lands, whatever a late write does to the renamed directory. `quiet` is for a
+# take that never answered, where finding no lock of ours is the normal case.
 release_lock() {
-    if remote "$(printf 'grep -qx %q %q && rm -rf %q' "run=$RUN_ID" "$LOCK/holder" "$LOCK")" </dev/null 2>/dev/null; then
+    local gone="$LOCK.released.$RUN_ID"
+    if remote_n "$(printf 'grep -qx %q %q && mv %q %q && rm -rf %q' "run=$RUN_ID" "$LOCK/holder" \
+        "$LOCK" "$gone" "$gone")" 2>/dev/null; then
         echo "$PROG: released $MACHINE:$LOCK"
-    else
+    elif [ "${1:-}" != quiet ]; then
         echo "$PROG: lock $MACHINE:$LOCK not released by this run (not ours, or unreachable) — check it" >&2
     fi
 }
@@ -286,11 +342,13 @@ release_lock() {
 sync_tree() {
     echo "$PROG: sync $SRC -> $MACHINE:$REMOTE_DIR"
     rsync -a --delete --exclude '.git' --exclude '.codegraph' --exclude '/dist' \
-        --exclude 'go.work' --exclude 'go.work.sum' "$SRC/" "$MACHINE:$REMOTE_DIR/" || return 1
+        --exclude 'go.work' --exclude 'go.work.sum' "$SRC/" "$MACHINE:$REMOTE_DIR/" ||
+        { echo "$PROG: rsync of $SRC to $MACHINE failed" >&2; return 1; }
     if [ -f "$SRC/go.work" ]; then
         mirror_workspace || return 1
     else
-        remote "$(printf 'rm -f %q %q' "$REMOTE_DIR/go.work" "$REMOTE_DIR/go.work.sum")" </dev/null || return 1
+        remote_n "$(printf 'rm -f %q %q' "$REMOTE_DIR/go.work" "$REMOTE_DIR/go.work.sum")" ||
+            { echo "$PROG: could not remove a stale go.work on $MACHINE" >&2; return 1; }
     fi
 }
 
@@ -305,37 +363,41 @@ workspace_uses() {
     ' "$SRC/go.work"
 }
 
-# Each `use` module other than this one goes to DEPS_DIR/<last path segment>,
-# and a go.work naming those copies is written on the machine.
+# The go.work module in directory $1: its module path, refused unless it holds
+# only Go's module-path characters, since it is spliced into a remote path.
+workspace_module() {
+    local module
+    module="$(awk '$1 == "module" { print $2; exit }' "$1/go.mod" 2>/dev/null)"
+    case "$module" in
+        '') echo "$PROG: $1/go.mod declares no module path" >&2; return 1 ;;
+        *[!A-Za-z0-9._~/-]*) echo "$PROG: $1/go.mod declares an unusable module path: '$module'" >&2; return 1 ;;
+    esac
+    printf '%s' "$module"
+}
+
+# Each `use` module other than this one goes to DEPS_DIR/<module path with / as
+# _> — keyed by the whole path, so two modules sharing a last segment never
+# share a directory — and a go.work naming those copies is written there.
 mirror_workspace() {
     local u dep module name uses="" go_directive
     go_directive="$(awk '$1 == "go" { print $2; exit }' "$SRC/go.work")"
-    remote "$(printf 'mkdir -p %q' "$DEPS_DIR")" </dev/null || return 1
+    remote_n "$(printf 'mkdir -p %q' "$DEPS_DIR")" || { echo "$PROG: could not create $DEPS_DIR on $MACHINE" >&2; return 1; }
     for u in $(workspace_uses); do
         [ "$u" = "." ] && continue
         case "$u" in /*) dep="$u" ;; *) dep="$SRC/$u" ;; esac
         dep="$(cd "$dep" 2>/dev/null && pwd)" || { echo "$PROG: go.work names '$u', which is not a directory" >&2; return 1; }
-        module="$(awk '$1 == "module" { print $2; exit }' "$dep/go.mod" 2>/dev/null)"
-        [ -n "$module" ] || { echo "$PROG: $dep/go.mod declares no module path" >&2; return 1; }
-        name="${module##*/}"
+        module="$(workspace_module "$dep")" || return 1
+        name="$(printf '%s' "$module" | tr '/' '_')"
         rsync -a --delete --exclude '.git' --exclude '.codegraph' --exclude '/dist' \
-            --exclude 'go.work' --exclude 'go.work.sum' "$dep/" "$MACHINE:$DEPS_DIR/$name/" || return 1
+            --exclude 'go.work' --exclude 'go.work.sum' "$dep/" "$MACHINE:$DEPS_DIR/$name/" ||
+            { echo "$PROG: rsync of $dep to $MACHINE failed" >&2; return 1; }
         uses="$uses	$DEPS_DIR/$name
 "
-        WORKSPACE_MODULES="$WORKSPACE_MODULES $module"
         echo "$PROG: go.work: $module <- $dep"
     done
     printf 'go %s\n\nuse (\n\t.\n%s)\n' "${go_directive:-1.25.1}" "$uses" |
-        remote "$(printf 'cat > %q' "$REMOTE_DIR/go.work")"
-}
-
-# What the covered set spans: the whole module, plus every go.work module.
-coverpkg() {
-    local list="./..." module
-    for module in $WORKSPACE_MODULES; do
-        list="$list,$module/..."
-    done
-    printf '%s' "$list"
+        remote_stdin "$(printf 'cat > %q' "$REMOTE_DIR/go.work")" ||
+        { echo "$PROG: could not write go.work on $MACHINE" >&2; return 1; }
 }
 
 go_test_flags() {
@@ -343,7 +405,7 @@ go_test_flags() {
     [ "$SHUFFLE" = 0 ] || flags="$flags -shuffle=on"
     [ "$EVIDENCE" = 0 ] || flags="$flags -json"
     if [ -n "$ARTIFACTS_DIR" ]; then
-        flags="$flags -covermode=set -coverpkg=$(coverpkg) -coverprofile=$(printf %q "$RUN_BASE.cover.out")"
+        flags="$flags -covermode=set -coverpkg=./... -coverprofile=$(printf %q "$RUN_BASE.cover.out")"
     fi
     printf '%s' "$flags"
 }
@@ -415,8 +477,11 @@ evidence_filter_cmd() {
 
 # Shell for the machine, after the run: test and case counts by outcome per
 # package and for the module, a line per skipped and failed test and per
-# shuffle seed; then, with --artifacts, the covered set and its size. A missing
-# profile fails the run. Expects $rc.
+# shuffle seed; then, with --artifacts, the covered set and its size. Blocks in
+# `<pkg>_test/` support packages are dropped from the set (lang/go.md, "The
+# covered set"): an audit's EXTRACT moves code into them, so their block keys
+# change without any production change. A missing profile fails the run.
+# Expects $rc.
 evidence_summary_cmd() {
     local program
     program='def n($x; $a): $x | map(select(.Action == $a)) | length;
@@ -433,7 +498,7 @@ evidence_summary_cmd() {
     printf 'echo "=== summary"\njq -Rrn %q < %q\n' "$program" "$RUN_BASE.json"
     [ -n "$ARTIFACTS_DIR" ] || return 0
     printf 'if [ -s %q ]; then\n' "$RUN_BASE.cover.out"
-    printf 'awk %q %q | LC_ALL=C sort -u > %q\n' 'FNR > 1 && $NF > 0 {print $1}' "$RUN_BASE.cover.out" "$RUN_BASE.covered.txt"
+    printf 'awk %q %q | LC_ALL=C sort -u > %q\n' 'FNR > 1 && $NF > 0 && $1 !~ /_test\// {print $1}' "$RUN_BASE.cover.out" "$RUN_BASE.covered.txt"
     printf 'echo "=== covered $(wc -l < %q) blocks"\n' "$RUN_BASE.covered.txt"
     printf 'else\necho "=== no coverage profile"; [ $rc -ne 0 ] || rc=1\nfi\n'
 }
@@ -445,7 +510,7 @@ launch() {
     local script
     script="$(remote_suite)" || return 1
     printf '%s\n' "$script" |
-        remote "$(printf 'base=%q; ' "$RUN_BASE")"'
+        remote_stdin "$(printf 'base=%q; ' "$RUN_BASE")"'
             rm -f "$base".* || exit 1
             cat > "$base.sh" || exit 1
             setsid nohup bash "$base.sh" > "$base.log" 2>&1 < /dev/null &
@@ -470,7 +535,7 @@ poll_cmd() {
 follow() {
     local offset=0 misses=0 dead=0 out header alive rc size
     while :; do
-        if out="$(remote "$(poll_cmd "$offset")" </dev/null)"; then
+        if out="$(remote_n "$(poll_cmd "$offset")")"; then
             misses=0
             header="${out%%$'\n'*}"
             out="${out#*$'\n'}"
@@ -501,7 +566,7 @@ follow() {
 # the script: a missing pid file alone is not proof the runner is gone.
 # Non-zero when that cannot be confirmed.
 stop_runner() {
-    remote "$(printf 'pidf=%q script=%q; ' "$RUN_BASE.pid" "$RUN_BASE.sh")"'
+    remote_n "$(printf 'pidf=%q script=%q; ' "$RUN_BASE.pid" "$RUN_BASE.sh")"'
         if [ -f "$pidf" ]; then
             pg=$(cat "$pidf")
         else
@@ -517,7 +582,7 @@ stop_runner() {
         done
         kill -KILL -- "-$pg" 2>/dev/null; sleep 1
         pgrep -g "$pg" >/dev/null && exit 1
-        rm -f "$pidf"' </dev/null 2>/dev/null
+        rm -f "$pidf"' 2>/dev/null
 }
 
 # Copy the evidence home over the runner's own ssh. Each file lands under a
@@ -530,7 +595,7 @@ fetch_artifacts() {
     for pair in json:test.json cover.out:cover.out covered.txt:covered.txt; do
         from="$RUN_BASE.${pair%%:*}"
         to="$ARTIFACTS_DIR/${pair#*:}"
-        if remote "$(printf 'cat -- %q' "$from")" </dev/null >"$to.part" && mv "$to.part" "$to"; then
+        if remote_n "$(printf 'cat -- %q' "$from")" >"$to.part" && mv "$to.part" "$to"; then
             continue
         fi
         rm -f "$to.part"
@@ -554,17 +619,18 @@ cleanup() {
         exit "$(( rc == 0 ? 1 : rc ))"
     fi
     stop_heartbeat
-    if [ "${LOCK_TAKEN:-0}" = 1 ]; then
-        release_lock
-    fi
+    case "$LOCK_STATE" in
+        taken) release_lock ;;
+        trying) release_lock quiet ;;
+    esac
     exit "$rc"
 }
 
 # Launch, follow, and copy the evidence home. Returns the run's status.
 run_suite() {
     local rc=0
-    remote "$(printf 'rm -f -- %q.run.*' "$REMOTE_DIR")" </dev/null || true
-    sync_tree || { echo "$PROG: could not sync the tree to $MACHINE" >&2; return 1; }
+    remote_n "$(printf 'rm -f -- %q.run.*' "$REMOTE_DIR")" || true
+    sync_tree || return 1
     LAUNCHED=1
     if ! launch; then
         echo "$PROG: could not start the suite on $MACHINE" >&2
@@ -573,6 +639,7 @@ run_suite() {
     fi
     echo "$PROG: started on $MACHINE (log $RUN_BASE.log)"
     follow || rc=$?
+    [ "$rc" -eq 0 ] || rc=1
     if [ "$FOLLOW_OUTCOME" = status ] && [ -n "$ARTIFACTS_DIR" ] && ! fetch_artifacts; then
         [ "$rc" -ne 0 ] || rc=1
     fi
@@ -584,15 +651,17 @@ main() {
     local lock_out lock_rc=0 rc=0
     parse_args "$@"
     check_remote_dir
+    check_numeric_env
     probe_machine
     trap cleanup EXIT
     trap 'exit 130' INT
     trap 'exit 143' TERM
     trap 'exit 129' HUP
+    LOCK_STATE=trying
     lock_out="$(take_lock)" || lock_rc=$?
     case "$lock_rc" in
-        0) LOCK_TAKEN=1; echo "$PROG: took $MACHINE:$LOCK (project $LOCK_PROJECT, session $LOCK_SESSION)" ;;
-        3|4) refuse_lock "$lock_rc" "$lock_out" ;;
+        0) LOCK_STATE=taken; echo "$PROG: took $MACHINE:$LOCK (project $LOCK_PROJECT, session $LOCK_SESSION)" ;;
+        3|4) LOCK_STATE=""; refuse_lock "$lock_rc" "$lock_out" ;;
         *) echo "$PROG: could not reach $MACHINE to take the lock (ssh $lock_rc)" >&2; exit 1 ;;
     esac
     start_heartbeat
