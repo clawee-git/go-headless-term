@@ -24,19 +24,32 @@ The suite is **`ci/run-tests.sh [options] [pkg...]`**, and it runs on the shared
   `CLAWEE_CI_LOCK_SESSION` so the holder names you.
 - Environment: `CLAWEE_CI_MACHINE`, `CLAWEE_CI_DIR`, `CLAWEE_CI_LOCK_PROJECT`,
   `CLAWEE_CI_LOCK_SESSION`, `CLAWEE_CI_LOCK_HEARTBEAT_S`, `CLAWEE_CI_POLL_S`,
-  `CLAWEE_CI_FOLLOW_MAX_MISSES`; the numbers must be whole numbers of at least 1.
+  `CLAWEE_CI_FOLLOW_MAX_MISSES`; the numbers must be whole numbers of at least 1, and
+  `CLAWEE_CI_DIR` must be `/tmp/clawee-ght-<name>` (letters, digits, `._-`, no `..`). Every command
+  that deletes or overwrites on the machine refuses any path outside that prefix or the lock.
 - The suite runs detached on the machine and is followed over short ssh polls, so a dropped
-  connection is not a result. A signal sent to the script stops the remote run and releases the
-  lock within seconds. Exit status, unchanged by a closed stderr:
-  - `0`: build and tests passed **and** this run's lock was released;
+  connection is not a result. A signal (INT/TERM/HUP, also to the script's pid alone) stops the
+  remote run and releases the lock, at once while the run is followed. These remote steps are
+  bounded and finish before the signal is acted on: the probe, the lock take, the sync, the launch,
+  the evidence copy-back, and the stop of a run whose follow was lost (up to ~22 s).
+  Exit status, unchanged by a closed stderr:
+  - `0`: build and tests passed **and** this run's lock was released — or the release found the
+    lock no longer naming this run (warned), so this run holds none;
   - `1`: build or test failure, machine unreachable, `/tmp/ci-lock` missing on the machine (never
-    created here), no status, evidence not copied home — **or a passing run whose lock is or may be
-    left held** (unconfirmed remote kill, unanswered release; the recovery commands are on stderr);
-  - `2`: usage; `3`: the lock is held by another run;
-  - `130`/`143`/`129`/`141`: interrupted, after the stop and release.
+    created here), no status, evidence not copied home — **or a passing run whose lock is or may be left held** (unconfirmed remote kill,
+    unanswered release; the recovery commands are on stderr);
+  - `2`: usage, refused before any contact — including a bad environment value (`CLAWEE_CI_DIR`
+    outside `/tmp/clawee-ght-<name>`) and a local `go.work` naming a module that cannot be mirrored
+    safely (`.`, `..`, empty);
+  - `3`: the lock is held by another run, was released while this run checked it, or its root is
+    not writable;
+  - `130`/`143`/`129`: interrupted; `141`: stdout closed with SIGPIPE — after the stop and release.
 
-  A failing status is never replaced by the lock outcome. The printed release exits `3` when the
-  lock is not this run's and `0` when it released it. `ci/run-tests.sh --help` has the rest.
+  The lock outcome never replaces a failing status; a signal or SIGPIPE after the status is known
+  does (the exit is the signal's). A closed stdout without SIGPIPE (`>&-`, or SIGPIPE ignored) does
+  not stop the run: messages continue on stderr and the status is the run's. The printed release
+  exits `3` when the lock is not this run's and `0` when it released it. `ci/run-tests.sh --help`
+  has the rest.
 - Cross-module coverage: none from this runner. A local `go.work` is mirrored to the machine, but
   never widens `-coverpkg`. This module imports no other Clawee module; code here reached only by
   another module's tests (`cli` pins this one) is measured by **that** module's runner, with

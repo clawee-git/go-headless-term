@@ -70,7 +70,7 @@
 #   CLAWEE_CI_MACHINE             the machine (default burrowee-ci)
 #   CLAWEE_CI_DIR                 remote tree (default /tmp/clawee-ght-<user>-<cksum
 #                                 of this checkout>); must be /tmp/clawee-ght-<name>,
-#                                 <name> of letters, digits and ._- with no '..' 
+#                                 <name> of letters, digits and ._- with no '..'
 #   CLAWEE_CI_LOCK_PROJECT        project id recorded on the lock (default: the branch)
 #   CLAWEE_CI_LOCK_SESSION        session id recorded on the lock (default: unrecorded)
 #   CLAWEE_CI_LOCK_HEARTBEAT_S    heartbeat interval in seconds (default 30); stale after 4
@@ -80,7 +80,9 @@
 # usage error before the machine is contacted.
 #
 # Exit status (a closed stderr never changes it):
-#   0        the build and every test passed, and this run's lock was released
+#   0        the build and every test passed, and this run's lock was released —
+#            or the release found the lock no longer naming this run (warned):
+#            this run then holds no lock
 #   1        the build or a test failed (any non-zero status from go is reported
 #            as 1, so 2 and 3 below always mean this script), or the machine
 #            could not be reached, the tree not synced, the run ended without a
@@ -88,16 +90,25 @@
 #            passed but this run's lock is or may be left held: its remote kill
 #            could not be confirmed, or its release went unanswered (the
 #            commands to clear it are on stderr)
-#   2        usage error: bad option, option after packages, existing --artifacts
-#            directory, bad environment value
-#   3        the Clawee CI lock is held (or changed while checking), or its root
-#            is not writable — never waited for, never broken; a MISSING root
-#            is exit 1: it is the machine's to create, not this script's
-#   130/143/129/141  interrupted by INT/TERM/HUP, or stdout closed (PIPE); the
-#            run is stopped and the lock released first, within a few seconds
-#            of the signal even when it is sent to this script's pid alone
-# A failing status is never replaced: a failed run that also keeps its lock
-# still exits with the failure.
+#   2        usage error, refused before any contact: bad option, option after
+#            packages, existing --artifacts directory, bad environment value
+#            (CLAWEE_CI_DIR outside /tmp/clawee-ght-<name>), or a local go.work
+#            naming a module that cannot be mirrored safely ('.', '..', empty)
+#   3        the Clawee CI lock is held by another run, was released while this
+#            run checked it, or its root is not writable — never waited for,
+#            never broken; a MISSING root is exit 1: it is the machine's to
+#            create, not this script's
+#   130/143/129  interrupted by INT/TERM/HUP; 141  stdout closed with SIGPIPE.
+#            The run is stopped and the lock released first. While the run is
+#            followed a signal is acted on at once, also when it is sent to this
+#            script's pid alone. These remote steps are bounded and finish
+#            before the signal is acted on: the probe, the lock take, the sync,
+#            the launch, the evidence copy-back, and the stop of a run whose
+#            follow was lost, which can take up to about 22 s.
+# A closed stdout WITHOUT SIGPIPE (`>&-`, or a caller that ignores SIGPIPE) does
+# not stop the run: messages continue on stderr and the status is the run's.
+# The lock outcome never replaces a failing status. A signal or SIGPIPE that
+# arrives after the status is known does: the exit is the signal's.
 set -euo pipefail
 
 PROG="ci/run-tests.sh"
