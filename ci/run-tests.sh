@@ -205,7 +205,13 @@ check_numeric_env() {
 # not a failed suite, so every call waits longer than ssh's default.
 # remote_n carries no stdin (ssh -n); remote_stdin is for the three calls that
 # pipe something in on purpose: the holder text, the run script, the go.work.
-SSH_OPTS=(-o BatchMode=yes -o ConnectTimeout=30 -o ServerAliveInterval=15)
+# Every ssh carries ServerAliveInterval=15 with ServerAliveCountMax=4: a
+# half-open connection is given up after about a minute instead of parking the
+# follow, the heartbeat or the stop.
+SSH_OPTS=(-o BatchMode=yes -o ConnectTimeout=30 -o ServerAliveInterval=15 -o ServerAliveCountMax=4)
+# rsync's own ssh gets the same options, so a half-open connection cannot park
+# a sync either.
+RSYNC_SSH="ssh ${SSH_OPTS[*]}"
 
 remote_n() {
     ssh -n "${SSH_OPTS[@]}" "$MACHINE" "$@"
@@ -352,7 +358,7 @@ release_lock() {
 # caller runs this under `||`, where set -e does not apply.
 sync_tree() {
     echo "$PROG: sync $SRC -> $MACHINE:$REMOTE_DIR"
-    rsync -a --delete --exclude '.git' --exclude '.codegraph' --exclude '/dist' \
+    rsync -a -e "$RSYNC_SSH" --delete --exclude '.git' --exclude '.codegraph' --exclude '/dist' \
         --exclude 'go.work' --exclude 'go.work.sum' "$SRC/" "$MACHINE:$REMOTE_DIR/" ||
         { echo "$PROG: rsync of $SRC to $MACHINE failed" >&2; return 1; }
     if [ -f "$SRC/go.work" ]; then
@@ -399,7 +405,7 @@ mirror_workspace() {
         dep="$(cd "$dep" 2>/dev/null && pwd)" || { echo "$PROG: go.work names '$u', which is not a directory" >&2; return 1; }
         module="$(workspace_module "$dep")" || return 1
         name="$(printf '%s' "$module" | tr '/' '_')"
-        rsync -a --delete --exclude '.git' --exclude '.codegraph' --exclude '/dist' \
+        rsync -a -e "$RSYNC_SSH" --delete --exclude '.git' --exclude '.codegraph' --exclude '/dist' \
             --exclude 'go.work' --exclude 'go.work.sum' "$dep/" "$MACHINE:$DEPS_DIR/$name/" ||
             { echo "$PROG: rsync of $dep to $MACHINE failed" >&2; return 1; }
         uses="$uses	$DEPS_DIR/$name
