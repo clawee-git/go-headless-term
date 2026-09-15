@@ -71,6 +71,7 @@
 #   CLAWEE_CI_DIR                 remote tree (default /tmp/clawee-ght-<user>-<cksum
 #                                 of this checkout>); must be /tmp/clawee-ght-<name>,
 #                                 <name> of letters, digits and ._- with no '..'
+#                                 and not ending in '.'
 #   CLAWEE_CI_LOCK_PROJECT        project id recorded on the lock (default: the branch)
 #   CLAWEE_CI_LOCK_SESSION        session id recorded on the lock (default: unrecorded)
 #   CLAWEE_CI_LOCK_HEARTBEAT_S    heartbeat interval in seconds (default 30); stale after 4

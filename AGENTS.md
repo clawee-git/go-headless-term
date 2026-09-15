@@ -25,7 +25,8 @@ The suite is **`ci/run-tests.sh [options] [pkg...]`**, and it runs on the shared
 - Environment: `CLAWEE_CI_MACHINE`, `CLAWEE_CI_DIR`, `CLAWEE_CI_LOCK_PROJECT`,
   `CLAWEE_CI_LOCK_SESSION`, `CLAWEE_CI_LOCK_HEARTBEAT_S`, `CLAWEE_CI_POLL_S`,
   `CLAWEE_CI_FOLLOW_MAX_MISSES`; the numbers must be whole numbers of at least 1, and
-  `CLAWEE_CI_DIR` must be `/tmp/clawee-ght-<name>` (letters, digits, `._-`, no `..`). Every command
+  `CLAWEE_CI_DIR` must be `/tmp/clawee-ght-<name>` (letters, digits, `._-`, no `..`, not ending in
+  `.`). Every command
   that deletes or overwrites on the machine refuses any path outside that prefix or the lock.
 - The suite runs detached on the machine and is followed over short ssh polls, so a dropped
   connection is not a result. A signal (INT/TERM/HUP, also to the script's pid alone) stops the
