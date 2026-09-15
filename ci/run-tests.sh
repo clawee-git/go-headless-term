@@ -92,8 +92,10 @@
 #            commands to clear it are on stderr)
 #   2        usage error, refused before any contact: bad option, option after
 #            packages, existing --artifacts directory, bad environment value
-#            (CLAWEE_CI_DIR outside /tmp/clawee-ght-<name>), or a local go.work
-#            naming a module that cannot be mirrored safely ('.', '..', empty)
+#            (CLAWEE_CI_DIR outside /tmp/clawee-ght-<name>, or a <name> ending
+#            in '.'), a derived remote path the machine guard would refuse, or
+#            a local go.work whose `use` is not a directory or names a module
+#            that cannot be mirrored safely (empty, a '.' segment, '..')
 #   3        the Clawee CI lock is held by another run, was released while this
 #            run checked it, or its root is not writable — never waited for,
 #            never broken; a MISSING root is exit 1: it is the machine's to
@@ -103,12 +105,14 @@
 #            followed a signal is acted on at once, also when it is sent to this
 #            script's pid alone. These remote steps are bounded and finish
 #            before the signal is acted on: the probe, the lock take, the sync,
-#            the launch, the evidence copy-back, and the stop of a run whose
-#            follow was lost, which can take up to about 22 s.
+#            the launch and the evidence copy-back. The stop that follows the
+#            signal can itself take up to about 22 s before the release.
+# Once the teardown (stop, then release) has begun, further signals are
+# ignored and the exit is the run's own status: a signal replaces the run's
+# status only when it lands before the teardown, the copy-back included.
 # A closed stdout WITHOUT SIGPIPE (`>&-`, or a caller that ignores SIGPIPE) does
 # not stop the run: messages continue on stderr and the status is the run's.
-# The lock outcome never replaces a failing status. A signal or SIGPIPE that
-# arrives after the status is known does: the exit is the signal's.
+# The lock outcome never replaces a failing status.
 set -euo pipefail
 
 PROG="ci/run-tests.sh"
