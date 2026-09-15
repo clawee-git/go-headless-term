@@ -81,7 +81,8 @@
 #   3        the Clawee CI lock is held (or changed while checking), or its root
 #            is not writable — never waited for, never broken; a MISSING root
 #            is exit 1: it is the machine's to create, not this script's
-#   130/143/129  interrupted by INT/TERM/HUP; the lock is released first
+#   130/143/129/141  interrupted by INT/TERM/HUP, or stdout closed (PIPE); the
+#            lock is released first
 set -euo pipefail
 
 PROG="ci/run-tests.sh"
@@ -616,10 +617,14 @@ fetch_artifacts() {
 }
 
 # Exit trap. Repeated signals are ignored while tearing down, so a second
-# Ctrl-C cannot skip stopping the runner or releasing the lock.
+# Ctrl-C cannot skip stopping the runner or releasing the lock. PIPE is ignored
+# and errexit is off too: a reader that closed stdout (`ci/run-tests.sh | head`)
+# makes every later echo fail, and without this the first one would end the
+# teardown before the lock is released.
 cleanup() {
     local rc=$?
-    trap '' INT TERM HUP
+    set +e
+    trap '' INT TERM HUP PIPE
     trap - EXIT
     if [ "${LAUNCHED:-0}" = 1 ] && [ "$FOLLOW_OUTCOME" != status ] && ! stop_runner; then
         stop_heartbeat
@@ -665,6 +670,7 @@ main() {
     trap 'exit 130' INT
     trap 'exit 143' TERM
     trap 'exit 129' HUP
+    trap 'exit 141' PIPE
     LOCK_STATE=trying
     lock_out="$(take_lock)" || lock_rc=$?
     case "$lock_rc" in
