@@ -17,7 +17,9 @@
 #     failure and interrupt — also when the take itself was interrupted or its
 #     ssh dropped, since the mkdir may have landed; the release only ever removes
 #     a lock whose holder names this run, and does it by rename then delete, so
-#     a late heartbeat cannot leave a holderless directory behind. A held lock is
+#     a late heartbeat cannot leave a holderless directory behind. The one
+#     exception is a run whose remote kill cannot be confirmed: its lock is left
+#     held, with the commands to check and release it printed. A held lock is
 #     reported — holder, heartbeat age and the STALE threshold that judged it —
 #     and this script exits 3. It never waits for a lock and never breaks one.
 #   - Long ssh sessions to the machine get dropped, and a dropped session (exit
@@ -130,6 +132,42 @@ usage_error() {
     exit 2
 }
 
+# Messages once the run is under way. A write to a closed stdout or stderr does
+# not always raise SIGPIPE (`>&-`, or a caller that ignores SIGPIPE), and bash
+# 3.2 keeps the text of the failed write in its output buffer: the next $(...)
+# flushes it into the captured value — a remote script, or a poll's answer. So a
+# failed write is flushed into /dev/null at once (`echo >/dev/null` flushes it;
+# `printf ''` does not), and a closed stdout is pointed at stderr, or at
+# /dev/null when stderr is closed too.
+say() {
+    echo "$PROG: $*" 2>/dev/null && return 0
+    stdout_closed
+    echo "$PROG: $*" 2>/dev/null || echo >/dev/null
+}
+
+warn() {
+    echo "$PROG: $*" >&2 2>/dev/null || echo >/dev/null
+}
+
+# Raw remote log bytes, streamed while following.
+emit() {
+    printf '%s' "$1" 2>/dev/null && return 0
+    stdout_closed
+    printf '%s' "$1" 2>/dev/null || echo >/dev/null
+}
+
+# The stderr test is a bare `: >&2`: wrapping it in 2>/dev/null would test
+# /dev/null, and an `exec 1>&2` onto a closed stderr ends the shell.
+stdout_closed() {
+    echo >/dev/null
+    if : >&2; then
+        exec 1>&2
+        warn "stdout was closed — messages continue on stderr"
+    else
+        exec 1>/dev/null
+    fi
+}
+
 # Options first, then packages. An option after a package is refused rather
 # than handed to go as a package name.
 parse_args() {
@@ -226,11 +264,11 @@ remote_stdin() {
 # answering tells them apart.
 probe_machine() {
     remote_n true 2>/dev/null && return 0
-    echo "$PROG: $MACHINE is not answering ssh." >&2
+    warn "$MACHINE is not answering ssh."
     if (exec 3<>"/dev/tcp/$MACHINE/22") 2>/dev/null; then
-        echo "$PROG: port 22 answered — the machine is up; it is loaded, or this account is not enrolled (vm enroll)." >&2
+        warn "port 22 answered — the machine is up; it is loaded, or this account is not enrolled (vm enroll)."
     else
-        echo "$PROG: port 22 did not answer — the machine is stopped; only its owner can start it." >&2
+        warn "port 22 did not answer — the machine is stopped; only its owner can start it."
     fi
     exit 1
 }
@@ -277,24 +315,24 @@ refuse_lock() {
     stale=$((interval * LOCK_STALE_MULTIPLE))
     rule="stale after ${stale}s ($source interval ${interval}s x $LOCK_STALE_MULTIPLE)"
     if [ "$rc" != 3 ]; then
-        echo "$PROG: cannot take $MACHINE:$LOCK — the lock root is not writable by $(id -un):" >&2
+        warn "cannot take $MACHINE:$LOCK — the lock root is not writable by $(id -un):"
         printf '%s\n' "$out" | sed "s|^|$PROG:   |" >&2
         exit 3
     fi
     if [ "$out" = changed ]; then
-        echo "$PROG: the Clawee CI lock $MACHINE:$LOCK was released while this run checked it — re-run" >&2
+        warn "the Clawee CI lock $MACHINE:$LOCK was released while this run checked it — re-run"
         exit 3
     fi
     age="$(printf '%s\n' "$out" | sed -n 's/.* age=\([0-9-]*\)s$/\1/p')"
-    echo "$PROG: the Clawee CI lock $MACHINE:$LOCK is held:" >&2
+    warn "the Clawee CI lock $MACHINE:$LOCK is held:"
     printf '%s\n' "$out" | sed "s|^|$PROG:   |" >&2
     if [ -z "$age" ]; then
-        echo "$PROG: no heartbeat recorded — its age cannot be judged ($rule). Ask the holder; breaking it is an operator decision." >&2
+        warn "no heartbeat recorded — its age cannot be judged ($rule). Ask the holder; breaking it is an operator decision."
     elif [ "$age" -gt "$stale" ]; then
-        echo "$PROG: STALE — no heartbeat for ${age}s, $rule." >&2
-        echo "$PROG: breaking it is an operator decision; this script never does." >&2
+        warn "STALE — no heartbeat for ${age}s, $rule."
+        warn "breaking it is an operator decision; this script never does."
     else
-        echo "$PROG: live — heartbeat ${age}s old, $rule. Wait for it." >&2
+        warn "live — heartbeat ${age}s old, $rule. Wait for it."
     fi
     exit 3
 }
@@ -338,16 +376,20 @@ stop_heartbeat() {
 
 # Release only the lock this run took (its run id on the holder file), by an
 # atomic rename and then a delete: the lock path is free the moment the rename
-# lands, whatever a late write does to the renamed directory. `quiet` is for a
-# take that never answered, where finding no lock of ours is the normal case.
+# lands, whatever a late write does to the renamed directory. The remote side
+# exits 3 when the holder does not name this run. `quiet` is for a take that
+# never answered: there, "not ours" is the normal case and says nothing, but a
+# machine that cannot be reached still warns, because the take may have landed.
 release_lock() {
-    local gone="$LOCK.released.$RUN_ID"
-    if remote_n "$(printf 'grep -qx %q %q && mv %q %q && rm -rf %q' "run=$RUN_ID" "$LOCK/holder" \
-        "$LOCK" "$gone" "$gone")" 2>/dev/null; then
-        echo "$PROG: released $MACHINE:$LOCK"
-    elif [ "${1:-}" != quiet ]; then
-        echo "$PROG: lock $MACHINE:$LOCK not released by this run (not ours, or unreachable) — check it" >&2
-    fi
+    local rc=0
+    remote_n "$RELEASE_CMD" 2>/dev/null || rc=$?
+    case "$rc" in
+        0) say "released $MACHINE:$LOCK" ;;
+        3) [ "${1:-}" = quiet ] || warn "lock $MACHINE:$LOCK not released: its holder does not name run $RUN_ID — check it" ;;
+        *) warn "could not release $MACHINE:$LOCK (ssh status $rc): it may still be held by run $RUN_ID"
+           warn "  check:   ssh $MACHINE cat $LOCK/holder"
+           warn "  release: ssh $MACHINE '$RELEASE_CMD'" ;;
+    esac
 }
 
 # --delete so a file removed locally cannot linger and keep a stale test green.
@@ -357,15 +399,15 @@ release_lock() {
 # removed here when this checkout has none. Every step is checked by hand: the
 # caller runs this under `||`, where set -e does not apply.
 sync_tree() {
-    echo "$PROG: sync $SRC -> $MACHINE:$REMOTE_DIR"
+    say "sync $SRC -> $MACHINE:$REMOTE_DIR"
     rsync -a -e "$RSYNC_SSH" --delete --exclude '.git' --exclude '.codegraph' --exclude '/dist' \
         --exclude 'go.work' --exclude 'go.work.sum' "$SRC/" "$MACHINE:$REMOTE_DIR/" ||
-        { echo "$PROG: rsync of $SRC to $MACHINE failed" >&2; return 1; }
+        { warn "rsync of $SRC to $MACHINE failed"; return 1; }
     if [ -f "$SRC/go.work" ]; then
         mirror_workspace || return 1
     else
         remote_n "$(printf 'rm -f %q %q' "$REMOTE_DIR/go.work" "$REMOTE_DIR/go.work.sum")" ||
-            { echo "$PROG: could not remove a stale go.work on $MACHINE" >&2; return 1; }
+            { warn "could not remove a stale go.work on $MACHINE"; return 1; }
     fi
 }
 
@@ -386,8 +428,8 @@ workspace_module() {
     local module
     module="$(awk '$1 == "module" { print $2; exit }' "$1/go.mod" 2>/dev/null)"
     case "$module" in
-        '') echo "$PROG: $1/go.mod declares no module path" >&2; return 1 ;;
-        *[!A-Za-z0-9._~/-]*) echo "$PROG: $1/go.mod declares an unusable module path: '$module'" >&2; return 1 ;;
+        '') warn "$1/go.mod declares no module path"; return 1 ;;
+        *[!A-Za-z0-9._~/-]*) warn "$1/go.mod declares an unusable module path: '$module'"; return 1 ;;
     esac
     printf '%s' "$module"
 }
@@ -398,23 +440,23 @@ workspace_module() {
 mirror_workspace() {
     local u dep module name uses="" go_directive
     go_directive="$(awk '$1 == "go" { print $2; exit }' "$SRC/go.work")"
-    remote_n "$(printf 'mkdir -p %q' "$DEPS_DIR")" || { echo "$PROG: could not create $DEPS_DIR on $MACHINE" >&2; return 1; }
+    remote_n "$(printf 'mkdir -p %q' "$DEPS_DIR")" || { warn "could not create $DEPS_DIR on $MACHINE"; return 1; }
     for u in $(workspace_uses); do
         [ "$u" = "." ] && continue
         case "$u" in /*) dep="$u" ;; *) dep="$SRC/$u" ;; esac
-        dep="$(cd "$dep" 2>/dev/null && pwd)" || { echo "$PROG: go.work names '$u', which is not a directory" >&2; return 1; }
+        dep="$(cd "$dep" 2>/dev/null && pwd)" || { warn "go.work names '$u', which is not a directory"; return 1; }
         module="$(workspace_module "$dep")" || return 1
         name="$(printf '%s' "$module" | tr '/' '_')"
         rsync -a -e "$RSYNC_SSH" --delete --exclude '.git' --exclude '.codegraph' --exclude '/dist' \
             --exclude 'go.work' --exclude 'go.work.sum' "$dep/" "$MACHINE:$DEPS_DIR/$name/" ||
-            { echo "$PROG: rsync of $dep to $MACHINE failed" >&2; return 1; }
+            { warn "rsync of $dep to $MACHINE failed"; return 1; }
         uses="$uses	$DEPS_DIR/$name
 "
-        echo "$PROG: go.work: $module <- $dep"
+        say "go.work: $module <- $dep"
     done
     printf 'go %s\n\nuse (\n\t.\n%s)\n' "${go_directive:-1.25.1}" "$uses" |
         remote_stdin "$(printf 'cat > %q' "$REMOTE_DIR/go.work")" ||
-        { echo "$PROG: could not write go.work on $MACHINE" >&2; return 1; }
+        { warn "could not write go.work on $MACHINE"; return 1; }
 }
 
 go_test_flags() {
@@ -556,21 +598,21 @@ follow() {
             misses=0
             header="${out%%$'\n'*}"
             out="${out#*$'\n'}"
-            printf '%s' "${out%.}"
+            emit "${out%.}"
             read -r alive rc size <<<"$header"
             if [ -z "$size" ]; then size="$rc"; rc=""; fi
             offset="$size"
             if [ -n "$rc" ]; then FOLLOW_OUTCOME=status; return "$rc"; fi
             if [ "$alive" = dead ]; then dead=$((dead + 1)); else dead=0; fi
             if [ "$dead" -ge "$DEAD_POLLS" ]; then
-                echo "$PROG: the runner on $MACHINE is gone and wrote no status — killed? log $RUN_BASE.log" >&2
+                warn "the runner on $MACHINE is gone and wrote no status — killed? log $RUN_BASE.log"
                 FOLLOW_OUTCOME=dead; return 1
             fi
         else
             misses=$((misses + 1))
-            echo "$PROG: lost contact with $MACHINE (poll $misses) — the run continues there" >&2
+            warn "lost contact with $MACHINE (poll $misses) — the run continues there"
             if [ "$misses" -ge "$FOLLOW_MAX_MISSES" ]; then
-                echo "$PROG: giving up following; log $MACHINE:$RUN_BASE.log" >&2
+                warn "giving up following; log $MACHINE:$RUN_BASE.log"
                 FOLLOW_OUTCOME=lost; return 1
             fi
         fi
@@ -581,9 +623,11 @@ follow() {
 # Kill the run's process group and confirm nothing in it survives. The group
 # comes from the pid file, or, when there is none, from a process still running
 # the script: a missing pid file alone is not proof the runner is gone.
-# Non-zero when that cannot be confirmed.
-stop_runner() {
-    remote_n "$(printf 'pidf=%q script=%q; ' "$RUN_BASE.pid" "$RUN_BASE.sh")"'
+# Non-zero when that cannot be confirmed. Built once, before the run, into
+# STOP_CMD (see build_teardown_cmds).
+stop_runner_cmd() {
+    printf 'pidf=%q script=%q; ' "$RUN_BASE.pid" "$RUN_BASE.sh"
+    printf '%s' '
         if [ -f "$pidf" ]; then
             pg=$(cat "$pidf")
         else
@@ -599,7 +643,23 @@ stop_runner() {
         done
         kill -KILL -- "-$pg" 2>/dev/null; sleep 1
         pgrep -g "$pg" >/dev/null && exit 1
-        rm -f "$pidf"' 2>/dev/null
+        rm -f "$pidf"'
+}
+
+stop_runner() {
+    remote_n "$STOP_CMD" 2>/dev/null
+}
+
+# Every remote command the teardown sends, built at start-up while stdout is
+# known to be healthy. A $(...) run during teardown can pick up the text of an
+# earlier failed write (see say); a prebuilt string cannot.
+build_teardown_cmds() {
+    local gone="$LOCK.released.$RUN_ID"
+    STOP_CMD="$(stop_runner_cmd)"
+    RELEASE_CMD="$(printf 'grep -qx %q %q 2>/dev/null || exit 3; mv %q %q && rm -rf %q' \
+        "run=$RUN_ID" "$LOCK/holder" "$LOCK" "$gone" "$gone")"
+    RUN_CHECK_CMD="$(printf 'ls -l %q.pid %q.rc; tail -5 %q.log; pgrep -g "$(cat %q.pid)"' \
+        "$RUN_BASE" "$RUN_BASE" "$RUN_BASE" "$RUN_BASE")"
 }
 
 # Copy the evidence home over the runner's own ssh. Each file lands under a
@@ -608,7 +668,7 @@ stop_runner() {
 # any copy failed.
 fetch_artifacts() {
     local pair from to failed=0
-    mkdir "$ARTIFACTS_DIR" || { echo "$PROG: could not create $ARTIFACTS_DIR" >&2; return 1; }
+    mkdir "$ARTIFACTS_DIR" || { warn "could not create $ARTIFACTS_DIR"; return 1; }
     for pair in json:test.json cover.out:cover.out covered.txt:covered.txt; do
         from="$RUN_BASE.${pair%%:*}"
         to="$ARTIFACTS_DIR/${pair#*:}"
@@ -616,42 +676,43 @@ fetch_artifacts() {
             continue
         fi
         rm -f "$to.part"
-        echo "$PROG: could not copy $MACHINE:$from to $to" >&2
+        warn "could not copy $MACHINE:$from to $to"
         failed=1
     done
     [ "$failed" = 0 ] || return 1
-    echo "$PROG: evidence copied to $ARTIFACTS_DIR:"
-    (cd "$ARTIFACTS_DIR" && wc -c test.json cover.out covered.txt | sed "s|^|$PROG:   |")
+    say "evidence copied to $ARTIFACTS_DIR:"
+    (cd "$ARTIFACTS_DIR" && wc -c test.json cover.out covered.txt | sed "s|^|$PROG:   |") 2>/dev/null || true
 }
 
-# stdout is closed. bash 3.2 keeps the text of the echo that failed in its
-# stdout buffer, and the next $(...) inherits and flushes it into the captured
-# value: the first teardown after `ci/run-tests.sh | head -2` sent the machine
-# "ci/run-tests.sh: started on …" glued to the front of stop_runner's script,
-# which failed, and left the run and the lock behind. Point stdout at stderr
-# (or /dev/null when that is closed too) and write once, so the stale buffer
-# is flushed there before any command substitution runs.
-redirect_closed_stdout() {
-    exec 1>&2
-    echo "$PROG: stdout was closed — tearing down, messages on stderr" && return 0
-    exec 1>/dev/null
-    echo
+# The one exit that deliberately keeps the lock: the run's process group could
+# not be confirmed dead, so the lock stays with it and goes STALE rather than
+# let a second run start beside a live one. Everything needed to finish the job
+# by hand is printed.
+report_kept_lock() {
+    warn "could not confirm the run on $MACHINE is gone — $MACHINE:$LOCK is left held (it goes STALE); not released"
+    warn "  run id:  $RUN_ID"
+    warn "  files:   $MACHINE:$RUN_BASE.{pid,log,rc}"
+    warn "  check:   ssh $MACHINE '$RUN_CHECK_CMD'"
+    warn "  release: ssh $MACHINE '$RELEASE_CMD'   (only once the check shows nothing left running)"
 }
 
 # Exit trap. Repeated signals are ignored while tearing down, so a second
 # Ctrl-C cannot skip stopping the runner or releasing the lock. PIPE is ignored
 # and errexit is off too: a reader that closed stdout (`ci/run-tests.sh | head`)
 # makes every later echo fail, and without this the first one would end the
-# teardown before the lock is released.
+# teardown before the lock is released. The first write flushes whatever a
+# failed write left in bash's buffer into /dev/null (say), and every remote
+# command sent from here was built at start-up (build_teardown_cmds).
 cleanup() {
     local rc=$?
+    echo >/dev/null
     set +e
     trap '' INT TERM HUP PIPE
     trap - EXIT
-    [ "$rc" != 141 ] || redirect_closed_stdout
+    [ "$rc" != 141 ] || stdout_closed
     if [ "${LAUNCHED:-0}" = 1 ] && [ "$FOLLOW_OUTCOME" != status ] && ! stop_runner; then
         stop_heartbeat
-        echo "$PROG: could not confirm the runner on $MACHINE is gone — $LOCK is left for it (it goes STALE); not released" >&2
+        report_kept_lock
         exit "$(( rc == 0 ? 1 : rc ))"
     fi
     stop_heartbeat
@@ -669,11 +730,11 @@ run_suite() {
     sync_tree || return 1
     LAUNCHED=1
     if ! launch; then
-        echo "$PROG: could not start the suite on $MACHINE" >&2
+        warn "could not start the suite on $MACHINE"
         FOLLOW_OUTCOME=unstarted
         return 1
     fi
-    echo "$PROG: started on $MACHINE (log $RUN_BASE.log)"
+    say "started on $MACHINE (log $RUN_BASE.log)"
     follow || rc=$?
     [ "$rc" -eq 0 ] || rc=1
     if [ "$FOLLOW_OUTCOME" = status ] && [ -n "$ARTIFACTS_DIR" ] && ! fetch_artifacts; then
@@ -688,6 +749,7 @@ main() {
     parse_args "$@"
     check_remote_dir
     check_numeric_env
+    build_teardown_cmds
     probe_machine
     trap cleanup EXIT
     trap 'exit 130' INT
@@ -697,12 +759,12 @@ main() {
     LOCK_STATE=trying
     lock_out="$(take_lock)" || lock_rc=$?
     case "$lock_rc" in
-        0) LOCK_STATE=taken; echo "$PROG: took $MACHINE:$LOCK (project $LOCK_PROJECT, session $LOCK_SESSION)" ;;
+        0) LOCK_STATE=taken; say "took $MACHINE:$LOCK (project $LOCK_PROJECT, session $LOCK_SESSION)" ;;
         3|4) LOCK_STATE=""; refuse_lock "$lock_rc" "$lock_out" ;;
         5) LOCK_STATE=""
-           echo "$PROG: $MACHINE:$LOCK_ROOT does not exist — the machine's tmpfiles.d entry creates it; this script never does. Ask the machine's owner to run systemd-tmpfiles --create." >&2
+           warn "$MACHINE:$LOCK_ROOT does not exist — the machine's tmpfiles.d entry creates it; this script never does. Ask the machine's owner to run systemd-tmpfiles --create."
            exit 1 ;;
-        *) echo "$PROG: could not reach $MACHINE to take the lock (ssh $lock_rc)" >&2; exit 1 ;;
+        *) warn "could not reach $MACHINE to take the lock (ssh $lock_rc)"; exit 1 ;;
     esac
     start_heartbeat
     run_suite || rc=$?

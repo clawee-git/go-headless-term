@@ -15,7 +15,11 @@ The suite is **`ci/run-tests.sh [options] [pkg...]`**, and it runs on the shared
 | `ci/run-tests.sh --shuffle --repeat <n> [--artifacts <dir>]` | evidence mode shuffled (`-shuffle=on`, seed per package in the log) and repeated (`-count=<n>`) |
 
 - **The Clawee CI lock** (`/tmp/ci-lock/clawee` on the machine) is taken by every invocation and
-  released on success, failure and interrupt. A held lock exits `3` with its holder, heartbeat age
+  released on success, failure, interrupt and a closed stdout. **One exception:** when the remote
+  run's process group cannot be confirmed dead, the lock is deliberately left held (it goes STALE)
+  so no second run starts beside a live one; the script prints the run id, the run's
+  `pid`/`log`/`rc` files on the machine, a check command, and the release command guarded by that
+  run id — run the release only once the check shows nothing running. A held lock exits `3` with its holder, heartbeat age
   and stale threshold; the script never waits for or breaks one. Set `CLAWEE_CI_LOCK_PROJECT` and
   `CLAWEE_CI_LOCK_SESSION` so the holder names you.
 - Environment: `CLAWEE_CI_MACHINE`, `CLAWEE_CI_DIR`, `CLAWEE_CI_LOCK_PROJECT`,
