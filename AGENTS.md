@@ -26,10 +26,17 @@ The suite is **`ci/run-tests.sh [options] [pkg...]`**, and it runs on the shared
   `CLAWEE_CI_LOCK_SESSION`, `CLAWEE_CI_LOCK_HEARTBEAT_S`, `CLAWEE_CI_POLL_S`,
   `CLAWEE_CI_FOLLOW_MAX_MISSES`; the numbers must be whole numbers of at least 1.
 - The suite runs detached on the machine and is followed over short ssh polls, so a dropped
-  connection is not a result. Exit status: `0` pass; `1` build or test failure, machine
-  unreachable, `/tmp/ci-lock` missing on the machine (never created here), no status, or evidence
-  not copied home; `2` usage; `3` lock. `ci/run-tests.sh --help`
-  has the rest.
+  connection is not a result. A signal sent to the script stops the remote run and releases the
+  lock within seconds. Exit status, unchanged by a closed stderr:
+  - `0`: build and tests passed **and** this run's lock was released;
+  - `1`: build or test failure, machine unreachable, `/tmp/ci-lock` missing on the machine (never
+    created here), no status, evidence not copied home — **or a passing run whose lock is or may be
+    left held** (unconfirmed remote kill, unanswered release; the recovery commands are on stderr);
+  - `2`: usage; `3`: the lock is held by another run;
+  - `130`/`143`/`129`/`141`: interrupted, after the stop and release.
+
+  A failing status is never replaced by the lock outcome. The printed release exits `3` when the
+  lock is not this run's and `0` when it released it. `ci/run-tests.sh --help` has the rest.
 - Cross-module coverage: none from this runner. A local `go.work` is mirrored to the machine, but
   never widens `-coverpkg`. This module imports no other Clawee module; code here reached only by
   another module's tests (`cli` pins this one) is measured by **that** module's runner, with

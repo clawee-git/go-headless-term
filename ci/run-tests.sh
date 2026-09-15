@@ -72,12 +72,15 @@
 # The three numbers must be whole numbers of at least 1; anything else is a
 # usage error before the machine is contacted.
 #
-# Exit status:
-#   0        the build and every test passed
+# Exit status (a closed stderr never changes it):
+#   0        the build and every test passed, and this run's lock was released
 #   1        the build or a test failed (any non-zero status from go is reported
 #            as 1, so 2 and 3 below always mean this script), or the machine
 #            could not be reached, the tree not synced, the run ended without a
-#            status, or its evidence could not be copied home
+#            status, or its evidence could not be copied home — or the suite
+#            passed but this run's lock is or may be left held: its remote kill
+#            could not be confirmed, or its release went unanswered (the
+#            commands to clear it are on stderr)
 #   2        usage error: bad option, option after packages, existing --artifacts
 #            directory, bad environment value
 #   3        the Clawee CI lock is held (or changed while checking), or its root
@@ -86,6 +89,8 @@
 #   130/143/129/141  interrupted by INT/TERM/HUP, or stdout closed (PIPE); the
 #            run is stopped and the lock released first, within a few seconds
 #            of the signal even when it is sent to this script's pid alone
+# A failing status is never replaced: a failed run that also keeps its lock
+# still exits with the failure.
 set -euo pipefail
 
 PROG="ci/run-tests.sh"
@@ -389,18 +394,21 @@ stop_heartbeat() {
 # exits 3 when the holder does not name this run. `quiet` is for a take that
 # never answered: there, "not ours" is the normal case and says nothing, but a
 # machine that cannot be reached still warns, because the take may have landed.
+# Non-zero only when the lock may still be held by this run.
 release_lock() {
-    local rc=0
+    local rc=0 KEPT=0
     remote_n "$RELEASE_CMD" 2>/dev/null || rc=$?
     case "$rc" in
         0) say "released $MACHINE:$LOCK" ;;
         3) [ "${1:-}" = quiet ] || warn "lock $MACHINE:$LOCK not released: its holder does not name run $RUN_ID — check it" ;;
         *) warn "could not release $MACHINE:$LOCK (ssh status $rc): it may still be held by run $RUN_ID"
+           KEPT=1
            warn "  check the holder:"
            print_command "ssh $MACHINE cat $LOCK/holder"
            warn "  release, only if the holder names run $RUN_ID:"
            print_command "ssh $MACHINE '$RELEASE_CMD'" ;;
     esac
+    [ "$KEPT" = 0 ]
 }
 
 # --delete so a file removed locally cannot linger and keep a stale test green.
@@ -747,9 +755,11 @@ cleanup() {
         exit "$(( rc == 0 ? 1 : rc ))"
     fi
     stop_heartbeat
+    # A passing run whose lock may still be held (the release went unanswered)
+    # is not a clean exit; a non-zero status already says the run failed.
     case "$LOCK_STATE" in
-        taken) release_lock ;;
-        trying) release_lock quiet ;;
+        taken) release_lock || [ "$rc" -ne 0 ] || rc=1 ;;
+        trying) release_lock quiet || [ "$rc" -ne 0 ] || rc=1 ;;
     esac
     exit "$rc"
 }
