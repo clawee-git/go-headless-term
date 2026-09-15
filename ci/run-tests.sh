@@ -647,15 +647,17 @@ poll_cmd() {
 # a trap until a foreground command ends, so a TERM sent to this script alone
 # waited out the pause (CLAWEE_CI_POLL_S) or a slow poll before the stop and
 # release. `wait` returns at once on a trapped signal, and cleanup kills the
-# child. A failed poll is the
-# transport, not the suite: retried up to FOLLOW_MAX_MISSES in a row. A runner
+# child. The ssh is backgrounded directly, not through remote_n: killing a
+# backgrounded function kills its subshell and leaves the ssh running. A failed
+# poll is the transport, not the suite: retried up to FOLLOW_MAX_MISSES in a
+# row. A runner
 # gone without a status is reported after DEAD_POLLS polls. Sets
 # FOLLOW_OUTCOME; returns the status, or 1 without one.
 follow() {
     local offset=0 misses=0 dead=0 out header alive rc size cmd polled
     while :; do
         cmd="$(poll_cmd "$offset")"
-        remote_n "$cmd" >"$POLL_OUT" 2>/dev/null & FOLLOW_CHILD=$!
+        ssh -n "${SSH_OPTS[@]}" "$MACHINE" "$cmd" >"$POLL_OUT" 2>/dev/null & FOLLOW_CHILD=$!
         polled=0; wait "$FOLLOW_CHILD" || polled=$?
         FOLLOW_CHILD=""
         if [ "$polled" = 0 ] && out="$(cat "$POLL_OUT")"; then
