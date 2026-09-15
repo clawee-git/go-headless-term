@@ -38,6 +38,12 @@
 #     never widens -coverpkg: this module imports no other Clawee module, so
 #     cross-module coverage (an explicit --cover-module) belongs to the
 #     consuming modules' runners, not this one.
+#   - Every command that deletes or overwrites on the machine (rsync --delete,
+#     rm, mv, the go.work write) is built once at start-up from validated
+#     values, and refuses on the machine side unless its path is under this
+#     runner's own /tmp/clawee-ght- prefix (or is the Clawee lock itself) and
+#     holds no '..': a mistyped CLAWEE_CI_DIR=/tmp must never become
+#     `rsync --delete … burrowee-ci:/tmp/`.
 #   - No GitHub token is minted: every dependency of this module is public. A
 #     go.work naming a private module fails the run loudly inside go.
 #
@@ -63,7 +69,8 @@
 # Environment:
 #   CLAWEE_CI_MACHINE             the machine (default burrowee-ci)
 #   CLAWEE_CI_DIR                 remote tree (default /tmp/clawee-ght-<user>-<cksum
-#                                 of this checkout>); absolute, letters, digits, ._/-
+#                                 of this checkout>); must be /tmp/clawee-ght-<name>,
+#                                 <name> of letters, digits and ._- with no '..' 
 #   CLAWEE_CI_LOCK_PROJECT        project id recorded on the lock (default: the branch)
 #   CLAWEE_CI_LOCK_SESSION        session id recorded on the lock (default: unrecorded)
 #   CLAWEE_CI_LOCK_HEARTBEAT_S    heartbeat interval in seconds (default 30); stale after 4
@@ -99,7 +106,9 @@ SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # Keyed by the checkout, so a run from the project worktree and one from dev —
 # or two terminals — never rsync over each other's tree mid-run.
-REMOTE_DIR="${CLAWEE_CI_DIR:-/tmp/clawee-ght-$(id -un)-$(printf '%s' "$SRC" | cksum | cut -d' ' -f1)}"
+# A literal: the local check and every machine-side guard compare against it.
+REMOTE_PREFIX="/tmp/clawee-ght-"
+REMOTE_DIR="${CLAWEE_CI_DIR:-$REMOTE_PREFIX$(id -un)-$(printf '%s' "$SRC" | cksum | cut -d' ' -f1)}"
 DEPS_DIR="$REMOTE_DIR.deps"
 
 LOCK_ROOT="/tmp/ci-lock"
@@ -125,6 +134,11 @@ PACKAGES=(./...)
 # Where the lock stands: empty (not tried), trying (the take's ssh has not
 # answered, so the mkdir may have landed) or taken.
 LOCK_STATE=""
+# The go.work mirror plan, validated before any contact (plan_workspace).
+WS_DIRS=()
+WS_MODULES=()
+WS_DESTS=()
+WS_RSYNC_PATHS=()
 # How the run ended: status (the runner wrote one), lost, dead or unstarted.
 FOLLOW_OUTCOME=""
 
@@ -226,13 +240,16 @@ set_repeat() {
     REPEAT="$1"
 }
 
+# The remote tree is deleted into (rsync --delete) and globbed for removal
+# (<dir>.run.*), so it is accepted only as this runner's own prefix plus a name.
 check_remote_dir() {
+    local name="${REMOTE_DIR#$REMOTE_PREFIX}"
     case "$REMOTE_DIR" in
-        /*) ;;
-        *) usage_error "CLAWEE_CI_DIR must be an absolute path: '$REMOTE_DIR'" ;;
+        $REMOTE_PREFIX?*) ;;
+        *) usage_error "CLAWEE_CI_DIR must be ${REMOTE_PREFIX}<name>: '$REMOTE_DIR'" ;;
     esac
-    case "$REMOTE_DIR" in
-        *[!A-Za-z0-9._/-]*) usage_error "CLAWEE_CI_DIR may hold only letters, digits and ._/-: '$REMOTE_DIR'" ;;
+    case "$name" in
+        *[!A-Za-z0-9._-]* | *..*) usage_error "CLAWEE_CI_DIR's <name> may hold only letters, digits and ._- and no '..': '$REMOTE_DIR'" ;;
     esac
 }
 
@@ -297,11 +314,14 @@ probe_machine() {
 take_lock() {
     printf 'project=%s\nsession=%s\nuser=%s\ntaken=%s\nrepo=%s\nrun=%s\nheartbeat_s=%s\n' "$LOCK_PROJECT" "$LOCK_SESSION" \
         "$(id -un)" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$SRC" "$RUN_ID" "$LOCK_HEARTBEAT_S" |
-        remote_stdin "$(printf 'root=%q lock=%q; ' "$LOCK_ROOT" "$LOCK")"'
+        remote_stdin "$TAKE_CMD"
+}
+
+TAKE_BODY='
             [ -d "$root" ] || exit 5
             if mkdir "$lock" 2>/dev/null; then
                 cat > "$lock/holder" && date -u +%Y-%m-%dT%H:%M:%SZ > "$lock/heartbeat" && exit 0
-                rm -rf "$lock"; exit 4
+                rm -rf -- "$lock"; exit 4
             fi
             if [ -d "$lock" ]; then
                 cat "$lock/holder" 2>/dev/null
@@ -315,7 +335,6 @@ take_lock() {
             fi
             if [ -d "$root" ] && [ -w "$root" ]; then echo changed; exit 3; fi
             stat -c "root %n is %U:%G mode %a" "$root"; exit 4'
-}
 
 # Report a lock that could not be taken, and exit 3 — also when stderr is
 # closed, so every write here tolerates failing. Never breaks it. The
@@ -419,13 +438,13 @@ release_lock() {
 # caller runs this under `||`, where set -e does not apply.
 sync_tree() {
     say "sync $SRC -> $MACHINE:$REMOTE_DIR"
-    rsync -a -e "$RSYNC_SSH" --delete --exclude '.git' --exclude '.codegraph' --exclude '/dist' \
-        --exclude 'go.work' --exclude 'go.work.sum' "$SRC/" "$MACHINE:$REMOTE_DIR/" ||
+    rsync -a -e "$RSYNC_SSH" --rsync-path="$TREE_RSYNC_PATH" --delete --exclude '.git' --exclude '.codegraph' \
+        --exclude '/dist' --exclude 'go.work' --exclude 'go.work.sum' "$SRC/" "$MACHINE:$REMOTE_DIR/" ||
         { warn "rsync of $SRC to $MACHINE failed"; return 1; }
     if [ -f "$SRC/go.work" ]; then
         mirror_workspace || return 1
     else
-        remote_n "$(printf 'rm -f %q %q' "$REMOTE_DIR/go.work" "$REMOTE_DIR/go.work.sum")" ||
+        remote_n "$GOWORK_RM_CMD" ||
             { warn "could not remove a stale go.work on $MACHINE"; return 1; }
     fi
 }
@@ -442,7 +461,8 @@ workspace_uses() {
 }
 
 # The go.work module in directory $1: its module path, refused unless it holds
-# only Go's module-path characters, since it is spliced into a remote path.
+# only Go's module-path characters and no empty, '.' or '..' segment, since it
+# names a directory the machine deletes into.
 workspace_module() {
     local module
     module="$(awk '$1 == "module" { print $2; exit }' "$1/go.mod" 2>/dev/null)"
@@ -450,31 +470,46 @@ workspace_module() {
         '') warn "$1/go.mod declares no module path"; return 1 ;;
         *[!A-Za-z0-9._~/-]*) warn "$1/go.mod declares an unusable module path: '$module'"; return 1 ;;
     esac
+    case "/$module/" in
+        *//* | */./* | */../*) warn "$1/go.mod declares an unusable module path: '$module'"; return 1 ;;
+    esac
     printf '%s' "$module"
 }
 
 # Each `use` module other than this one goes to DEPS_DIR/<module path with / as
 # _> — keyed by the whole path, so two modules sharing a last segment never
-# share a directory — and a go.work naming those copies is written there.
-mirror_workspace() {
-    local u dep module name uses="" go_directive
-    go_directive="$(awk '$1 == "go" { print $2; exit }' "$SRC/go.work")"
-    remote_n "$(printf 'mkdir -p %q' "$DEPS_DIR")" || { warn "could not create $DEPS_DIR on $MACHINE"; return 1; }
+# share a directory. Planned before any contact: every module is validated and
+# every rsync --delete destination and its machine-side guard are built here.
+plan_workspace() {
+    local u dep module dest
+    [ -f "$SRC/go.work" ] || return 0
     for u in $(workspace_uses); do
         [ "$u" = "." ] && continue
         case "$u" in /*) dep="$u" ;; *) dep="$SRC/$u" ;; esac
         dep="$(cd "$dep" 2>/dev/null && pwd)" || { warn "go.work names '$u', which is not a directory"; return 1; }
         module="$(workspace_module "$dep")" || return 1
-        name="$(printf '%s' "$module" | tr '/' '_')"
-        rsync -a -e "$RSYNC_SSH" --delete --exclude '.git' --exclude '.codegraph' --exclude '/dist' \
-            --exclude 'go.work' --exclude 'go.work.sum' "$dep/" "$MACHINE:$DEPS_DIR/$name/" ||
-            { warn "rsync of $dep to $MACHINE failed"; return 1; }
-        uses="$uses	$DEPS_DIR/$name
+        dest="$DEPS_DIR/$(printf '%s' "$module" | tr '/' '_')"
+        WS_DIRS+=("$dep"); WS_MODULES+=("$module"); WS_DESTS+=("$dest")
+        WS_RSYNC_PATHS+=("$(remote_guard "$dest" "$REMOTE_PREFIX?*")rsync")
+    done
+}
+
+# Mirror the planned modules and write a go.work naming the copies.
+mirror_workspace() {
+    local i=0 uses="" go_directive
+    go_directive="$(awk '$1 == "go" { print $2; exit }' "$SRC/go.work")"
+    remote_n "$(printf 'mkdir -p %q' "$DEPS_DIR")" || { warn "could not create $DEPS_DIR on $MACHINE"; return 1; }
+    while [ "$i" -lt "${#WS_DIRS[@]}" ]; do
+        rsync -a -e "$RSYNC_SSH" --rsync-path="${WS_RSYNC_PATHS[$i]}" --delete --exclude '.git' --exclude '.codegraph' \
+            --exclude '/dist' --exclude 'go.work' --exclude 'go.work.sum' "${WS_DIRS[$i]}/" "$MACHINE:${WS_DESTS[$i]}/" ||
+            { warn "rsync of ${WS_DIRS[$i]} to $MACHINE failed"; return 1; }
+        uses="$uses	${WS_DESTS[$i]}
 "
-        say "go.work: $module <- $dep"
+        say "go.work: ${WS_MODULES[$i]} <- ${WS_DIRS[$i]}"
+        i=$((i + 1))
     done
     printf 'go %s\n\nuse (\n\t.\n%s)\n' "${go_directive:-1.25.1}" "$uses" |
-        remote_stdin "$(printf 'cat > %q' "$REMOTE_DIR/go.work")" ||
+        remote_stdin "$GOWORK_WRITE_CMD" ||
         { warn "could not write go.work on $MACHINE"; return 1; }
 }
 
@@ -496,6 +531,8 @@ remote_suite() {
     local pkgs flags
     pkgs="$(printf '%q ' "${PACKAGES[@]}")"
     flags="$(go_test_flags)"
+    remote_guard "$RUN_BASE" "$REMOTE_PREFIX?*"
+    printf '\n'
     printf 'echo $$ > %q\n' "$RUN_BASE.pid"
     printf '( while grep -qx %q %q 2>/dev/null; do date -u +%%Y-%%m-%%dT%%H:%%M:%%SZ > %q; sleep %q; done ) &\nbeat=$!\n' \
         "run=$RUN_ID" "$LOCK/holder" "$LOCK/heartbeat" "$LOCK_HEARTBEAT_S"
@@ -511,7 +548,7 @@ remote_suite() {
         evidence_test_cmd "$flags" "$pkgs"
     fi
     printf 'else rc=$?; echo "=== build FAILED ($rc)"\nfi\nfi\n'
-    printf 'kill $beat 2>/dev/null\necho $rc > %q && mv %q %q\nrm -f %q\nexit $rc\n' \
+    printf 'kill $beat 2>/dev/null\necho $rc > %q && mv -- %q %q\nrm -f -- %q\nexit $rc\n' \
         "$RUN_BASE.rc.tmp" "$RUN_BASE.rc.tmp" "$RUN_BASE.rc" "$RUN_BASE.pid"
 }
 
@@ -585,15 +622,14 @@ evidence_summary_cmd() {
 # its own process group leader, and its pid is written in the same breath, so a
 # runner is never alive without a pid file even if this ssh drops right after.
 launch() {
-    local script
-    script="$(remote_suite)" || return 1
-    printf '%s\n' "$script" |
-        remote_stdin "$(printf 'base=%q; ' "$RUN_BASE")"'
-            rm -f "$base".* || exit 1
+    printf '%s\n' "$SUITE_SCRIPT" | remote_stdin "$LAUNCH_CMD"
+}
+
+LAUNCH_BODY='
+            rm -f -- "$base".* || exit 1
             cat > "$base.sh" || exit 1
             setsid nohup bash "$base.sh" > "$base.log" 2>&1 < /dev/null &
             echo $! > "$base.pid"'
-}
 
 # One poll's remote half. Prints "<alive> <rc-or-empty> <log size>", a newline,
 # the log bytes from offset $1 up to that size, and a closing "." — the
@@ -655,39 +691,68 @@ follow() {
 # the script: a missing pid file alone is not proof the runner is gone.
 # Non-zero when that cannot be confirmed. Built once, before the run, into
 # STOP_CMD (see build_teardown_cmds).
+# The process-group id must be a number above 1 before it reaches kill or
+# pgrep -g: an empty one (a pid file caught mid-write) makes `pgrep -g ""`
+# fail, which the loop used to read as "nothing left" — a confirmed stop that
+# confirmed nothing. Only pgrep's status 1 (no match) counts as gone; any other
+# failure is an unconfirmed stop, so the lock stays held and the recovery
+# commands are printed.
 stop_runner_cmd() {
+    remote_guard "$RUN_BASE.pid" "$REMOTE_PREFIX?*"
     printf 'pidf=%q script=%q; ' "$RUN_BASE.pid" "$RUN_BASE.sh"
     printf '%s' '
         if [ -f "$pidf" ]; then
             pg=$(cat "$pidf")
         else
-            pid=$(pgrep -f -- "^bash $script\$" | head -1)
-            [ -n "$pid" ] || exit 0
-            pg=$(ps -o pgid= -p "$pid" | tr -d " ")
-            [ -n "$pg" ] || exit 0
+            pid=$(pgrep -f -- "^bash $script\$"); r=$?
+            [ "$r" -eq 1 ] && exit 0
+            [ "$r" -eq 0 ] || exit 1
+            pg=$(ps -o pgid= -p "${pid%%[!0-9]*}" | tr -d " ")
         fi
+        case "$pg" in ""|*[!0-9]*|0|1) echo unusable process group: "[$pg]" >&2; exit 1 ;; esac
         kill -TERM -- "-$pg" 2>/dev/null
         for i in $(seq 1 20); do
-            pgrep -g "$pg" >/dev/null || { rm -f "$pidf"; exit 0; }
+            pgrep -g "$pg" >/dev/null; r=$?
+            [ "$r" -eq 1 ] && { rm -f -- "$pidf"; exit 0; }
+            [ "$r" -eq 0 ] || exit 1
             sleep 1
         done
         kill -KILL -- "-$pg" 2>/dev/null; sleep 1
-        pgrep -g "$pg" >/dev/null && exit 1
-        rm -f "$pidf"'
+        pgrep -g "$pg" >/dev/null; [ "$?" -eq 1 ] || exit 1
+        rm -f -- "$pidf"'
 }
 
 stop_runner() {
     remote_n "$STOP_CMD" 2>/dev/null
 }
 
+# Machine-side refusal, placed first in every command that deletes or
+# overwrites there: $1 must match the shell pattern $2 and hold no '..'. The
+# messages carry no quotes or glob characters: rsync re-splits --rsync-path, and
+# a quoted pattern came out of it glob-expanded.
+remote_guard() {
+    printf 'case %q in %s) ;; *) echo refused, outside the runner prefix: %q >&2; exit 64 ;; esac; ' "$1" "$2" "$1"
+    printf 'case %q in *..*) echo refused, path holds dot-dot: %q >&2; exit 64 ;; esac; ' "$1" "$1"
+}
+
 # Every remote command the teardown sends, built at start-up while stdout is
 # known to be healthy. A $(...) run during teardown can pick up the text of an
 # earlier failed write (see say); a prebuilt string cannot.
 build_teardown_cmds() {
-    local gone="$LOCK.released.$RUN_ID"
+    local gone="$LOCK.released.$RUN_ID" run_pattern="$REMOTE_PREFIX?*"
     STOP_CMD="$(stop_runner_cmd)"
-    RELEASE_CMD="$(printf 'grep -qx %q %q 2>/dev/null || exit 3; mv %q %q && rm -rf %q' \
+    # The lock patterns are literals, not derived from $LOCK: a guard built from
+    # the value it checks would accept anything.
+    RELEASE_CMD="$(remote_guard "$LOCK" /tmp/ci-lock/clawee)$(remote_guard "$gone" '/tmp/ci-lock/clawee.released.?*')"
+    RELEASE_CMD="$RELEASE_CMD$(printf 'grep -qx %q %q 2>/dev/null || exit 3; mv -- %q %q && rm -rf -- %q' \
         "run=$RUN_ID" "$LOCK/holder" "$LOCK" "$gone" "$gone")"
+    TAKE_CMD="$(remote_guard "$LOCK" /tmp/ci-lock/clawee)$(printf 'root=%q lock=%q; ' "$LOCK_ROOT" "$LOCK")$TAKE_BODY"
+    CLEAN_CMD="$(remote_guard "$REMOTE_DIR" "$run_pattern")rm -f -- $(printf %q "$REMOTE_DIR").run.*"
+    GOWORK_RM_CMD="$(remote_guard "$REMOTE_DIR" "$run_pattern")$(printf 'rm -f -- %q %q' "$REMOTE_DIR/go.work" "$REMOTE_DIR/go.work.sum")"
+    GOWORK_WRITE_CMD="$(remote_guard "$REMOTE_DIR/go.work" "$run_pattern")$(printf 'cat > %q' "$REMOTE_DIR/go.work")"
+    TREE_RSYNC_PATH="$(remote_guard "$REMOTE_DIR" "$run_pattern")rsync"
+    LAUNCH_CMD="$(remote_guard "$RUN_BASE" "$run_pattern")$(printf 'base=%q; ' "$RUN_BASE")$LAUNCH_BODY"
+    SUITE_SCRIPT="$(remote_suite)"
     # The check lists what is left of the run: by its process group while the
     # pid file exists, and otherwise by the script's command line — the same
     # fallback stop_runner uses, since a missing pid file is not proof the run
@@ -767,7 +832,7 @@ cleanup() {
 # Launch, follow, and copy the evidence home. Returns the run's status.
 run_suite() {
     local rc=0
-    remote_n "$(printf 'rm -f -- %q.run.*' "$REMOTE_DIR")" || true
+    remote_n "$CLEAN_CMD" || true
     sync_tree || return 1
     LAUNCHED=1
     if ! launch; then
@@ -790,6 +855,7 @@ main() {
     parse_args "$@"
     check_remote_dir
     check_numeric_env
+    plan_workspace || exit 2
     build_teardown_cmds
     POLL_OUT="$(mktemp "${TMPDIR:-/tmp}/ght-ci-poll.XXXXXX")" || { warn "could not create a temporary file"; exit 1; }
     trap 'rm -f "$POLL_OUT"' EXIT
