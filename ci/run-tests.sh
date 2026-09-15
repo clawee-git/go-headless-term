@@ -260,8 +260,30 @@ check_remote_dir() {
         *) usage_error "CLAWEE_CI_DIR must be ${REMOTE_PREFIX}<name>: '$REMOTE_DIR'" ;;
     esac
     case "$name" in
-        *[!A-Za-z0-9._-]* | *..*) usage_error "CLAWEE_CI_DIR's <name> may hold only letters, digits and ._- and no '..': '$REMOTE_DIR'" ;;
+        *[!A-Za-z0-9._-]* | *..* | *.) usage_error "CLAWEE_CI_DIR's <name> may hold only letters, digits and ._-, no '..', and may not end in '.': '$REMOTE_DIR'" ;;
     esac
+}
+
+# Every path a machine-side guard will check, tested here with the guard's own
+# two tests before any contact. The value checks alone were not enough: a
+# <name> ending in '.' passed them, but its run base <dir>.run.<id> holds '..',
+# so the machine refused the launch AND the stop, and the lock was kept.
+check_derived_paths() {
+    local p i=0
+    set -- "$REMOTE_DIR" "$REMOTE_DIR/go.work" "$DEPS_DIR" "$RUN_BASE" "$RUN_BASE.pid" "$RUN_BASE.log" "$RUN_BASE.rc" "$RUN_BASE.sh"
+    while [ "$i" -lt "${#WS_DESTS[@]}" ]; do
+        set -- "$@" "${WS_DESTS[$i]}"
+        i=$((i + 1))
+    done
+    for p in "$@"; do
+        case "$p" in
+            $REMOTE_PREFIX?*) ;;
+            *) usage_error "derived remote path is outside ${REMOTE_PREFIX}*: '$p'" ;;
+        esac
+        case "$p" in
+            *..*) usage_error "derived remote path holds '..', which the machine refuses: '$p'" ;;
+        esac
+    done
 }
 
 # The numeric settings, refused before any contact unless a whole number of at
@@ -472,8 +494,10 @@ workspace_uses() {
 }
 
 # The go.work module in directory $1: its module path, refused unless it holds
-# only Go's module-path characters and no empty, '.' or '..' segment, since it
-# names a directory the machine deletes into.
+# only Go's module-path characters, no empty or '.' segment and no '..'
+# anywhere (the machine guard refuses any path holding '..', so a Go-valid
+# `example.com/a..b` must stop here, before contact), since it names a
+# directory the machine deletes into.
 workspace_module() {
     local module
     module="$(awk '$1 == "module" { print $2; exit }' "$1/go.mod" 2>/dev/null)"
@@ -482,7 +506,7 @@ workspace_module() {
         *[!A-Za-z0-9._~/-]*) warn "$1/go.mod declares an unusable module path: '$module'"; return 1 ;;
     esac
     case "/$module/" in
-        *//* | */./* | */../*) warn "$1/go.mod declares an unusable module path: '$module'"; return 1 ;;
+        *//* | */./* | *..*) warn "$1/go.mod declares an unusable module path: '$module'"; return 1 ;;
     esac
     printf '%s' "$module"
 }
@@ -872,6 +896,7 @@ main() {
     check_remote_dir
     check_numeric_env
     plan_workspace || exit 2
+    check_derived_paths
     build_teardown_cmds
     POLL_OUT="$(mktemp "${TMPDIR:-/tmp}/ght-ci-poll.XXXXXX")" || { warn "could not create a temporary file"; exit 1; }
     trap 'rm -f "$POLL_OUT"' EXIT
