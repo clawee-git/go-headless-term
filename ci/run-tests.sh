@@ -191,8 +191,8 @@ probe_machine() {
 # Remote exit: 0 taken, 3 held (holder and heartbeat age printed), 4 the lock
 # root is not writable by this account.
 take_lock() {
-    printf 'project=%s\nsession=%s\nuser=%s\ntaken=%s\nrepo=%s\nrun=%s\n' "$LOCK_PROJECT" "$LOCK_SESSION" \
-        "$(id -un)" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$SRC" "$RUN_ID" |
+    printf 'project=%s\nsession=%s\nuser=%s\ntaken=%s\nrepo=%s\nrun=%s\nheartbeat_s=%s\n' "$LOCK_PROJECT" "$LOCK_SESSION" \
+        "$(id -un)" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$SRC" "$RUN_ID" "$LOCK_HEARTBEAT_S" |
         remote "$(printf 'root=%q lock=%q; ' "$LOCK_ROOT" "$LOCK")"'
             [ -d "$root" ] || mkdir -m 1777 "$root" 2>/dev/null
             if mkdir "$lock" 2>/dev/null; then
@@ -212,10 +212,16 @@ take_lock() {
             stat -c "root %n is %U:%G mode %a" "$root"; exit 4'
 }
 
-# Report a lock that could not be taken, and exit 3. Never breaks it.
+# Report a lock that could not be taken, and exit 3. Never breaks it. The
+# holder's own heartbeat interval judges it when its holder file records one;
+# a holder written by another tool is judged by this run's interval, and the
+# printed rule says which.
 refuse_lock() {
-    local rc="$1" out="$2" age stale=$((LOCK_HEARTBEAT_S * LOCK_STALE_MULTIPLE))
-    local rule="stale after ${stale}s (interval ${LOCK_HEARTBEAT_S}s x $LOCK_STALE_MULTIPLE)"
+    local rc="$1" out="$2" age interval source="holder's" stale rule
+    interval="$(printf '%s\n' "$out" | sed -n 's/^heartbeat_s=\([0-9][0-9]*\)$/\1/p' | head -1)"
+    [ -n "$interval" ] || { interval="$LOCK_HEARTBEAT_S"; source="this run's"; }
+    stale=$((interval * LOCK_STALE_MULTIPLE))
+    rule="stale after ${stale}s ($source interval ${interval}s x $LOCK_STALE_MULTIPLE)"
     if [ "$rc" != 3 ]; then
         echo "$PROG: cannot take $MACHINE:$LOCK — the lock root is not writable by $(id -un):" >&2
         printf '%s\n' "$out" | sed "s|^|$PROG:   |" >&2
