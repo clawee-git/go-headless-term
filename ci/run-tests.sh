@@ -733,7 +733,9 @@ follow() {
 # Non-zero when that cannot be confirmed. Built once, before the run, into
 # STOP_CMD (see build_teardown_cmds).
 # The process-group id must be a number above 1 before it reaches kill or
-# pgrep -g: an empty one (a pid file caught mid-write) makes `pgrep -g ""`
+# pgrep -g, with no leading zero: bash's kill reads `-01` as -1, so `01`
+# would be `kill(-1)`, every process of the account. An empty one (a pid file
+# caught mid-write) makes `pgrep -g ""`
 # fail, which the loop used to read as "nothing left" — a confirmed stop that
 # confirmed nothing. Only pgrep's status 1 (no match) counts as gone; any other
 # failure is an unconfirmed stop, so the lock stays held and the recovery
@@ -750,7 +752,7 @@ stop_runner_cmd() {
             [ "$r" -eq 0 ] || exit 1
             pg=$(ps -o pgid= -p "${pid%%[!0-9]*}" | tr -d " ")
         fi
-        case "$pg" in ""|*[!0-9]*|0|1) echo unusable process group: "[$pg]" >&2; exit 1 ;; esac
+        case "$pg" in ""|0*|*[!0-9]*|1) echo unusable process group: "[$pg]" >&2; exit 1 ;; esac
         kill -TERM -- "-$pg" 2>/dev/null
         for i in $(seq 1 20); do
             pgrep -g "$pg" >/dev/null; r=$?
@@ -801,7 +803,7 @@ build_teardown_cmds() {
     # The pid file's group id is validated with the stop's own test before
     # pgrep -g: an empty or unusable one falls back to the script's command
     # line instead of printing pgrep's usage (or init's group for a 1).
-    RUN_CHECK_CMD="$(printf 'ls -l %q.pid %q.rc %q.log; tail -5 %q.log; if [ -f %q.pid ]; then pg=$(cat %q.pid); case "$pg" in ""|*[!0-9]*|0|1) echo "unusable process group: [$pg]"; pgrep -af "^bash %q.sh\\$" ;; *) pgrep -ag "$pg" ;; esac; else pgrep -af "^bash %q.sh\\$"; fi' \
+    RUN_CHECK_CMD="$(printf 'ls -l %q.pid %q.rc %q.log; tail -5 %q.log; if [ -f %q.pid ]; then pg=$(cat %q.pid); case "$pg" in ""|0*|*[!0-9]*|1) echo "unusable process group: [$pg]"; pgrep -af "^bash %q.sh\\$" ;; *) pgrep -ag "$pg" ;; esac; else pgrep -af "^bash %q.sh\\$"; fi' \
         "$RUN_BASE" "$RUN_BASE" "$RUN_BASE" "$RUN_BASE" "$RUN_BASE" "$RUN_BASE" "$RUN_BASE" "$RUN_BASE")"
 }
 
