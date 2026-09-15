@@ -203,12 +203,14 @@ check_numeric_env() {
 # not a failed suite, so every call waits longer than ssh's default.
 # remote_n carries no stdin (ssh -n); remote_stdin is for the three calls that
 # pipe something in on purpose: the holder text, the run script, the go.work.
+SSH_OPTS=(-o BatchMode=yes -o ConnectTimeout=30 -o ServerAliveInterval=15)
+
 remote_n() {
-    ssh -n -o BatchMode=yes -o ConnectTimeout=30 -o ServerAliveInterval=15 "$MACHINE" "$@"
+    ssh -n "${SSH_OPTS[@]}" "$MACHINE" "$@"
 }
 
 remote_stdin() {
-    ssh -o BatchMode=yes -o ConnectTimeout=30 -o ServerAliveInterval=15 "$MACHINE" "$@"
+    ssh "${SSH_OPTS[@]}" "$MACHINE" "$@"
 }
 
 # Two failures with different owners: a stopped machine (only its owner starts
@@ -296,6 +298,8 @@ heartbeat_cmd() {
 # that outlived it would keep the lock looking live. Its sleep and its ssh run
 # as a child it waits on, and TERM kills that child: an ssh left running past
 # stop_heartbeat could write a heartbeat into the lock while it is released.
+# The ssh is started directly, not through remote_n: a backgrounded function
+# is a subshell, and killing it leaves its ssh running.
 start_heartbeat() {
     local cmd parent=$$
     cmd="$(heartbeat_cmd)"
@@ -305,7 +309,7 @@ start_heartbeat() {
         while :; do
             sleep "$LOCK_HEARTBEAT_S" & child=$!; wait "$child"
             kill -0 "$parent" 2>/dev/null || exit 0
-            remote_n "$cmd" >/dev/null 2>&1 & child=$!; wait "$child"
+            ssh -n "${SSH_OPTS[@]}" "$MACHINE" "$cmd" >/dev/null 2>&1 & child=$!; wait "$child"
         done
     ) &
     HEARTBEAT_PID=$!
