@@ -794,8 +794,11 @@ build_teardown_cmds() {
     # pid file exists, and otherwise by the script's command line — the same
     # fallback stop_runner uses, since a missing pid file is not proof the run
     # is gone. It is printed inside single quotes, so it holds none.
-    RUN_CHECK_CMD="$(printf 'ls -l %q.pid %q.rc %q.log; tail -5 %q.log; if [ -f %q.pid ]; then pgrep -ag "$(cat %q.pid)"; else pgrep -af "^bash %q.sh\\$"; fi' \
-        "$RUN_BASE" "$RUN_BASE" "$RUN_BASE" "$RUN_BASE" "$RUN_BASE" "$RUN_BASE" "$RUN_BASE")"
+    # The pid file's group id is validated with the stop's own test before
+    # pgrep -g: an empty or unusable one falls back to the script's command
+    # line instead of printing pgrep's usage (or init's group for a 1).
+    RUN_CHECK_CMD="$(printf 'ls -l %q.pid %q.rc %q.log; tail -5 %q.log; if [ -f %q.pid ]; then pg=$(cat %q.pid); case "$pg" in ""|*[!0-9]*|0|1) echo "unusable process group: [$pg]"; pgrep -af "^bash %q.sh\\$" ;; *) pgrep -ag "$pg" ;; esac; else pgrep -af "^bash %q.sh\\$"; fi' \
+        "$RUN_BASE" "$RUN_BASE" "$RUN_BASE" "$RUN_BASE" "$RUN_BASE" "$RUN_BASE" "$RUN_BASE" "$RUN_BASE")"
 }
 
 # Copy the evidence home over the runner's own ssh. Each file lands under a
