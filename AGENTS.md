@@ -11,7 +11,7 @@ separate `js/wasm` module with no tests and is not part of the run.
 |---|---|
 | `ci/run-tests.sh` | the plain suite: `go build ./...`, then `go test -count=1 ./...` — land gates and the runtime of record |
 | `ci/run-tests.sh ./internal/...` | the same, for named packages — the red/green loop |
-| `ci/run-tests.sh --artifacts <dir>` | **evidence mode**: `-json` with a set-mode profile over `./...` (whatever packages are named); the log adds per-package and module test/case counts with skips, each skipped and failed name; `test.json`, `cover.out` and `covered.txt` (the sorted covered set) are copied to `<dir>`, which must not exist |
+| `ci/run-tests.sh --artifacts <dir>` | **evidence mode**: `-json` with a set-mode profile over `./...` (whatever packages are named); the log adds per-package and module test/case counts with skips, each skipped and failed name; `test.json`, `cover.out` and `covered.txt` (the sorted covered set) are copied to `<dir>`, which must not exist. Named packages without test files (`examples/basic`) are left out of this run and listed in the log |
 | `ci/run-tests.sh --shuffle --repeat <n> [--artifacts <dir>]` | evidence mode shuffled (`-shuffle=on`, seed per package in the log) and repeated (`-count=<n>`) |
 
 - **The Clawee CI lock** (`/tmp/ci-lock/clawee` on the machine) is taken by every invocation and
