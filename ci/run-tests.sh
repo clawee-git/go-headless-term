@@ -126,9 +126,10 @@ usage() {
     awk '/^# Usage:/ { p = 1 } p && !/^#/ { exit } p { sub(/^# ?/, ""); print }' "$0"
 }
 
+# A closed stderr never changes the status: the refusal is still a 2.
 usage_error() {
-    echo "$PROG: $1" >&2
-    usage >&2
+    echo "$PROG: $1" >&2 2>/dev/null || echo >/dev/null
+    usage >&2 2>/dev/null || true
     exit 2
 }
 
@@ -310,7 +311,8 @@ take_lock() {
             stat -c "root %n is %U:%G mode %a" "$root"; exit 4'
 }
 
-# Report a lock that could not be taken, and exit 3. Never breaks it. The
+# Report a lock that could not be taken, and exit 3 — also when stderr is
+# closed, so every write here tolerates failing. Never breaks it. The
 # holder's own heartbeat interval judges it when its holder file records one;
 # a holder written by another tool is judged by this run's interval, and the
 # printed rule says which.
@@ -322,7 +324,7 @@ refuse_lock() {
     rule="stale after ${stale}s ($source interval ${interval}s x $LOCK_STALE_MULTIPLE)"
     if [ "$rc" != 3 ]; then
         warn "cannot take $MACHINE:$LOCK — the lock root is not writable by $(id -un):"
-        printf '%s\n' "$out" | sed "s|^|$PROG:   |" >&2
+        printf '%s\n' "$out" | sed "s|^|$PROG:   |" >&2 2>/dev/null || true
         exit 3
     fi
     if [ "$out" = changed ]; then
@@ -331,7 +333,7 @@ refuse_lock() {
     fi
     age="$(printf '%s\n' "$out" | sed -n 's/.* age=\([0-9-]*\)s$/\1/p')"
     warn "the Clawee CI lock $MACHINE:$LOCK is held:"
-    printf '%s\n' "$out" | sed "s|^|$PROG:   |" >&2
+    printf '%s\n' "$out" | sed "s|^|$PROG:   |" >&2 2>/dev/null || true
     if [ -z "$age" ]; then
         warn "no heartbeat recorded — its age cannot be judged ($rule). Ask the holder; breaking it is an operator decision."
     elif [ "$age" -gt "$stale" ]; then
