@@ -864,12 +864,12 @@ main() {
     build_teardown_cmds
     POLL_OUT="$(mktemp "${TMPDIR:-/tmp}/ght-ci-poll.XXXXXX")" || { warn "could not create a temporary file"; exit 1; }
     trap 'rm -f "$POLL_OUT"' EXIT
-    probe_machine
-    trap cleanup EXIT
     trap 'exit 130' INT
     trap 'exit 143' TERM
     trap 'exit 129' HUP
     trap 'exit 141' PIPE
+    probe_machine
+    trap cleanup EXIT
     LOCK_STATE=trying
     lock_out="$(take_lock)" || lock_rc=$?
     case "$lock_rc" in
