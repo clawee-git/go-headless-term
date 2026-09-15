@@ -149,6 +149,12 @@ warn() {
     echo "$PROG: $*" >&2 2>/dev/null || echo >/dev/null
 }
 
+# A recovery command, alone on its line on stderr with no prefix, so the whole
+# line pastes into a shell.
+print_command() {
+    echo "$*" >&2 2>/dev/null || echo >/dev/null
+}
+
 # Raw remote log bytes, streamed while following.
 emit() {
     printf '%s' "$1" 2>/dev/null && return 0
@@ -387,8 +393,10 @@ release_lock() {
         0) say "released $MACHINE:$LOCK" ;;
         3) [ "${1:-}" = quiet ] || warn "lock $MACHINE:$LOCK not released: its holder does not name run $RUN_ID — check it" ;;
         *) warn "could not release $MACHINE:$LOCK (ssh status $rc): it may still be held by run $RUN_ID"
-           warn "  check:   ssh $MACHINE cat $LOCK/holder"
-           warn "  release: ssh $MACHINE '$RELEASE_CMD'" ;;
+           warn "  check the holder:"
+           print_command "ssh $MACHINE cat $LOCK/holder"
+           warn "  release, only if the holder names run $RUN_ID:"
+           print_command "ssh $MACHINE '$RELEASE_CMD'" ;;
     esac
 }
 
@@ -658,8 +666,12 @@ build_teardown_cmds() {
     STOP_CMD="$(stop_runner_cmd)"
     RELEASE_CMD="$(printf 'grep -qx %q %q 2>/dev/null || exit 3; mv %q %q && rm -rf %q' \
         "run=$RUN_ID" "$LOCK/holder" "$LOCK" "$gone" "$gone")"
-    RUN_CHECK_CMD="$(printf 'ls -l %q.pid %q.rc; tail -5 %q.log; pgrep -g "$(cat %q.pid)"' \
-        "$RUN_BASE" "$RUN_BASE" "$RUN_BASE" "$RUN_BASE")"
+    # The check lists what is left of the run: by its process group while the
+    # pid file exists, and otherwise by the script's command line — the same
+    # fallback stop_runner uses, since a missing pid file is not proof the run
+    # is gone. It is printed inside single quotes, so it holds none.
+    RUN_CHECK_CMD="$(printf 'ls -l %q.pid %q.rc %q.log; tail -5 %q.log; if [ -f %q.pid ]; then pgrep -ag "$(cat %q.pid)"; else pgrep -af "^bash %q.sh\\$"; fi' \
+        "$RUN_BASE" "$RUN_BASE" "$RUN_BASE" "$RUN_BASE" "$RUN_BASE" "$RUN_BASE" "$RUN_BASE")"
 }
 
 # Copy the evidence home over the runner's own ssh. Each file lands under a
@@ -687,13 +699,16 @@ fetch_artifacts() {
 # The one exit that deliberately keeps the lock: the run's process group could
 # not be confirmed dead, so the lock stays with it and goes STALE rather than
 # let a second run start beside a live one. Everything needed to finish the job
-# by hand is printed.
+# by hand is printed. Each command is alone on its line, so the whole line
+# pastes into a shell.
 report_kept_lock() {
     warn "could not confirm the run on $MACHINE is gone — $MACHINE:$LOCK is left held (it goes STALE); not released"
     warn "  run id:  $RUN_ID"
     warn "  files:   $MACHINE:$RUN_BASE.{pid,log,rc}"
-    warn "  check:   ssh $MACHINE '$RUN_CHECK_CMD'"
-    warn "  release: ssh $MACHINE '$RELEASE_CMD'   (only once the check shows nothing left running)"
+    warn "  check what is left of the run:"
+    print_command "ssh $MACHINE '$RUN_CHECK_CMD'"
+    warn "  release, only once the check shows nothing left running:"
+    print_command "ssh $MACHINE '$RELEASE_CMD'"
 }
 
 # Exit trap. Repeated signals are ignored while tearing down, so a second
