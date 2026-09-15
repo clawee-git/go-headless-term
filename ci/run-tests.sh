@@ -616,6 +616,20 @@ fetch_artifacts() {
     (cd "$ARTIFACTS_DIR" && wc -c test.json cover.out covered.txt | sed "s|^|$PROG:   |")
 }
 
+# stdout is closed. bash 3.2 keeps the text of the echo that failed in its
+# stdout buffer, and the next $(...) inherits and flushes it into the captured
+# value: the first teardown after `ci/run-tests.sh | head -2` sent the machine
+# "ci/run-tests.sh: started on …" glued to the front of stop_runner's script,
+# which failed, and left the run and the lock behind. Point stdout at stderr
+# (or /dev/null when that is closed too) and write once, so the stale buffer
+# is flushed there before any command substitution runs.
+redirect_closed_stdout() {
+    exec 1>&2
+    echo "$PROG: stdout was closed — tearing down, messages on stderr" && return 0
+    exec 1>/dev/null
+    echo
+}
+
 # Exit trap. Repeated signals are ignored while tearing down, so a second
 # Ctrl-C cannot skip stopping the runner or releasing the lock. PIPE is ignored
 # and errexit is off too: a reader that closed stdout (`ci/run-tests.sh | head`)
@@ -626,6 +640,7 @@ cleanup() {
     set +e
     trap '' INT TERM HUP PIPE
     trap - EXIT
+    [ "$rc" != 141 ] || redirect_closed_stdout
     if [ "${LAUNCHED:-0}" = 1 ] && [ "$FOLLOW_OUTCOME" != status ] && ! stop_runner; then
         stop_heartbeat
         echo "$PROG: could not confirm the runner on $MACHINE is gone — $LOCK is left for it (it goes STALE); not released" >&2
