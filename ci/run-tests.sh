@@ -79,7 +79,8 @@
 #   2        usage error: bad option, option after packages, existing --artifacts
 #            directory, bad environment value
 #   3        the Clawee CI lock is held (or changed while checking), or its root
-#            is not writable — never waited for, never broken
+#            is not writable — never waited for, never broken; a MISSING root
+#            is exit 1: it is the machine's to create, not this script's
 #   130/143/129  interrupted by INT/TERM/HUP; the lock is released first
 set -euo pipefail
 
@@ -231,12 +232,15 @@ probe_machine() {
 # stdin, so a quote in a branch or session name cannot break the command.
 # Remote exit: 0 taken, 3 held (holder and heartbeat age printed) or released
 # between the mkdir and the check (`changed`), 4 the lock root is not writable
-# by this account.
+# by this account, 5 the lock root is missing. The root is never created here:
+# the machine's tmpfiles.d entry makes it 1777 at boot (local overlay,
+# machine.md), and a root made by whichever account ran first is owned by that
+# account with whatever mode it chose.
 take_lock() {
     printf 'project=%s\nsession=%s\nuser=%s\ntaken=%s\nrepo=%s\nrun=%s\nheartbeat_s=%s\n' "$LOCK_PROJECT" "$LOCK_SESSION" \
         "$(id -un)" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$SRC" "$RUN_ID" "$LOCK_HEARTBEAT_S" |
         remote_stdin "$(printf 'root=%q lock=%q; ' "$LOCK_ROOT" "$LOCK")"'
-            [ -d "$root" ] || mkdir -m 1777 "$root" 2>/dev/null
+            [ -d "$root" ] || exit 5
             if mkdir "$lock" 2>/dev/null; then
                 cat > "$lock/holder" && date -u +%Y-%m-%dT%H:%M:%SZ > "$lock/heartbeat" && exit 0
                 rm -rf "$lock"; exit 4
@@ -666,6 +670,9 @@ main() {
     case "$lock_rc" in
         0) LOCK_STATE=taken; echo "$PROG: took $MACHINE:$LOCK (project $LOCK_PROJECT, session $LOCK_SESSION)" ;;
         3|4) LOCK_STATE=""; refuse_lock "$lock_rc" "$lock_out" ;;
+        5) LOCK_STATE=""
+           echo "$PROG: $MACHINE:$LOCK_ROOT does not exist — the machine's tmpfiles.d entry creates it; this script never does. Ask the machine's owner to run systemd-tmpfiles --create." >&2
+           exit 1 ;;
         *) echo "$PROG: could not reach $MACHINE to take the lock (ssh $lock_rc)" >&2; exit 1 ;;
     esac
     start_heartbeat

@@ -23,7 +23,8 @@ The suite is **`ci/run-tests.sh [options] [pkg...]`**, and it runs on the shared
   `CLAWEE_CI_FOLLOW_MAX_MISSES`; the numbers must be whole numbers of at least 1.
 - The suite runs detached on the machine and is followed over short ssh polls, so a dropped
   connection is not a result. Exit status: `0` pass; `1` build or test failure, machine
-  unreachable, no status, or evidence not copied home; `2` usage; `3` lock. `ci/run-tests.sh --help`
+  unreachable, `/tmp/ci-lock` missing on the machine (never created here), no status, or evidence
+  not copied home; `2` usage; `3` lock. `ci/run-tests.sh --help`
   has the rest.
 - Cross-module coverage: none from this runner. A local `go.work` is mirrored to the machine, but
   never widens `-coverpkg`. This module imports no other Clawee module; code here reached only by
