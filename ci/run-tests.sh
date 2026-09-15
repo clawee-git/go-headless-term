@@ -304,7 +304,9 @@ heartbeat_cmd() {
 # as a child it waits on, and TERM kills that child: an ssh left running past
 # stop_heartbeat could write a heartbeat into the lock while it is released.
 # The ssh is started directly, not through remote_n: a backgrounded function
-# is a subshell, and killing it leaves its ssh running.
+# is a subshell, and killing it leaves its ssh running. Both waits are guarded:
+# the subshell inherits set -e, and one failed ssh (the machine drops sessions)
+# must not end the refreshing for the rest of the run.
 start_heartbeat() {
     local cmd parent=$$
     cmd="$(heartbeat_cmd)"
@@ -312,9 +314,9 @@ start_heartbeat() {
         child=""
         trap '[ -z "$child" ] || kill "$child" 2>/dev/null; exit 0' TERM
         while :; do
-            sleep "$LOCK_HEARTBEAT_S" & child=$!; wait "$child"
+            sleep "$LOCK_HEARTBEAT_S" & child=$!; wait "$child" || true
             kill -0 "$parent" 2>/dev/null || exit 0
-            ssh -n "${SSH_OPTS[@]}" "$MACHINE" "$cmd" >/dev/null 2>&1 & child=$!; wait "$child"
+            ssh -n "${SSH_OPTS[@]}" "$MACHINE" "$cmd" >/dev/null 2>&1 & child=$!; wait "$child" || true
         done
     ) &
     HEARTBEAT_PID=$!
