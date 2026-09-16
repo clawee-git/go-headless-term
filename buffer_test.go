@@ -16,41 +16,43 @@ func TestNewBuffer(t *testing.T) {
 }
 
 func TestBufferCell(t *testing.T) {
-	b := NewBuffer(24, 80)
+	t.Run("access", func(t *testing.T) {
+		b := NewBuffer(24, 80)
 
-	cell := b.Cell(0, 0)
-	if cell == nil {
-		t.Fatal("expected cell at (0,0)")
-	}
+		cell := b.Cell(0, 0)
+		if cell == nil {
+			t.Fatal("expected cell at (0,0)")
+		}
 
-	cell.Char = 'A'
+		cell.Char = 'A'
 
-	retrieved := b.Cell(0, 0)
-	if retrieved.Char != 'A' {
-		t.Errorf("expected 'A', got '%c'", retrieved.Char)
-	}
+		retrieved := b.Cell(0, 0)
+		if retrieved.Char != 'A' {
+			t.Errorf("expected 'A', got '%c'", retrieved.Char)
+		}
+	})
+
+	t.Run("out of bounds", func(t *testing.T) {
+		b := NewBuffer(24, 80)
+
+		for _, c := range bufferCellOutOfBoundsCases {
+			t.Run(c.desc, func(t *testing.T) {
+				if b.Cell(c.row, c.col) != nil {
+					t.Errorf("expected nil for %s", c.desc)
+				}
+			})
+		}
+	})
 }
 
-func TestBufferCellOutOfBounds(t *testing.T) {
-	b := NewBuffer(24, 80)
-
-	cases := []struct {
-		row, col int
-		desc     string
-	}{
-		{-1, 0, "negative row"},
-		{0, -1, "negative col"},
-		{24, 0, "row >= rows"},
-		{0, 80, "col >= cols"},
-	}
-
-	for _, c := range cases {
-		t.Run(c.desc, func(t *testing.T) {
-			if b.Cell(c.row, c.col) != nil {
-				t.Errorf("expected nil for %s", c.desc)
-			}
-		})
-	}
+var bufferCellOutOfBoundsCases = []struct {
+	row, col int
+	desc     string
+}{
+	{-1, 0, "negative row"},
+	{0, -1, "negative col"},
+	{24, 0, "row >= rows"},
+	{0, 80, "col >= cols"},
 }
 
 func TestBufferClearRow(t *testing.T) {
