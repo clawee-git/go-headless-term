@@ -482,25 +482,24 @@ func TestMiddlewareClearScreen(t *testing.T) {
 
 func TestClipboardProvider(t *testing.T) {
 	clipboard := &testClipboard{content: make(map[byte][]byte)}
+
 	term := New(
 		WithSize(24, 80),
 		WithClipboard(clipboard),
 	)
 
-	// Store some data
-	testData := []byte("test content")
-	clipboard.Write('c', testData)
-
-	// Verify content was stored
-	content := clipboard.Read('c')
-	if content != "test content" {
-		t.Errorf("expected 'test content', got '%s'", content)
-	}
-
-	// Test that ClipboardProvider is accessible
 	provider := term.ClipboardProvider()
 	if provider == nil {
-		t.Error("expected clipboard provider to be set")
+		t.Fatal("expected clipboard provider to be set")
+	}
+	if provider != clipboard {
+		t.Error("expected ClipboardProvider to return the provider passed to WithClipboard")
+	}
+
+	// Default terminal should have no clipboard provider.
+	defaultTerm := New()
+	if defaultTerm.ClipboardProvider() != nil {
+		t.Error("expected default clipboard provider to be nil")
 	}
 }
 
