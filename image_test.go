@@ -137,22 +137,70 @@ func TestImageManager_Lifecycle(t *testing.T) {
 }
 
 func TestImageManager_Prune(t *testing.T) {
+	t.Run("evicts oldest unreferenced", imageManagerPruneEvictsOldest)
+	t.Run("referenced image survives", imageManagerPruneKeepsReferenced)
+	t.Run("all referenced stays over budget", imageManagerPruneAllReferenced)
+}
+
+func imageManagerPruneEvictsOldest(t *testing.T) {
 	m := NewImageManager()
-	m.SetMaxMemory(150) // Low limit
+	m.SetMaxMemory(150)
 
-	// Store 3 images of 100 bytes each - should trigger pruning
-	data := make([]byte, 100)
-	m.Store(10, 10, data)
+	dataA := make([]byte, 100)
+	idA := m.Store(10, 10, dataA)
 
-	data2 := make([]byte, 100)
-	data2[0] = 1 // Different data
-	m.Store(10, 10, data2)
+	dataB := make([]byte, 100)
+	dataB[0] = 1
+	idB := m.Store(10, 10, dataB)
 
-	// At this point, we're at 200 bytes with 150 limit
-	// Pruning should have removed unreferenced images
 	if m.UsedMemory() > 150 {
-		// This might not prune if images are still referenced
-		// Just verify it doesn't crash
+		t.Errorf("expected memory <= 150 after prune, got %d", m.UsedMemory())
+	}
+	if m.ImageCount() != 1 {
+		t.Errorf("expected 1 image after prune, got %d", m.ImageCount())
+	}
+	if m.Image(idA) != nil {
+		t.Error("expected oldest image evicted")
+	}
+	if m.Image(idB) == nil {
+		t.Error("expected newest image kept")
+	}
+}
+
+func imageManagerPruneKeepsReferenced(t *testing.T) {
+	m := NewImageManager()
+	m.SetMaxMemory(150)
+
+	idA := m.Store(10, 10, make([]byte, 100))
+	m.Place(&ImagePlacement{ImageID: idA, Row: 0, Col: 0, Cols: 1, Rows: 1})
+
+	dataB := make([]byte, 100)
+	dataB[0] = 1
+	idB := m.Store(10, 10, dataB)
+
+	if m.Image(idA) == nil {
+		t.Error("expected referenced image kept")
+	}
+	if m.Image(idB) != nil {
+		t.Error("expected unreferenced image evicted")
+	}
+	if m.UsedMemory() != 100 {
+		t.Errorf("expected 100 bytes after prune, got %d", m.UsedMemory())
+	}
+}
+
+func imageManagerPruneAllReferenced(t *testing.T) {
+	m := NewImageManager()
+	m.SetMaxMemory(50)
+
+	idA := m.Store(10, 10, make([]byte, 100))
+	m.Place(&ImagePlacement{ImageID: idA, Row: 0, Col: 0, Cols: 1, Rows: 1})
+
+	if m.Image(idA) == nil {
+		t.Error("expected referenced image kept even over budget")
+	}
+	if m.UsedMemory() != 100 {
+		t.Errorf("expected 100 bytes (referenced not pruned), got %d", m.UsedMemory())
 	}
 }
 
