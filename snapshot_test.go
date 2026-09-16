@@ -371,24 +371,29 @@ func TestGetImageData(t *testing.T) {
 				}
 				return
 			}
-			if result == nil {
-				t.Fatal("Expected image data, got nil")
-			}
-			if result.ID != c.id || result.Width != 2 || result.Height != 2 || result.Format != "rgba" {
-				t.Errorf("Image metadata mismatch: %+v", result)
-			}
-			decoded, err := base64.StdEncoding.DecodeString(result.Data)
-			if err != nil {
-				t.Fatalf("Failed to decode base64: %v", err)
-			}
-			if len(decoded) != len(imgData) {
-				t.Errorf("Decoded data length = %d, want %d", len(decoded), len(imgData))
-			}
-			for i, b := range decoded {
-				if b != imgData[i] {
-					t.Errorf("Decoded data[%d] = %d, want %d", i, b, imgData[i])
-				}
-			}
+			checkImageData(t, result, c.id, imgData)
 		})
+	}
+}
+
+func checkImageData(t *testing.T, result *ImageSnapshot, wantID uint32, imgData []byte) {
+	t.Helper()
+	if result == nil {
+		t.Fatal("Expected image data, got nil")
+	}
+	if result.ID != wantID || result.Width != 2 || result.Height != 2 || result.Format != "rgba" {
+		t.Errorf("Image metadata mismatch: %+v", result)
+	}
+	decoded, err := base64.StdEncoding.DecodeString(result.Data)
+	if err != nil {
+		t.Fatalf("Failed to decode base64: %v", err)
+	}
+	if len(decoded) != len(imgData) {
+		t.Errorf("Decoded data length = %d, want %d", len(decoded), len(imgData))
+	}
+	for i, b := range decoded {
+		if b != imgData[i] {
+			t.Errorf("Decoded data[%d] = %d, want %d", i, b, imgData[i])
+		}
 	}
 }
