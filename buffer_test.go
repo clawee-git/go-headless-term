@@ -34,17 +34,22 @@ func TestBufferCell(t *testing.T) {
 func TestBufferCellOutOfBounds(t *testing.T) {
 	b := NewBuffer(24, 80)
 
-	if b.Cell(-1, 0) != nil {
-		t.Error("expected nil for negative row")
+	cases := []struct {
+		row, col int
+		desc     string
+	}{
+		{-1, 0, "negative row"},
+		{0, -1, "negative col"},
+		{24, 0, "row >= rows"},
+		{0, 80, "col >= cols"},
 	}
-	if b.Cell(0, -1) != nil {
-		t.Error("expected nil for negative col")
-	}
-	if b.Cell(24, 0) != nil {
-		t.Error("expected nil for row >= rows")
-	}
-	if b.Cell(0, 80) != nil {
-		t.Error("expected nil for col >= cols")
+
+	for _, c := range cases {
+		t.Run(c.desc, func(t *testing.T) {
+			if b.Cell(c.row, c.col) != nil {
+				t.Errorf("expected nil for %s", c.desc)
+			}
+		})
 	}
 }
 
@@ -64,41 +69,37 @@ func TestBufferClearRow(t *testing.T) {
 	}
 }
 
-func TestBufferScrollUp(t *testing.T) {
-	b := NewBuffer(5, 10)
-
-	for row := 0; row < 5; row++ {
-		b.Cell(row, 0).Char = rune('0' + row)
+func TestBufferScroll(t *testing.T) {
+	cases := []struct {
+		name      string
+		direction string
+		wantRow0  rune
+		wantLast  rune
+	}{
+		{"up", "up", '1', ' '},
+		{"down", "down", ' ', '0'},
 	}
 
-	b.ScrollUp(0, 5, 1)
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			b := NewBuffer(5, 10)
+			for row := 0; row < 5; row++ {
+				b.Cell(row, 0).Char = rune('0' + row)
+			}
 
-	// Row 0 should now have what was in row 1
-	if b.Cell(0, 0).Char != '1' {
-		t.Errorf("expected '1', got '%c'", b.Cell(0, 0).Char)
-	}
-	// Last row should be cleared
-	if b.Cell(4, 0).Char != ' ' {
-		t.Errorf("expected space, got '%c'", b.Cell(4, 0).Char)
-	}
-}
+			if c.direction == "up" {
+				b.ScrollUp(0, 5, 1)
+			} else {
+				b.ScrollDown(0, 5, 1)
+			}
 
-func TestBufferScrollDown(t *testing.T) {
-	b := NewBuffer(5, 10)
-
-	for row := 0; row < 5; row++ {
-		b.Cell(row, 0).Char = rune('0' + row)
-	}
-
-	b.ScrollDown(0, 5, 1)
-
-	// Row 1 should now have what was in row 0
-	if b.Cell(1, 0).Char != '0' {
-		t.Errorf("expected '0', got '%c'", b.Cell(1, 0).Char)
-	}
-	// First row should be cleared
-	if b.Cell(0, 0).Char != ' ' {
-		t.Errorf("expected space, got '%c'", b.Cell(0, 0).Char)
+			if b.Cell(0, 0).Char != c.wantRow0 {
+				t.Errorf("expected '%c', got '%c'", c.wantRow0, b.Cell(0, 0).Char)
+			}
+			if b.Cell(4, 0).Char != c.wantLast {
+				t.Errorf("expected '%c', got '%c'", c.wantLast, b.Cell(4, 0).Char)
+			}
+		})
 	}
 }
 
@@ -110,7 +111,6 @@ func TestBufferScrollback(t *testing.T) {
 		b.Cell(row, 0).Char = rune('A' + row)
 	}
 
-	// Scroll up, line 0 should go to scrollback
 	b.ScrollUp(0, 5, 1)
 
 	if b.ScrollbackLen() != 1 {
@@ -174,20 +174,29 @@ func TestBufferLineContent(t *testing.T) {
 func TestBufferTabStops(t *testing.T) {
 	b := NewBuffer(24, 80)
 
-	// Default tab stops at 0, 8, 16, etc.
-	next := b.NextTabStop(0)
-	if next != 8 {
-		t.Errorf("expected next tab at 8, got %d", next)
+	cases := []struct {
+		name     string
+		from     int
+		forward  bool
+		expected int
+	}{
+		{"next from 0", 0, true, 8},
+		{"next from 8", 8, true, 16},
+		{"prev from 16", 16, false, 8},
 	}
 
-	next = b.NextTabStop(8)
-	if next != 16 {
-		t.Errorf("expected next tab at 16, got %d", next)
-	}
-
-	prev := b.PrevTabStop(16)
-	if prev != 8 {
-		t.Errorf("expected prev tab at 8, got %d", prev)
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			var got int
+			if c.forward {
+				got = b.NextTabStop(c.from)
+			} else {
+				got = b.PrevTabStop(c.from)
+			}
+			if got != c.expected {
+				t.Errorf("expected %d, got %d", c.expected, got)
+			}
+		})
 	}
 }
 
@@ -203,7 +212,6 @@ func TestBufferResize(t *testing.T) {
 		t.Errorf("expected 20x40, got %dx%d", b.Rows(), b.Cols())
 	}
 
-	// Content should be preserved
 	if b.Cell(0, 0).Char != 'A' {
 		t.Error("expected content to be preserved")
 	}
@@ -236,149 +244,155 @@ func TestBufferDirtyTracking(t *testing.T) {
 	}
 }
 
-func TestBufferInsertBlanks(t *testing.T) {
-	b := NewBuffer(24, 80)
-
-	b.Cell(0, 0).Char = 'A'
-	b.Cell(0, 1).Char = 'B'
-	b.Cell(0, 2).Char = 'C'
-
-	b.InsertBlanks(0, 1, 2)
-
-	if b.Cell(0, 0).Char != 'A' {
-		t.Errorf("expected 'A', got '%c'", b.Cell(0, 0).Char)
+func TestBufferLineEdits(t *testing.T) {
+	cases := []struct {
+		name      string
+		operation string
+		setup     []rune
+		at        int
+		count     int
+		want      []rune
+	}{
+		{
+			name:      "insert blanks",
+			operation: "insert",
+			setup:     []rune{'A', 'B', 'C'},
+			at:        1,
+			count:     2,
+			want:      []rune{'A', ' ', ' ', 'B', ' '},
+		},
+		{
+			name:      "delete chars",
+			operation: "delete",
+			setup:     []rune{'A', 'B', 'C', 'D'},
+			at:        1,
+			count:     2,
+			want:      []rune{'A', 'D', ' ', ' '},
+		},
 	}
-	if b.Cell(0, 1).Char != ' ' {
-		t.Errorf("expected space, got '%c'", b.Cell(0, 1).Char)
-	}
-	if b.Cell(0, 2).Char != ' ' {
-		t.Errorf("expected space, got '%c'", b.Cell(0, 2).Char)
-	}
-	if b.Cell(0, 3).Char != 'B' {
-		t.Errorf("expected 'B', got '%c'", b.Cell(0, 3).Char)
-	}
-}
 
-func TestBufferDeleteChars(t *testing.T) {
-	b := NewBuffer(24, 80)
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			b := NewBuffer(24, 80)
+			for i, ch := range c.setup {
+				b.Cell(0, i).Char = ch
+			}
 
-	b.Cell(0, 0).Char = 'A'
-	b.Cell(0, 1).Char = 'B'
-	b.Cell(0, 2).Char = 'C'
-	b.Cell(0, 3).Char = 'D'
+			if c.operation == "insert" {
+				b.InsertBlanks(0, c.at, c.count)
+			} else {
+				b.DeleteChars(0, c.at, c.count)
+			}
 
-	b.DeleteChars(0, 1, 2)
-
-	if b.Cell(0, 0).Char != 'A' {
-		t.Errorf("expected 'A', got '%c'", b.Cell(0, 0).Char)
-	}
-	if b.Cell(0, 1).Char != 'D' {
-		t.Errorf("expected 'D', got '%c'", b.Cell(0, 1).Char)
+			for i, want := range c.want {
+				if got := b.Cell(0, i).Char; got != want {
+					t.Errorf("cell %d: expected '%c', got '%c'", i, want, got)
+				}
+			}
+		})
 	}
 }
 
 func TestBufferWrappedLineTracking(t *testing.T) {
-	b := NewBuffer(5, 10)
+	t.Run("basic", func(t *testing.T) {
+		b := NewBuffer(5, 10)
 
-	// Initially no lines are wrapped
-	if b.IsWrapped(0) {
-		t.Error("expected line 0 not wrapped initially")
-	}
+		if b.IsWrapped(0) {
+			t.Error("expected line 0 not wrapped initially")
+		}
 
-	// Set wrapped
-	b.SetWrapped(0, true)
-	if !b.IsWrapped(0) {
-		t.Error("expected line 0 to be wrapped")
-	}
+		b.SetWrapped(0, true)
+		if !b.IsWrapped(0) {
+			t.Error("expected line 0 to be wrapped")
+		}
 
-	// Clear wrapped
-	b.SetWrapped(0, false)
-	if b.IsWrapped(0) {
-		t.Error("expected line 0 not wrapped after clear")
-	}
+		b.SetWrapped(0, false)
+		if b.IsWrapped(0) {
+			t.Error("expected line 0 not wrapped after clear")
+		}
 
-	// Out of bounds should not panic
-	b.SetWrapped(-1, true)
-	b.SetWrapped(100, true)
-	if b.IsWrapped(-1) {
-		t.Error("expected false for out of bounds")
-	}
-	if b.IsWrapped(100) {
-		t.Error("expected false for out of bounds")
-	}
+		b.SetWrapped(-1, true)
+		b.SetWrapped(100, true)
+		if b.IsWrapped(-1) {
+			t.Error("expected false for out of bounds")
+		}
+		if b.IsWrapped(100) {
+			t.Error("expected false for out of bounds")
+		}
+	})
+
+	t.Run("with scroll", func(t *testing.T) {
+		b := NewBuffer(5, 10)
+
+		b.SetWrapped(0, true)
+		b.SetWrapped(1, false)
+		b.SetWrapped(2, true)
+
+		b.ScrollUp(0, 5, 1)
+
+		if b.IsWrapped(0) {
+			t.Error("expected line 0 not wrapped after scroll")
+		}
+		if !b.IsWrapped(1) {
+			t.Error("expected line 1 wrapped after scroll")
+		}
+		if b.IsWrapped(4) {
+			t.Error("expected new line not wrapped")
+		}
+	})
 }
 
-func TestBufferWrappedLineTrackingWithScroll(t *testing.T) {
-	b := NewBuffer(5, 10)
-
-	// Set some wrapped flags
-	b.SetWrapped(0, true)
-	b.SetWrapped(1, false)
-	b.SetWrapped(2, true)
-
-	// Scroll up
-	b.ScrollUp(0, 5, 1)
-
-	// Wrapped flags should move with lines
-	if b.IsWrapped(0) != false { // was line 1
-		t.Error("expected line 0 not wrapped after scroll")
-	}
-	if b.IsWrapped(1) != true { // was line 2
-		t.Error("expected line 1 wrapped after scroll")
-	}
-	if b.IsWrapped(4) { // new line should not be wrapped
-		t.Error("expected new line not wrapped")
-	}
-}
-
-func TestBufferGrowRows(t *testing.T) {
-	b := NewBuffer(5, 10)
-
-	b.Cell(0, 0).Char = 'A'
-	b.Cell(4, 0).Char = 'E'
-
-	b.GrowRows(3)
-
-	if b.Rows() != 8 {
-		t.Errorf("expected 8 rows, got %d", b.Rows())
-	}
-
-	// Content should be preserved
-	if b.Cell(0, 0).Char != 'A' {
-		t.Error("expected content preserved")
-	}
-	if b.Cell(4, 0).Char != 'E' {
-		t.Error("expected content preserved")
+func TestBufferGrow(t *testing.T) {
+	cases := []struct {
+		name      string
+		axis      string
+		setup     func(*Buffer)
+		grow      func(*Buffer)
+		checkDim  func(*Buffer) int
+		expected  int
+		checkPres func(*Buffer) bool
+	}{
+		{
+			name: "rows",
+			axis: "rows",
+			setup: func(b *Buffer) {
+				b.Cell(0, 0).Char = 'A'
+				b.Cell(4, 0).Char = 'E'
+			},
+			grow:     func(b *Buffer) { b.GrowRows(3) },
+			checkDim: func(b *Buffer) int { return b.Rows() },
+			expected: 8,
+			checkPres: func(b *Buffer) bool {
+				return b.Cell(0, 0).Char == 'A' && b.Cell(4, 0).Char == 'E' && b.Cell(7, 0).Char == ' '
+			},
+		},
+		{
+			name: "cols",
+			axis: "cols",
+			setup: func(b *Buffer) {
+				b.Cell(0, 0).Char = 'A'
+				b.Cell(0, 9).Char = 'B'
+			},
+			grow:     func(b *Buffer) { b.GrowCols(0, 20) },
+			checkDim: func(b *Buffer) int { return b.Cols() },
+			expected: 20,
+			checkPres: func(b *Buffer) bool {
+				return b.Cell(0, 0).Char == 'A' && b.Cell(0, 9).Char == 'B' && b.Cell(0, 15).Char == ' '
+			},
+		},
 	}
 
-	// New rows should be empty
-	if b.Cell(7, 0).Char != ' ' {
-		t.Error("expected new row to be empty")
-	}
-}
-
-func TestBufferGrowCols(t *testing.T) {
-	b := NewBuffer(5, 10)
-
-	b.Cell(0, 0).Char = 'A'
-	b.Cell(0, 9).Char = 'B'
-
-	b.GrowCols(0, 20)
-
-	if b.Cols() != 20 {
-		t.Errorf("expected 20 cols, got %d", b.Cols())
-	}
-
-	// Content should be preserved
-	if b.Cell(0, 0).Char != 'A' {
-		t.Error("expected content preserved")
-	}
-	if b.Cell(0, 9).Char != 'B' {
-		t.Error("expected content preserved")
-	}
-
-	// New cells should be empty
-	if b.Cell(0, 15).Char != ' ' {
-		t.Error("expected new cell to be empty")
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			b := NewBuffer(5, 10)
+			c.setup(b)
+			c.grow(b)
+			if got := c.checkDim(b); got != c.expected {
+				t.Errorf("expected %d %s, got %d", c.expected, c.axis, got)
+			}
+			if !c.checkPres(b) {
+				t.Errorf("expected content preserved and new %s empty", c.axis)
+			}
+		})
 	}
 }
