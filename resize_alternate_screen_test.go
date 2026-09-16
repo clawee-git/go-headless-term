@@ -96,9 +96,18 @@ const (
 	leaveAlternateScreen = "\x1b[?1049l"
 )
 
-// TestResizeOnAlternateScreenKeepsPrimary covers the resize pair a client sends
-// around a fullscreen program: shrink after ?1049h, grow after ?1049l.
 func TestResizeOnAlternateScreenKeepsPrimary(t *testing.T) {
+	t.Run("resize pair around fullscreen", resizePairAroundFullscreenCase)
+	t.Run("grow before leaving", resizeGrowBeforeLeavingCase)
+	t.Run("primary cursor above shrink", resizePrimaryCursorAboveShrinkCase)
+	t.Run("pairs like primary resize", resizePairsLikePrimaryCase)
+	t.Run("primary output before grow", resizePrimaryOutputBeforeGrowCase)
+	t.Run("height independent scroll", resizeHeightIndependentScrollCase)
+}
+
+// resizePairAroundFullscreenCase covers the resize pair a client sends
+// around a fullscreen program: shrink after ?1049h, grow after ?1049l.
+func resizePairAroundFullscreenCase(t *testing.T) {
 	control, controlStorage := newResizeTerminal()
 	writeShellOutput(control)
 	control.WriteString(enterAlternateScreen + leaveAlternateScreen + "$ ")
@@ -122,9 +131,9 @@ func TestResizeOnAlternateScreenKeepsPrimary(t *testing.T) {
 	assertPushPopPairing(t, storage.events)
 }
 
-// TestResizeGrowBeforeLeavingAlternateScreenKeepsPrimary is the same pair with
-// the grow arriving while the fullscreen program is still running.
-func TestResizeGrowBeforeLeavingAlternateScreenKeepsPrimary(t *testing.T) {
+// resizeGrowBeforeLeavingCase is the same pair with the grow arriving while
+// the fullscreen program is still running.
+func resizeGrowBeforeLeavingCase(t *testing.T) {
 	control, controlStorage := newResizeTerminal()
 	writeShellOutput(control)
 	control.WriteString(enterAlternateScreen + leaveAlternateScreen + "$ ")
@@ -142,10 +151,10 @@ func TestResizeGrowBeforeLeavingAlternateScreenKeepsPrimary(t *testing.T) {
 	assertPushPopPairing(t, storage.events)
 }
 
-// TestResizeOnAlternateScreenWithPrimaryCursorAboveShrink has the primary's
-// cursor well above the rows a shrink removes: nothing scrolls, nothing is
-// popped back, even though the scrollback holds older lines.
-func TestResizeOnAlternateScreenWithPrimaryCursorAboveShrink(t *testing.T) {
+// resizePrimaryCursorAboveShrinkCase has the primary's cursor well above the
+// rows a shrink removes: nothing scrolls, nothing is popped back, even though
+// the scrollback holds older lines.
+func resizePrimaryCursorAboveShrinkCase(t *testing.T) {
 	for _, growWhileAlternate := range []bool{false, true} {
 		t.Run(fmt.Sprintf("growWhileAlternate=%v", growWhileAlternate), func(t *testing.T) {
 			setup := func(term *Terminal) {
@@ -182,10 +191,10 @@ func TestResizeOnAlternateScreenWithPrimaryCursorAboveShrink(t *testing.T) {
 	}
 }
 
-// TestResizeOnAlternateScreenPairsLikePrimaryResize checks the scrollback sees
-// the same Push/Pop sequence as the identical shrink and grow with the primary
-// screen active, which the daemon's transcript tee depends on.
-func TestResizeOnAlternateScreenPairsLikePrimaryResize(t *testing.T) {
+// resizePairsLikePrimaryCase checks the scrollback sees the same Push/Pop
+// sequence as the identical shrink and grow with the primary screen active,
+// which the daemon's transcript tee depends on.
+func resizePairsLikePrimaryCase(t *testing.T) {
 	primary, primaryStorage := newResizeTerminal()
 	writeShellOutput(primary)
 	primaryStorage.events = nil
@@ -225,11 +234,11 @@ func assertPushPopPairing(t *testing.T, events []string) {
 	}
 }
 
-// TestResizeOnAlternateScreenThenPrimaryOutputKeepsPrimary lets the primary
-// scroll at the reduced height between leaving the alternate screen and the
-// grow. Lines output scrolls off the top use up the rows the shrink cut, so the
-// grow must pop those lines back rather than hand back blank rows.
-func TestResizeOnAlternateScreenThenPrimaryOutputKeepsPrimary(t *testing.T) {
+// resizePrimaryOutputBeforeGrowCase lets the primary scroll at the reduced
+// height between leaving the alternate screen and the grow. Lines output
+// scrolls off the top use up the rows the shrink cut, so the grow must pop
+// those lines back rather than hand back blank rows.
+func resizePrimaryOutputBeforeGrowCase(t *testing.T) {
 	for _, lines := range []int{19, 20, 30} { // scrolls 3, 4 and 14 lines at 18 rows
 		t.Run(fmt.Sprintf("lines=%d", lines), func(t *testing.T) {
 			setup := func(term *Terminal) {
@@ -280,12 +289,11 @@ func TestResizeColumnsOnAlternateScreenClampsSavedCursor(t *testing.T) {
 	}
 }
 
-// TestResizeOnAlternateScreenThenHeightIndependentScrollKeepsPrimary runs
-// scrolls between leaving the alternate screen and the grow that a terminal
-// performs the same at any height: SU, and output at the bottom of a scroll
-// region that ends above the last row. They must not use up the rows the
-// shrink cut.
-func TestResizeOnAlternateScreenThenHeightIndependentScrollKeepsPrimary(t *testing.T) {
+// resizeHeightIndependentScrollCase runs scrolls between leaving the
+// alternate screen and the grow that a terminal performs the same at any
+// height: SU, and output at the bottom of a scroll region that ends above the
+// last row. They must not use up the rows the shrink cut.
+func resizeHeightIndependentScrollCase(t *testing.T) {
 	regionOutput := "\x1b[1;10r\x1b[10;1H"
 	for i := 1; i <= 5; i++ {
 		regionOutput += fmt.Sprintf("region %02d\r\n", i)
