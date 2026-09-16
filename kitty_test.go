@@ -5,163 +5,154 @@ import (
 	"testing"
 )
 
-func TestParseKittyGraphics_Basic(t *testing.T) {
-	// Simple transmit and display command
-	data := []byte("Ga=T,f=32,s=2,v=2;AAAAAAAAAAAAAAAAAAAAAAA=")
-	cmd, err := ParseKittyGraphics(data)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if cmd.Action != KittyActionTransmitDisplay {
-		t.Errorf("expected action T, got %c", cmd.Action)
-	}
-	if cmd.Format != KittyFormatRGBA {
-		t.Errorf("expected format 32, got %d", cmd.Format)
-	}
-	if cmd.Width != 2 {
-		t.Errorf("expected width 2, got %d", cmd.Width)
-	}
-	if cmd.Height != 2 {
-		t.Errorf("expected height 2, got %d", cmd.Height)
+var parseKittyGraphicsCases = []struct {
+	name  string
+	data  string
+	check func(t *testing.T, cmd *KittyCommand)
+}{
+	{
+		name: "basic transmit and display",
+		data: "Ga=T,f=32,s=2,v=2;AAAAAAAAAAAAAAAAAAAAAAA=",
+		check: func(t *testing.T, cmd *KittyCommand) {
+			if cmd.Action != KittyActionTransmitDisplay {
+				t.Errorf("expected action T, got %c", cmd.Action)
+			}
+			if cmd.Format != KittyFormatRGBA {
+				t.Errorf("expected format 32, got %d", cmd.Format)
+			}
+			if cmd.Width != 2 {
+				t.Errorf("expected width 2, got %d", cmd.Width)
+			}
+			if cmd.Height != 2 {
+				t.Errorf("expected height 2, got %d", cmd.Height)
+			}
+		},
+	},
+	{
+		name: "query",
+		data: "Ga=q,i=1;",
+		check: func(t *testing.T, cmd *KittyCommand) {
+			if cmd.Action != KittyActionQuery {
+				t.Errorf("expected action q, got %c", cmd.Action)
+			}
+			if cmd.ImageID != 1 {
+				t.Errorf("expected image ID 1, got %d", cmd.ImageID)
+			}
+		},
+	},
+	{
+		name: "delete",
+		data: "Ga=d,d=a;",
+		check: func(t *testing.T, cmd *KittyCommand) {
+			if cmd.Action != KittyActionDelete {
+				t.Errorf("expected action d, got %c", cmd.Action)
+			}
+			if cmd.Delete != KittyDeleteAll {
+				t.Errorf("expected delete all, got %c", cmd.Delete)
+			}
+		},
+	},
+	{
+		name: "chunked",
+		data: "Ga=T,m=1;AAAA",
+		check: func(t *testing.T, cmd *KittyCommand) {
+			if !cmd.More {
+				t.Error("expected more=true")
+			}
+		},
+	},
+	{
+		name: "with z-index",
+		data: "Ga=p,i=1,z=-1;",
+		check: func(t *testing.T, cmd *KittyCommand) {
+			if cmd.ZIndex != -1 {
+				t.Errorf("expected z-index -1, got %d", cmd.ZIndex)
+			}
+		},
+	},
+	{
+		name: "placement",
+		data: "Ga=p,i=1,c=10,r=5,X=2,Y=3;",
+		check: func(t *testing.T, cmd *KittyCommand) {
+			if cmd.Cols != 10 {
+				t.Errorf("expected cols 10, got %d", cmd.Cols)
+			}
+			if cmd.Rows != 5 {
+				t.Errorf("expected rows 5, got %d", cmd.Rows)
+			}
+			if cmd.CellOffsetX != 2 {
+				t.Errorf("expected offsetX 2, got %d", cmd.CellOffsetX)
+			}
+			if cmd.CellOffsetY != 3 {
+				t.Errorf("expected offsetY 3, got %d", cmd.CellOffsetY)
+			}
+		},
+	},
+	{
+		name: "do not move cursor",
+		data: "Ga=T,C=1;",
+		check: func(t *testing.T, cmd *KittyCommand) {
+			if !cmd.DoNotMoveCursor {
+				t.Error("expected DoNotMoveCursor=true")
+			}
+		},
+	},
+}
+
+func TestParseKittyGraphics(t *testing.T) {
+	for _, c := range parseKittyGraphicsCases {
+		t.Run(c.name, func(t *testing.T) {
+			cmd, err := ParseKittyGraphics([]byte(c.data))
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			c.check(t, cmd)
+		})
 	}
 }
 
-func TestParseKittyGraphics_Query(t *testing.T) {
-	data := []byte("Ga=q,i=1;")
-	cmd, err := ParseKittyGraphics(data)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if cmd.Action != KittyActionQuery {
-		t.Errorf("expected action q, got %c", cmd.Action)
-	}
-	if cmd.ImageID != 1 {
-		t.Errorf("expected image ID 1, got %d", cmd.ImageID)
-	}
+var kittyDecodeImageDataCases = []struct {
+	name      string
+	format    KittyFormat
+	pixelByte int // bytes per pixel in the payload
+	fill      byte
+	wantLen   int
+	wantAlpha byte // checked when > 0
+}{
+	{name: "rgba", format: KittyFormatRGBA, pixelByte: 4, fill: 255, wantLen: 16},
+	{name: "rgb", format: KittyFormatRGB, pixelByte: 3, fill: 128, wantLen: 16, wantAlpha: 255},
 }
 
-func TestParseKittyGraphics_Delete(t *testing.T) {
-	data := []byte("Ga=d,d=a;")
-	cmd, err := ParseKittyGraphics(data)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if cmd.Action != KittyActionDelete {
-		t.Errorf("expected action d, got %c", cmd.Action)
-	}
-	if cmd.Delete != KittyDeleteAll {
-		t.Errorf("expected delete all, got %c", cmd.Delete)
-	}
-}
+func TestKittyCommand_DecodeImageData(t *testing.T) {
+	for _, c := range kittyDecodeImageDataCases {
+		t.Run(c.name, func(t *testing.T) {
+			// 2x2 image in the case's format
+			payload := make([]byte, 2*2*c.pixelByte)
+			for i := range payload {
+				payload[i] = c.fill
+			}
 
-func TestParseKittyGraphics_Chunked(t *testing.T) {
-	data := []byte("Ga=T,m=1;AAAA")
-	cmd, err := ParseKittyGraphics(data)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if !cmd.More {
-		t.Error("expected more=true")
-	}
-}
+			cmd := &KittyCommand{
+				Format:  c.format,
+				Width:   2,
+				Height:  2,
+				Payload: payload,
+			}
 
-func TestParseKittyGraphics_WithZIndex(t *testing.T) {
-	data := []byte("Ga=p,i=1,z=-1;")
-	cmd, err := ParseKittyGraphics(data)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if cmd.ZIndex != -1 {
-		t.Errorf("expected z-index -1, got %d", cmd.ZIndex)
-	}
-}
-
-func TestParseKittyGraphics_Placement(t *testing.T) {
-	data := []byte("Ga=p,i=1,c=10,r=5,X=2,Y=3;")
-	cmd, err := ParseKittyGraphics(data)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if cmd.Cols != 10 {
-		t.Errorf("expected cols 10, got %d", cmd.Cols)
-	}
-	if cmd.Rows != 5 {
-		t.Errorf("expected rows 5, got %d", cmd.Rows)
-	}
-	if cmd.CellOffsetX != 2 {
-		t.Errorf("expected offsetX 2, got %d", cmd.CellOffsetX)
-	}
-	if cmd.CellOffsetY != 3 {
-		t.Errorf("expected offsetY 3, got %d", cmd.CellOffsetY)
-	}
-}
-
-func TestParseKittyGraphics_DoNotMoveCursor(t *testing.T) {
-	data := []byte("Ga=T,C=1;")
-	cmd, err := ParseKittyGraphics(data)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if !cmd.DoNotMoveCursor {
-		t.Error("expected DoNotMoveCursor=true")
-	}
-}
-
-func TestKittyCommand_DecodeRGBA(t *testing.T) {
-	// 2x2 RGBA image (16 bytes)
-	rgba := make([]byte, 16)
-	for i := range rgba {
-		rgba[i] = 255
-	}
-	payload := base64.StdEncoding.EncodeToString(rgba)
-
-	cmd := &KittyCommand{
-		Format:  KittyFormatRGBA,
-		Width:   2,
-		Height:  2,
-		Payload: rgba,
-	}
-
-	data, w, h, err := cmd.DecodeImageData()
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if w != 2 || h != 2 {
-		t.Errorf("expected 2x2, got %dx%d", w, h)
-	}
-	if len(data) != 16 {
-		t.Errorf("expected 16 bytes, got %d", len(data))
-	}
-	_ = payload // just to use the variable
-}
-
-func TestKittyCommand_DecodeRGB(t *testing.T) {
-	// 2x2 RGB image (12 bytes) -> converted to RGBA (16 bytes)
-	rgb := make([]byte, 12)
-	for i := range rgb {
-		rgb[i] = 128
-	}
-
-	cmd := &KittyCommand{
-		Format:  KittyFormatRGB,
-		Width:   2,
-		Height:  2,
-		Payload: rgb,
-	}
-
-	data, w, h, err := cmd.DecodeImageData()
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if w != 2 || h != 2 {
-		t.Errorf("expected 2x2, got %dx%d", w, h)
-	}
-	if len(data) != 16 {
-		t.Errorf("expected 16 bytes RGBA, got %d", len(data))
-	}
-	// Check alpha is 255
-	if data[3] != 255 {
-		t.Errorf("expected alpha 255, got %d", data[3])
+			data, w, h, err := cmd.DecodeImageData()
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if w != 2 || h != 2 {
+				t.Errorf("expected 2x2, got %dx%d", w, h)
+			}
+			if len(data) != c.wantLen {
+				t.Errorf("expected %d bytes, got %d", c.wantLen, len(data))
+			}
+			if c.wantAlpha > 0 && data[3] != c.wantAlpha {
+				t.Errorf("expected alpha %d, got %d", c.wantAlpha, data[3])
+			}
+		})
 	}
 }
 
@@ -179,9 +170,15 @@ func TestFormatKittyResponse(t *testing.T) {
 	}
 }
 
-// TestKittyImageDisplay tests end-to-end image display via terminal
-func TestKittyImageDisplay(t *testing.T) {
-	// Create terminal with known cell size
+func TestKittyImageEndToEnd(t *testing.T) {
+	t.Run("display", kittyImageDisplayCase)
+	t.Run("cell assignment", kittyImageCellAssignmentCase)
+	t.Run("uv coordinates", kittyImageUVCoordinatesCase)
+	t.Run("chunked transfer", kittyChunkedTransferCase)
+	t.Run("image delete", kittyImageDeleteCase)
+}
+
+func kittyImageDisplayCase(t *testing.T) {
 	term := New(WithSize(24, 80))
 
 	// Create a 2x2 RGBA image (16 bytes) with all white pixels
@@ -207,8 +204,7 @@ func TestKittyImageDisplay(t *testing.T) {
 	}
 }
 
-// TestKittyImageCellAssignment tests that cells get image references
-func TestKittyImageCellAssignment(t *testing.T) {
+func kittyImageCellAssignmentCase(t *testing.T) {
 	term := New(WithSize(24, 80))
 
 	// Set cell size for calculations (20x20 pixels per cell)
@@ -246,8 +242,7 @@ func TestKittyImageCellAssignment(t *testing.T) {
 	}
 }
 
-// TestKittyImageUVCoordinates tests that UV coordinates are calculated correctly
-func TestKittyImageUVCoordinates(t *testing.T) {
+func kittyImageUVCoordinatesCase(t *testing.T) {
 	term := New(WithSize(24, 80))
 
 	// Set cell size (10x10 pixels per cell)
@@ -292,8 +287,7 @@ func TestKittyImageUVCoordinates(t *testing.T) {
 	}
 }
 
-// TestKittyChunkedTransfer tests multi-chunk image transmission
-func TestKittyChunkedTransfer(t *testing.T) {
+func kittyChunkedTransferCase(t *testing.T) {
 	term := New(WithSize(24, 80))
 	term.SetSizeProvider(&testSizeProvider{cellW: 10, cellH: 10})
 
@@ -329,8 +323,7 @@ func TestKittyChunkedTransfer(t *testing.T) {
 	}
 }
 
-// TestKittyImageDelete tests image deletion
-func TestKittyImageDelete(t *testing.T) {
+func kittyImageDeleteCase(t *testing.T) {
 	term := New(WithSize(24, 80))
 	term.SetSizeProvider(&testSizeProvider{cellW: 10, cellH: 10})
 
