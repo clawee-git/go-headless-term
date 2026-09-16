@@ -139,7 +139,7 @@ func TestImageManager_Lifecycle(t *testing.T) {
 func TestImageManager_Prune(t *testing.T) {
 	t.Run("evicts oldest unreferenced", imageManagerPruneEvictsOldest)
 	t.Run("referenced image survives", imageManagerPruneKeepsReferenced)
-	t.Run("all referenced stays over budget", imageManagerPruneAllReferenced)
+	t.Run("over-budget store is evicted immediately", imageManagerPruneOverBudgetStore)
 }
 
 func imageManagerPruneEvictsOldest(t *testing.T) {
@@ -189,18 +189,20 @@ func imageManagerPruneKeepsReferenced(t *testing.T) {
 	}
 }
 
-func imageManagerPruneAllReferenced(t *testing.T) {
+// imageManagerPruneOverBudgetStore documents that Store prunes right after
+// adding: an image larger than the budget is evicted by its own store, before
+// any placement can reference it.
+func imageManagerPruneOverBudgetStore(t *testing.T) {
 	m := NewImageManager()
 	m.SetMaxMemory(50)
 
 	idA := m.Store(10, 10, make([]byte, 100))
-	m.Place(&ImagePlacement{ImageID: idA, Row: 0, Col: 0, Cols: 1, Rows: 1})
 
-	if m.Image(idA) == nil {
-		t.Error("expected referenced image kept even over budget")
+	if m.Image(idA) != nil {
+		t.Error("expected over-budget image evicted by its own store")
 	}
-	if m.UsedMemory() != 100 {
-		t.Errorf("expected 100 bytes (referenced not pruned), got %d", m.UsedMemory())
+	if m.UsedMemory() != 0 {
+		t.Errorf("expected 0 bytes after self-eviction, got %d", m.UsedMemory())
 	}
 }
 

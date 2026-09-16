@@ -66,34 +66,33 @@ func TestNotificationProviderWiring(t *testing.T) {
 }
 
 var desktopNotificationCases = []struct {
-	name       string
-	provider   *testNotificationProvider
-	payload    *NotificationPayload
-	wantCount  int
-	checkLast  bool
-	wantID     string
-	wantData   string
-	wantField  string
-	fieldValue interface{}
+	name         string
+	withProvider bool
+	payload      *NotificationPayload
+	wantCount    int
+	checkLast    bool
+	wantID       string
+	wantData     string
+	wantField    string
+	fieldValue   interface{}
 }{
 	{
-		name:      "basic handler",
-		provider:  &testNotificationProvider{},
-		payload:   &NotificationPayload{ID: "test-1", PayloadType: "title", Data: []byte("Test Title"), Done: true},
-		wantCount: 1,
-		checkLast: true,
-		wantID:    "test-1",
-		wantData:  "Test Title",
+		name:         "basic handler",
+		withProvider: true,
+		payload:      &NotificationPayload{ID: "test-1", PayloadType: "title", Data: []byte("Test Title"), Done: true},
+		wantCount:    1,
+		checkLast:    true,
+		wantID:       "test-1",
+		wantData:     "Test Title",
 	},
 	{
 		name:      "nil provider",
-		provider:  nil,
 		payload:   &NotificationPayload{PayloadType: "title", Data: []byte("Test")},
 		wantCount: 0,
 	},
 	{
-		name:     "full payload fields",
-		provider: &testNotificationProvider{},
+		name:         "full payload fields",
+		withProvider: true,
 		payload: &NotificationPayload{
 			ID:          "notify-123",
 			Done:        true,
@@ -117,10 +116,10 @@ var desktopNotificationCases = []struct {
 		wantData:  "Notification body content",
 	},
 	{
-		name:      "empty payload",
-		provider:  &testNotificationProvider{},
-		payload:   &NotificationPayload{},
-		wantCount: 1,
+		name:         "empty payload",
+		withProvider: true,
+		payload:      &NotificationPayload{},
+		wantCount:    1,
 	},
 }
 
@@ -128,24 +127,24 @@ func TestDesktopNotification_Cases(t *testing.T) {
 	for _, c := range desktopNotificationCases {
 		t.Run(c.name, func(t *testing.T) {
 			term := New()
-			if c.provider != nil {
-				term.SetNotificationProvider(c.provider)
-			} else {
+			if !c.withProvider {
 				term.SetNotificationProvider(nil)
+				term.DesktopNotification(c.payload)
+				return
 			}
+
+			provider := &testNotificationProvider{}
+			term.SetNotificationProvider(provider)
 
 			term.DesktopNotification(c.payload)
 
-			if c.provider == nil {
-				return
-			}
-			if c.provider.notifyCount != c.wantCount {
-				t.Errorf("expected %d notifications, got %d", c.wantCount, c.provider.notifyCount)
+			if provider.notifyCount != c.wantCount {
+				t.Errorf("expected %d notifications, got %d", c.wantCount, provider.notifyCount)
 			}
 			if !c.checkLast {
 				return
 			}
-			last := c.provider.LastPayload()
+			last := provider.LastPayload()
 			if last == nil {
 				t.Fatal("expected payload to be recorded")
 			}
