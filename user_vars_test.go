@@ -105,46 +105,48 @@ func TestUserVars(t *testing.T) {
 }
 
 func TestUserVarMiddleware(t *testing.T) {
-	middlewareCalled := false
-	var interceptedName, interceptedValue string
+	t.Run("intercepts", func(t *testing.T) {
+		middlewareCalled := false
+		var interceptedName, interceptedValue string
 
-	term := New(WithMiddleware(&Middleware{
-		SetUserVar: func(name, value string, next func(string, string)) {
-			middlewareCalled = true
-			interceptedName = name
-			interceptedValue = value
-			next("MODIFIED_"+name, "MODIFIED_"+value)
-		},
-	}))
+		term := New(WithMiddleware(&Middleware{
+			SetUserVar: func(name, value string, next func(string, string)) {
+				middlewareCalled = true
+				interceptedName = name
+				interceptedValue = value
+				next("MODIFIED_"+name, "MODIFIED_"+value)
+			},
+		}))
 
-	term.SetUserVar("VAR1", "value1")
+		term.SetUserVar("VAR1", "value1")
 
-	if !middlewareCalled {
-		t.Error("expected middleware to be called")
-	}
-	if interceptedName != "VAR1" {
-		t.Errorf("expected intercepted name 'VAR1', got %q", interceptedName)
-	}
-	if interceptedValue != "value1" {
-		t.Errorf("expected intercepted value 'value1', got %q", interceptedValue)
-	}
-	if got := term.GetUserVar("MODIFIED_VAR1"); got != "MODIFIED_value1" {
-		t.Errorf("expected 'MODIFIED_value1', got %q", got)
-	}
-}
+		if !middlewareCalled {
+			t.Error("expected middleware to be called")
+		}
+		if interceptedName != "VAR1" {
+			t.Errorf("expected intercepted name 'VAR1', got %q", interceptedName)
+		}
+		if interceptedValue != "value1" {
+			t.Errorf("expected intercepted value 'value1', got %q", interceptedValue)
+		}
+		if got := term.GetUserVar("MODIFIED_VAR1"); got != "MODIFIED_value1" {
+			t.Errorf("expected 'MODIFIED_value1', got %q", got)
+		}
+	})
 
-func TestUserVarMiddlewareBlocks(t *testing.T) {
-	term := New(WithMiddleware(&Middleware{
-		SetUserVar: func(name, value string, next func(string, string)) {
-			// Don't call next - block the operation
-		},
-	}))
+	t.Run("blocks", func(t *testing.T) {
+		term := New(WithMiddleware(&Middleware{
+			SetUserVar: func(name, value string, next func(string, string)) {
+				// Don't call next - block the operation
+			},
+		}))
 
-	term.SetUserVar("VAR1", "value1")
+		term.SetUserVar("VAR1", "value1")
 
-	if got := term.GetUserVar("VAR1"); got != "" {
-		t.Errorf("expected variable to be blocked, got %q", got)
-	}
+		if got := term.GetUserVar("VAR1"); got != "" {
+			t.Errorf("expected variable to be blocked, got %q", got)
+		}
+	})
 }
 
 func TestUserVarThreadSafety(t *testing.T) {
