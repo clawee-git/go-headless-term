@@ -573,6 +573,12 @@ func TestMiddlewareSkipsCall(t *testing.T) {
 }
 
 func TestMiddlewareMerge(t *testing.T) {
+	t.Run("bell and title", middlewareMergeBellTitleCase)
+	t.Run("set user var", middlewareMergeSetUserVarCase)
+	t.Run("desktop notification", middlewareMergeDesktopNotificationCase)
+}
+
+func middlewareMergeBellTitleCase(t *testing.T) {
 	bellCount := 0
 	titleCount := 0
 
@@ -605,6 +611,72 @@ func TestMiddlewareMerge(t *testing.T) {
 	}
 	if titleCount != 1 {
 		t.Errorf("expected 1 title, got %d", titleCount)
+	}
+}
+
+func middlewareMergeSetUserVarCase(t *testing.T) {
+	call2 := false
+
+	mw1 := &Middleware{
+		Bell: func(next func()) {
+			next()
+		},
+	}
+
+	mw2 := &Middleware{
+		SetUserVar: func(name, value string, next func(string, string)) {
+			call2 = true
+			next(name, value)
+		},
+	}
+
+	mw1.Merge(mw2)
+
+	term := New(WithMiddleware(mw1))
+	term.SetUserVar("TEST", "value")
+
+	if !call2 {
+		t.Error("SetUserVar middleware should be called after merge")
+	}
+	if got := term.GetUserVar("TEST"); got != "value" {
+		t.Errorf("expected 'value', got %q", got)
+	}
+}
+
+func middlewareMergeDesktopNotificationCase(t *testing.T) {
+	notifyCount := 0
+
+	mw1 := &Middleware{
+		Bell: func(next func()) {
+			next()
+		},
+	}
+
+	mw2 := &Middleware{
+		DesktopNotification: func(payload *NotificationPayload, next func(*NotificationPayload)) {
+			notifyCount++
+			next(payload)
+		},
+	}
+
+	mw1.Merge(mw2)
+
+	provider := &testNotificationProvider{}
+	term := New(
+		WithNotification(provider),
+		WithMiddleware(mw1),
+	)
+
+	term.DesktopNotification(&NotificationPayload{
+		PayloadType: "title",
+		Data:        []byte("Test"),
+	})
+
+	if notifyCount != 1 {
+		t.Errorf("expected 1 middleware call after merge, got %d", notifyCount)
+	}
+	if provider.notifyCount != 1 {
+		t.Errorf("expected 1 provider call, got %d", provider.notifyCount)
 	}
 }
 

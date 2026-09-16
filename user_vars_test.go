@@ -265,32 +265,3 @@ func TestOSC1337SetUserVar(t *testing.T) {
 		}
 	})
 }
-
-func TestMiddlewareMergeSetUserVar(t *testing.T) {
-	call2 := false
-
-	mw1 := &Middleware{
-		Bell: func(next func()) {
-			next()
-		},
-	}
-
-	mw2 := &Middleware{
-		SetUserVar: func(name, value string, next func(string, string)) {
-			call2 = true
-			next(name, value)
-		},
-	}
-
-	mw1.Merge(mw2)
-
-	term := New(WithMiddleware(mw1))
-	term.SetUserVar("TEST", "value")
-
-	if !call2 {
-		t.Error("SetUserVar middleware should be called after merge")
-	}
-	if got := term.GetUserVar("TEST"); got != "value" {
-		t.Errorf("expected 'value', got %q", got)
-	}
-}
