@@ -496,10 +496,10 @@ func TestClipboardProvider(t *testing.T) {
 		t.Error("expected ClipboardProvider to return the provider passed to WithClipboard")
 	}
 
-	// Default terminal should have no clipboard provider.
+	// Default terminal should use the no-op clipboard provider.
 	defaultTerm := New()
-	if defaultTerm.ClipboardProvider() != nil {
-		t.Error("expected default clipboard provider to be nil")
+	if _, ok := defaultTerm.ClipboardProvider().(NoopClipboard); !ok {
+		t.Errorf("expected default clipboard provider to be NoopClipboard, got %T", defaultTerm.ClipboardProvider())
 	}
 }
 

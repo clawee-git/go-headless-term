@@ -9,8 +9,8 @@ func TestParseSixel(t *testing.T) {
 		name            string
 		params          []int64
 		data            string
-		wantWidth       int
-		wantHeight      int
+		wantWidth       uint32
+		wantHeight      uint32
 		wantTransparent bool
 		checkPixel      bool
 		wantR           byte

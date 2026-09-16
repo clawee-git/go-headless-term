@@ -77,7 +77,7 @@ func TestBufferScroll(t *testing.T) {
 		wantLast  rune
 	}{
 		{"up", "up", '1', ' '},
-		{"down", "down", ' ', '0'},
+		{"down", "down", ' ', '3'},
 	}
 
 	for _, c := range cases {
@@ -259,7 +259,7 @@ func TestBufferLineEdits(t *testing.T) {
 			setup:     []rune{'A', 'B', 'C'},
 			at:        1,
 			count:     2,
-			want:      []rune{'A', ' ', ' ', 'B', ' '},
+			want:      []rune{'A', ' ', ' ', 'B', 'C'},
 		},
 		{
 			name:      "delete chars",

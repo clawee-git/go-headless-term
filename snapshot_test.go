@@ -275,12 +275,12 @@ func TestCursorStyleToString(t *testing.T) {
 func TestSnapshot_Images(t *testing.T) {
 	cases := []struct {
 		name      string
-		setup     func(*Terminal) int
+		setup     func(*Terminal) uint32
 		wantCount int
 	}{
 		{
 			name: "with image",
-			setup: func(term *Terminal) int {
+			setup: func(term *Terminal) uint32 {
 				imgData := []byte{
 					255, 0, 0, 255,
 					0, 255, 0, 255,
@@ -302,7 +302,7 @@ func TestSnapshot_Images(t *testing.T) {
 		},
 		{
 			name: "no image",
-			setup: func(term *Terminal) int {
+			setup: func(term *Terminal) uint32 {
 				term.WriteString("Hello")
 				return 0
 			},
@@ -351,7 +351,7 @@ func TestGetImageData(t *testing.T) {
 
 	cases := []struct {
 		name   string
-		id     int
+		id     uint32
 		exists bool
 	}{
 		{"found", imgID, true},

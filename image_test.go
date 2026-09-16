@@ -9,7 +9,7 @@ func TestImageManager_Store(t *testing.T) {
 		name       string
 		data       []byte
 		wantCount  int
-		wantMemory int
+		wantMemory int64
 	}{
 		{
 			name:       "new image",
@@ -21,7 +21,7 @@ func TestImageManager_Store(t *testing.T) {
 			name:       "deduplicated image",
 			data:       []byte("test image data"),
 			wantCount:  1,
-			wantMemory: len("test image data"),
+			wantMemory: int64(len("test image data")),
 		},
 	}
 
@@ -92,7 +92,7 @@ func TestImageManager_Lifecycle(t *testing.T) {
 		operation      string
 		wantImages     int
 		wantPlacements int
-		wantMemory     int
+		wantMemory     int64
 	}{
 		{
 			name:           "delete image",
@@ -174,11 +174,18 @@ func TestImageManager_Placements(t *testing.T) {
 func TestImageManager_DeletePlacements(t *testing.T) {
 	cases := []struct {
 		name      string
+		setup     func(*ImageManager) uint32
 		delete    func(*ImageManager)
 		wantCount int
 	}{
 		{
 			name: "by position",
+			setup: func(m *ImageManager) uint32 {
+				imageID := m.Store(10, 10, make([]byte, 100))
+				m.Place(&ImagePlacement{ImageID: imageID, Row: 0, Col: 0, Cols: 2, Rows: 2})
+				m.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 5, Cols: 2, Rows: 2})
+				return imageID
+			},
 			delete: func(m *ImageManager) {
 				m.DeletePlacementsByPosition(0, 0)
 			},
@@ -186,6 +193,12 @@ func TestImageManager_DeletePlacements(t *testing.T) {
 		},
 		{
 			name: "in row",
+			setup: func(m *ImageManager) uint32 {
+				imageID := m.Store(10, 10, make([]byte, 100))
+				m.Place(&ImagePlacement{ImageID: imageID, Row: 0, Col: 0, Cols: 2, Rows: 2})
+				m.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 5, Cols: 2, Rows: 2})
+				return imageID
+			},
 			delete: func(m *ImageManager) {
 				m.DeletePlacementsInRow(1)
 			},
@@ -193,6 +206,13 @@ func TestImageManager_DeletePlacements(t *testing.T) {
 		},
 		{
 			name: "in row range",
+			setup: func(m *ImageManager) uint32 {
+				imageID := m.Store(10, 10, make([]byte, 100))
+				m.Place(&ImagePlacement{ImageID: imageID, Row: 0, Col: 0, Cols: 2, Rows: 3})
+				m.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 0, Cols: 2, Rows: 3})
+				m.Place(&ImagePlacement{ImageID: imageID, Row: 10, Col: 0, Cols: 2, Rows: 3})
+				return imageID
+			},
 			delete: func(m *ImageManager) {
 				m.DeletePlacementsInRowRange(4, 8)
 			},
@@ -200,6 +220,13 @@ func TestImageManager_DeletePlacements(t *testing.T) {
 		},
 		{
 			name: "below",
+			setup: func(m *ImageManager) uint32 {
+				imageID := m.Store(10, 10, make([]byte, 100))
+				m.Place(&ImagePlacement{ImageID: imageID, Row: 0, Col: 0, Cols: 2, Rows: 3})
+				m.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 0, Cols: 2, Rows: 3})
+				m.Place(&ImagePlacement{ImageID: imageID, Row: 10, Col: 0, Cols: 2, Rows: 3})
+				return imageID
+			},
 			delete: func(m *ImageManager) {
 				m.DeletePlacementsBelow(4)
 			},
@@ -207,6 +234,13 @@ func TestImageManager_DeletePlacements(t *testing.T) {
 		},
 		{
 			name: "above",
+			setup: func(m *ImageManager) uint32 {
+				imageID := m.Store(10, 10, make([]byte, 100))
+				m.Place(&ImagePlacement{ImageID: imageID, Row: 0, Col: 0, Cols: 2, Rows: 3})
+				m.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 0, Cols: 2, Rows: 3})
+				m.Place(&ImagePlacement{ImageID: imageID, Row: 10, Col: 0, Cols: 2, Rows: 3})
+				return imageID
+			},
 			delete: func(m *ImageManager) {
 				m.DeletePlacementsAbove(7)
 			},
@@ -217,16 +251,7 @@ func TestImageManager_DeletePlacements(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			m := NewImageManager()
-			data := make([]byte, 100)
-			imageID := m.Store(10, 10, data)
-
-			// Placement at rows 0-2
-			m.Place(&ImagePlacement{ImageID: imageID, Row: 0, Col: 0, Cols: 2, Rows: 3})
-			// Placement at rows 5-7
-			m.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 0, Cols: 2, Rows: 3})
-			// Placement at rows 10-12
-			m.Place(&ImagePlacement{ImageID: imageID, Row: 10, Col: 0, Cols: 2, Rows: 3})
-
+			c.setup(m)
 			c.delete(m)
 
 			if m.PlacementCount() != c.wantCount {
@@ -267,14 +292,14 @@ func TestCellImage(t *testing.T) {
 func TestTerminalImageClearing(t *testing.T) {
 	cases := []struct {
 		name           string
-		setup          func(*Terminal) (imageID int, preservedImageID int)
+		setup          func(*Terminal) (imageID uint32, preservedImageID uint32)
 		act            func(*Terminal)
 		wantPlacements int
 		wantImages     int
 	}{
 		{
 			name: "CSI 2J clears placements preserves images",
-			setup: func(term *Terminal) (int, int) {
+			setup: func(term *Terminal) (uint32, uint32) {
 				data := make([]byte, 100)
 				imageID := term.images.Store(10, 10, data)
 				term.images.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 5, Cols: 2, Rows: 2})
@@ -288,7 +313,7 @@ func TestTerminalImageClearing(t *testing.T) {
 		},
 		{
 			name: "CSI 0J clears below cursor",
-			setup: func(term *Terminal) (int, int) {
+			setup: func(term *Terminal) (uint32, uint32) {
 				data := make([]byte, 100)
 				imageID := term.images.Store(10, 10, data)
 				term.images.Place(&ImagePlacement{ImageID: imageID, Row: 2, Col: 0, Cols: 2, Rows: 2})  // Above
@@ -304,7 +329,7 @@ func TestTerminalImageClearing(t *testing.T) {
 		},
 		{
 			name: "RIS clears images and placements",
-			setup: func(term *Terminal) (int, int) {
+			setup: func(term *Terminal) (uint32, uint32) {
 				data := make([]byte, 100)
 				imageID := term.images.Store(10, 10, data)
 				term.images.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 5, Cols: 2, Rows: 2})
@@ -318,7 +343,7 @@ func TestTerminalImageClearing(t *testing.T) {
 		},
 		{
 			name: "alternate screen clears placements on both switches",
-			setup: func(term *Terminal) (int, int) {
+			setup: func(term *Terminal) (uint32, uint32) {
 				data := make([]byte, 100)
 				imageID := term.images.Store(10, 10, data)
 				term.images.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 5, Cols: 2, Rows: 2})
@@ -327,6 +352,7 @@ func TestTerminalImageClearing(t *testing.T) {
 			act: func(term *Terminal) {
 				term.WriteString("\x1b[?1049h")
 				data := make([]byte, 100)
+				data[0] = 1
 				imageID2 := term.images.Store(20, 20, data)
 				term.images.Place(&ImagePlacement{ImageID: imageID2, Row: 0, Col: 0, Cols: 3, Rows: 3})
 				term.WriteString("\x1b[?1049l")
