@@ -6,99 +6,37 @@ import (
 	"github.com/danielgatis/go-ansicode"
 )
 
-func TestSemanticPromptMark_PromptStart(t *testing.T) {
-	term := New(WithSize(24, 80))
-
-	// OSC 133 ; A BEL - Prompt start
-	term.WriteString("\x1b]133;A\x07")
-
-	marks := term.PromptMarks()
-	if len(marks) != 1 {
-		t.Fatalf("expected 1 mark, got %d", len(marks))
-	}
-
-	if marks[0].Type != ansicode.PromptStart {
-		t.Errorf("expected PromptStart mark, got %d", marks[0].Type)
-	}
-	if marks[0].ExitCode != -1 {
-		t.Errorf("expected exit code -1, got %d", marks[0].ExitCode)
-	}
+var semanticPromptMarkTypeCases = []struct {
+	name      string
+	osc       string
+	wantType  ansicode.ShellIntegrationMark
+	wantExit  int
+	checkExit bool
+}{
+	{"prompt start", "\x1b]133;A\x07", ansicode.PromptStart, -1, true},
+	{"command start", "\x1b]133;B\x07", ansicode.CommandStart, -1, false},
+	{"command executed", "\x1b]133;C\x07", ansicode.CommandExecuted, -1, false},
+	{"command finished", "\x1b]133;D\x07", ansicode.CommandFinished, -1, true},
+	{"finished exit 0", "\x1b]133;D;0\x07", ansicode.CommandFinished, 0, true},
+	{"finished exit 1", "\x1b]133;D;1\x07", ansicode.CommandFinished, 1, true},
+	{"finished exit 127", "\x1b]133;D;127\x07", ansicode.CommandFinished, 127, true},
 }
 
-func TestSemanticPromptMark_CommandStart(t *testing.T) {
-	term := New(WithSize(24, 80))
-
-	// OSC 133 ; B BEL - Command start
-	term.WriteString("\x1b]133;B\x07")
-
-	marks := term.PromptMarks()
-	if len(marks) != 1 {
-		t.Fatalf("expected 1 mark, got %d", len(marks))
-	}
-
-	if marks[0].Type != ansicode.CommandStart {
-		t.Errorf("expected CommandStart mark, got %d", marks[0].Type)
-	}
-}
-
-func TestSemanticPromptMark_CommandExecuted(t *testing.T) {
-	term := New(WithSize(24, 80))
-
-	// OSC 133 ; C BEL - Command executed
-	term.WriteString("\x1b]133;C\x07")
-
-	marks := term.PromptMarks()
-	if len(marks) != 1 {
-		t.Fatalf("expected 1 mark, got %d", len(marks))
-	}
-
-	if marks[0].Type != ansicode.CommandExecuted {
-		t.Errorf("expected CommandExecuted mark, got %d", marks[0].Type)
-	}
-}
-
-func TestSemanticPromptMark_CommandFinished(t *testing.T) {
-	term := New(WithSize(24, 80))
-
-	// OSC 133 ; D BEL - Command finished (no exit code)
-	term.WriteString("\x1b]133;D\x07")
-
-	marks := term.PromptMarks()
-	if len(marks) != 1 {
-		t.Fatalf("expected 1 mark, got %d", len(marks))
-	}
-
-	if marks[0].Type != ansicode.CommandFinished {
-		t.Errorf("expected CommandFinished mark, got %d", marks[0].Type)
-	}
-	if marks[0].ExitCode != -1 {
-		t.Errorf("expected exit code -1, got %d", marks[0].ExitCode)
-	}
-}
-
-func TestSemanticPromptMark_CommandFinishedWithExitCode(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    string
-		exitCode int
-	}{
-		{"exit code 0", "\x1b]133;D;0\x07", 0},
-		{"exit code 1", "\x1b]133;D;1\x07", 1},
-		{"exit code 127", "\x1b]133;D;127\x07", 127},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+func TestSemanticPromptMark_Types(t *testing.T) {
+	for _, c := range semanticPromptMarkTypeCases {
+		t.Run(c.name, func(t *testing.T) {
 			term := New(WithSize(24, 80))
-			term.WriteString(tt.input)
+			term.WriteString(c.osc)
 
 			marks := term.PromptMarks()
 			if len(marks) != 1 {
 				t.Fatalf("expected 1 mark, got %d", len(marks))
 			}
-
-			if marks[0].ExitCode != tt.exitCode {
-				t.Errorf("expected exit code %d, got %d", tt.exitCode, marks[0].ExitCode)
+			if marks[0].Type != c.wantType {
+				t.Errorf("expected mark type %d, got %d", c.wantType, marks[0].Type)
+			}
+			if c.checkExit && marks[0].ExitCode != c.wantExit {
+				t.Errorf("expected exit code %d, got %d", c.wantExit, marks[0].ExitCode)
 			}
 		})
 	}
@@ -312,41 +250,43 @@ func (p *testSemanticPromptHandler) OnMark(mark ansicode.ShellIntegrationMark, e
 }
 
 func TestSemanticPromptMark_Handler(t *testing.T) {
-	handler := &testSemanticPromptHandler{}
-	term := New(WithSize(24, 80), WithSemanticPromptHandler(handler))
+	t.Run("receives marks", func(t *testing.T) {
+		handler := &testSemanticPromptHandler{}
+		term := New(WithSize(24, 80), WithSemanticPromptHandler(handler))
 
-	term.WriteString("\x1b]133;A\x07")
-	term.WriteString("\x1b]133;D;42\x07")
+		term.WriteString("\x1b]133;A\x07")
+		term.WriteString("\x1b]133;D;42\x07")
 
-	if len(handler.marks) != 2 {
-		t.Fatalf("expected handler to receive 2 marks, got %d", len(handler.marks))
-	}
+		if len(handler.marks) != 2 {
+			t.Fatalf("expected handler to receive 2 marks, got %d", len(handler.marks))
+		}
 
-	if handler.marks[0] != ansicode.PromptStart {
-		t.Errorf("expected PromptStart, got %d", handler.marks[0])
-	}
-	if handler.marks[1] != ansicode.CommandFinished {
-		t.Errorf("expected CommandFinished, got %d", handler.marks[1])
-	}
-	if handler.codes[1] != 42 {
-		t.Errorf("expected exit code 42, got %d", handler.codes[1])
-	}
-}
+		if handler.marks[0] != ansicode.PromptStart {
+			t.Errorf("expected PromptStart, got %d", handler.marks[0])
+		}
+		if handler.marks[1] != ansicode.CommandFinished {
+			t.Errorf("expected CommandFinished, got %d", handler.marks[1])
+		}
+		if handler.codes[1] != 42 {
+			t.Errorf("expected exit code 42, got %d", handler.codes[1])
+		}
+	})
 
-func TestSemanticPromptMark_ST_Terminator(t *testing.T) {
-	term := New(WithSize(24, 80))
+	t.Run("st terminator", func(t *testing.T) {
+		term := New(WithSize(24, 80))
 
-	// OSC 133 ; A ST (using ESC \ as string terminator)
-	term.WriteString("\x1b]133;A\x1b\\")
+		// OSC 133 ; A ST (using ESC \ as string terminator)
+		term.WriteString("\x1b]133;A\x1b\\")
 
-	marks := term.PromptMarks()
-	if len(marks) != 1 {
-		t.Fatalf("expected 1 mark, got %d", len(marks))
-	}
+		marks := term.PromptMarks()
+		if len(marks) != 1 {
+			t.Fatalf("expected 1 mark, got %d", len(marks))
+		}
 
-	if marks[0].Type != ansicode.PromptStart {
-		t.Errorf("expected PromptStart mark, got %d", marks[0].Type)
-	}
+		if marks[0].Type != ansicode.PromptStart {
+			t.Errorf("expected PromptStart mark, got %d", marks[0].Type)
+		}
+	})
 }
 
 func TestSemanticPromptMark_Middleware(t *testing.T) {
@@ -385,131 +325,76 @@ func TestSemanticPromptMark_Middleware(t *testing.T) {
 
 // --- GetLastCommandOutput Tests ---
 
-func TestGetLastCommandOutput_Basic(t *testing.T) {
-	term := New(WithSize(24, 80))
-
-	// Simulate a command with output
-	term.WriteString("\x1b]133;A\x07") // Prompt start
-	term.WriteString("$ ")
-	term.WriteString("\x1b]133;B\x07") // Command start
-	term.WriteString("echo hello")
-	term.WriteString("\r\n")
-	term.WriteString("\x1b]133;C\x07")   // Command executed
-	term.WriteString("hello\r\n")        // Output
-	term.WriteString("\x1b]133;D;0\x07") // Command finished
-
-	output := term.GetLastCommandOutput()
-	expected := "hello"
-	if output != expected {
-		t.Errorf("expected %q, got %q", expected, output)
-	}
+var getLastCommandOutputCases = []struct {
+	name   string
+	writes []string
+	want   string
+}{
+	{
+		name: "basic",
+		writes: []string{
+			"\x1b]133;A\x07", "$ ", "\x1b]133;B\x07", "echo hello", "\r\n",
+			"\x1b]133;C\x07", "hello\r\n", "\x1b]133;D;0\x07",
+		},
+		want: "hello",
+	},
+	{
+		name: "multi line",
+		writes: []string{
+			"\x1b]133;C\x07", "line1\r\n", "line2\r\n", "line3\r\n", "\x1b]133;D;0\x07",
+		},
+		want: "line1\nline2\nline3",
+	},
+	{
+		name:   "no output",
+		writes: []string{"\x1b]133;C\x07", "\x1b]133;D;0\x07"},
+		want:   "",
+	},
+	{
+		name:   "no marks",
+		writes: nil,
+		want:   "",
+	},
+	{
+		name:   "only executed no finished",
+		writes: []string{"\x1b]133;C\x07", "output\r\n"},
+		want:   "",
+	},
+	{
+		name: "multiple commands",
+		writes: []string{
+			"\x1b]133;C\x07", "first output\r\n", "\x1b]133;D;0\x07",
+			"\x1b]133;A\x07", "$ ", "\x1b]133;B\x07", "cmd2\r\n",
+			"\x1b]133;C\x07", "second output\r\n", "\x1b]133;D;0\x07",
+		},
+		want: "second output",
+	},
+	{
+		name:   "with exit code",
+		writes: []string{"\x1b]133;C\x07", "error message\r\n", "\x1b]133;D;1\x07"},
+		want:   "error message",
+	},
+	{
+		name: "trailing empty lines",
+		writes: []string{
+			"\x1b]133;C\x07", "content\r\n", "\r\n", "\r\n", "\x1b]133;D;0\x07",
+		},
+		want: "content",
+	},
 }
 
-func TestGetLastCommandOutput_MultiLine(t *testing.T) {
-	term := New(WithSize(24, 80))
+func TestGetLastCommandOutput_Cases(t *testing.T) {
+	for _, c := range getLastCommandOutputCases {
+		t.Run(c.name, func(t *testing.T) {
+			term := New(WithSize(24, 80))
+			for _, w := range c.writes {
+				term.WriteString(w)
+			}
 
-	term.WriteString("\x1b]133;C\x07") // Command executed
-	term.WriteString("line1\r\n")
-	term.WriteString("line2\r\n")
-	term.WriteString("line3\r\n")
-	term.WriteString("\x1b]133;D;0\x07") // Command finished
-
-	output := term.GetLastCommandOutput()
-	expected := "line1\nline2\nline3"
-	if output != expected {
-		t.Errorf("expected %q, got %q", expected, output)
-	}
-}
-
-func TestGetLastCommandOutput_NoOutput(t *testing.T) {
-	term := New(WithSize(24, 80))
-
-	// Command with no output
-	term.WriteString("\x1b]133;C\x07")   // Command executed
-	term.WriteString("\x1b]133;D;0\x07") // Command finished immediately
-
-	output := term.GetLastCommandOutput()
-	if output != "" {
-		t.Errorf("expected empty string, got %q", output)
-	}
-}
-
-func TestGetLastCommandOutput_NoMarks(t *testing.T) {
-	term := New(WithSize(24, 80))
-
-	// No marks at all
-	output := term.GetLastCommandOutput()
-	if output != "" {
-		t.Errorf("expected empty string, got %q", output)
-	}
-}
-
-func TestGetLastCommandOutput_OnlyExecutedNoFinished(t *testing.T) {
-	term := New(WithSize(24, 80))
-
-	// Only CommandExecuted, no CommandFinished
-	term.WriteString("\x1b]133;C\x07")
-	term.WriteString("output\r\n")
-
-	output := term.GetLastCommandOutput()
-	if output != "" {
-		t.Errorf("expected empty string (no pair), got %q", output)
-	}
-}
-
-func TestGetLastCommandOutput_MultipleCommands(t *testing.T) {
-	term := New(WithSize(24, 80))
-
-	// First command
-	term.WriteString("\x1b]133;C\x07")
-	term.WriteString("first output\r\n")
-	term.WriteString("\x1b]133;D;0\x07")
-
-	// Second command
-	term.WriteString("\x1b]133;A\x07")
-	term.WriteString("$ ")
-	term.WriteString("\x1b]133;B\x07")
-	term.WriteString("cmd2\r\n")
-	term.WriteString("\x1b]133;C\x07")
-	term.WriteString("second output\r\n")
-	term.WriteString("\x1b]133;D;0\x07")
-
-	// Should return the last command's output
-	output := term.GetLastCommandOutput()
-	expected := "second output"
-	if output != expected {
-		t.Errorf("expected %q, got %q", expected, output)
-	}
-}
-
-func TestGetLastCommandOutput_WithExitCode(t *testing.T) {
-	term := New(WithSize(24, 80))
-
-	term.WriteString("\x1b]133;C\x07")
-	term.WriteString("error message\r\n")
-	term.WriteString("\x1b]133;D;1\x07") // Exit code 1
-
-	output := term.GetLastCommandOutput()
-	expected := "error message"
-	if output != expected {
-		t.Errorf("expected %q, got %q", expected, output)
-	}
-}
-
-func TestGetLastCommandOutput_TrailingEmptyLines(t *testing.T) {
-	term := New(WithSize(24, 80))
-
-	term.WriteString("\x1b]133;C\x07")
-	term.WriteString("content\r\n")
-	term.WriteString("\r\n") // Empty line
-	term.WriteString("\r\n") // Another empty line
-	term.WriteString("\x1b]133;D;0\x07")
-
-	output := term.GetLastCommandOutput()
-	// Should trim trailing empty lines
-	expected := "content"
-	if output != expected {
-		t.Errorf("expected %q, got %q", expected, output)
+			if output := term.GetLastCommandOutput(); output != c.want {
+				t.Errorf("expected %q, got %q", c.want, output)
+			}
+		})
 	}
 }
 
@@ -561,16 +446,28 @@ func (s *testScrollbackForSemanticPrompt) Pop() []Cell {
 	return line
 }
 
-func TestSemanticPromptMark_NextPromptRowWithScrollback(t *testing.T) {
+// newScrollbackPromptTerm returns a 5-row terminal with scrollback and a
+// prompt mark at absolute row 0, ready for navigation tests.
+func newScrollbackPromptTerm() *Terminal {
 	storage := &testScrollbackForSemanticPrompt{lines: make([][]Cell, 0)}
 	storage.SetMaxLines(100)
 
-	// Create a small terminal (5 rows) to force scrollback
 	term := New(WithSize(5, 80), WithScrollback(storage))
 
-	// Add prompt at absolute row 0
 	term.WriteString("\x1b]133;A\x07")
 	term.WriteString("prompt1\r\n")
+
+	return term
+}
+
+func TestSemanticPromptMark_ScrollbackNavigation(t *testing.T) {
+	t.Run("next prompt row", semanticPromptNextWithScrollback)
+	t.Run("prev prompt row", semanticPromptPrevWithScrollback)
+	t.Run("get mark at", semanticPromptGetMarkAtWithScrollback)
+}
+
+func semanticPromptNextWithScrollback(t *testing.T) {
+	term := newScrollbackPromptTerm()
 
 	// Write enough lines to push content into scrollback
 	for i := 0; i < 10; i++ {
@@ -614,15 +511,8 @@ func TestSemanticPromptMark_NextPromptRowWithScrollback(t *testing.T) {
 	}
 }
 
-func TestSemanticPromptMark_PrevPromptRowWithScrollback(t *testing.T) {
-	storage := &testScrollbackForSemanticPrompt{lines: make([][]Cell, 0)}
-	storage.SetMaxLines(100)
-
-	term := New(WithSize(5, 80), WithScrollback(storage))
-
-	// Add prompt at absolute row 0
-	term.WriteString("\x1b]133;A\x07")
-	term.WriteString("prompt1\r\n")
+func semanticPromptPrevWithScrollback(t *testing.T) {
+	term := newScrollbackPromptTerm()
 
 	// Write enough lines to push content into scrollback
 	for i := 0; i < 10; i++ {
@@ -651,15 +541,8 @@ func TestSemanticPromptMark_PrevPromptRowWithScrollback(t *testing.T) {
 	}
 }
 
-func TestSemanticPromptMark_GetMarkAtWithScrollback(t *testing.T) {
-	storage := &testScrollbackForSemanticPrompt{lines: make([][]Cell, 0)}
-	storage.SetMaxLines(100)
-
-	term := New(WithSize(5, 80), WithScrollback(storage))
-
-	// Add prompt at absolute row 0
-	term.WriteString("\x1b]133;A\x07")
-	term.WriteString("prompt\r\n")
+func semanticPromptGetMarkAtWithScrollback(t *testing.T) {
+	term := newScrollbackPromptTerm()
 
 	// Write enough lines to push the prompt into scrollback
 	for i := 0; i < 10; i++ {
