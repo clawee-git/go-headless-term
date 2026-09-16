@@ -4,88 +4,88 @@ import (
 	"testing"
 )
 
-func TestParseSixel(t *testing.T) {
-	cases := []struct {
-		name            string
-		params          []int64
-		data            string
-		wantWidth       uint32
-		wantHeight      uint32
-		wantTransparent bool
-		checkPixel      bool
-		wantR           byte
-		wantG           byte
-		wantB           byte
-	}{
-		{
-			name:       "simple pixel",
-			data:       "~",
-			wantWidth:  1,
-			wantHeight: 6,
-		},
-		{
-			name:       "multiple columns",
-			data:       "~~~",
-			wantWidth:  3,
-			wantHeight: 6,
-		},
-		{
-			name:       "newline",
-			data:       "~-~",
-			wantWidth:  1,
-			wantHeight: 12,
-		},
-		{
-			name:       "carriage return",
-			data:       "~$~",
-			wantWidth:  1,
-			wantHeight: 6,
-		},
-		{
-			name:       "repeat",
-			data:       "!5~",
-			wantWidth:  5,
-			wantHeight: 6,
-		},
-		{
-			name:       "RGB color",
-			data:       "#1;2;100;0;0#1~",
-			wantWidth:  1,
-			wantHeight: 6,
-			checkPixel: true,
-			wantR:      255,
-			wantG:      0,
-			wantB:      0,
-		},
-		{
-			name:       "HLS color",
-			data:       "#2;1;120;50;100#2~",
-			wantWidth:  1,
-			wantHeight: 6,
-		},
-		{
-			name:            "transparent",
-			params:          []int64{0, 1, 0},
-			data:            "~",
-			wantWidth:       1,
-			wantHeight:      6,
-			wantTransparent: true,
-		},
-		{
-			name:       "empty",
-			data:       "",
-			wantWidth:  0,
-			wantHeight: 0,
-		},
-		{
-			name:       "complex image",
-			data:       "#0;2;0;0;0#1;2;100;0;0#0!10~-#1!10~",
-			wantWidth:  10,
-			wantHeight: 12,
-		},
-	}
+var sixelParseCases = []struct {
+	name            string
+	params          []int64
+	data            string
+	wantWidth       uint32
+	wantHeight      uint32
+	wantTransparent bool
+	checkPixel      bool
+	wantR           byte
+	wantG           byte
+	wantB           byte
+}{
+	{
+		name:       "simple pixel",
+		data:       "~",
+		wantWidth:  1,
+		wantHeight: 6,
+	},
+	{
+		name:       "multiple columns",
+		data:       "~~~",
+		wantWidth:  3,
+		wantHeight: 6,
+	},
+	{
+		name:       "newline",
+		data:       "~-~",
+		wantWidth:  1,
+		wantHeight: 12,
+	},
+	{
+		name:       "carriage return",
+		data:       "~$~",
+		wantWidth:  1,
+		wantHeight: 6,
+	},
+	{
+		name:       "repeat",
+		data:       "!5~",
+		wantWidth:  5,
+		wantHeight: 6,
+	},
+	{
+		name:       "RGB color",
+		data:       "#1;2;100;0;0#1~",
+		wantWidth:  1,
+		wantHeight: 6,
+		checkPixel: true,
+		wantR:      255,
+		wantG:      0,
+		wantB:      0,
+	},
+	{
+		name:       "HLS color",
+		data:       "#2;1;120;50;100#2~",
+		wantWidth:  1,
+		wantHeight: 6,
+	},
+	{
+		name:            "transparent",
+		params:          []int64{0, 1, 0},
+		data:            "~",
+		wantWidth:       1,
+		wantHeight:      6,
+		wantTransparent: true,
+	},
+	{
+		name:       "empty",
+		data:       "",
+		wantWidth:  0,
+		wantHeight: 0,
+	},
+	{
+		name:       "complex image",
+		data:       "#0;2;0;0;0#1;2;100;0;0#0!10~-#1!10~",
+		wantWidth:  10,
+		wantHeight: 12,
+	},
+}
 
-	for _, c := range cases {
+func TestParseSixel(t *testing.T) {
+	for _, c := range sixelParseCases {
 		t.Run(c.name, func(t *testing.T) {
 			img, err := ParseSixel(c.params, []byte(c.data))
 			if err != nil {
@@ -109,50 +109,50 @@ func TestParseSixel(t *testing.T) {
 	}
 }
 
-func TestSixelEndToEnd(t *testing.T) {
-	cases := []struct {
-		name           string
-		setup          func(*Terminal)
-		sixel          string
-		wantImages     int
-		wantPlacements int
-		checkCells     bool
-		cellRows       []int
-		cellCols       []int
-		wantCursorRow  int
-	}{
-		{
-			name:           "display",
-			setup:          func(term *Terminal) {},
-			sixel:          "\x1bP0;0;0q#0;2;100;0;0#0!10~-!10~\x1b\\",
-			wantImages:     1,
-			wantPlacements: 1,
+var sixelEndToEndCases = []struct {
+	name           string
+	setup          func(*Terminal)
+	sixel          string
+	wantImages     int
+	wantPlacements int
+	checkCells     bool
+	cellRows       []int
+	cellCols       []int
+	wantCursorRow  int
+}{
+	{
+		name:           "display",
+		setup:          func(term *Terminal) {},
+		sixel:          "\x1bP0;0;0q#0;2;100;0;0#0!10~-!10~\x1b\\",
+		wantImages:     1,
+		wantPlacements: 1,
+	},
+	{
+		name: "cell assignment",
+		setup: func(term *Terminal) {
+			term.WriteString("\x1b[3;6H")
 		},
-		{
-			name: "cell assignment",
-			setup: func(term *Terminal) {
-				term.WriteString("\x1b[3;6H")
-			},
-			sixel:          "\x1bP0;0;0q#0;2;100;0;0#0!20~-!20~\x1b\\",
-			wantImages:     1,
-			wantPlacements: 1,
-			checkCells:     true,
-			cellRows:       []int{2, 2, 3, 3},
-			cellCols:       []int{5, 6, 5, 6},
+		sixel:          "\x1bP0;0;0q#0;2;100;0;0#0!20~-!20~\x1b\\",
+		wantImages:     1,
+		wantPlacements: 1,
+		checkCells:     true,
+		cellRows:       []int{2, 2, 3, 3},
+		cellCols:       []int{5, 6, 5, 6},
+	},
+	{
+		name: "cursor movement",
+		setup: func(term *Terminal) {
+			term.WriteString("\x1b[1;1H")
 		},
-		{
-			name: "cursor movement",
-			setup: func(term *Terminal) {
-				term.WriteString("\x1b[1;1H")
-			},
-			sixel:          "\x1bP0;0;0q!10~-!10~\x1b\\",
-			wantImages:     1,
-			wantPlacements: 1,
-			wantCursorRow:  2,
-		},
-	}
+		sixel:          "\x1bP0;0;0q!10~-!10~\x1b\\",
+		wantImages:     1,
+		wantPlacements: 1,
+		wantCursorRow:  2,
+	},
+}
 
-	for _, c := range cases {
+func TestSixelEndToEnd(t *testing.T) {
+	for _, c := range sixelEndToEndCases {
 		t.Run(c.name, func(t *testing.T) {
 			term := New(WithSize(24, 80))
 			term.SetSizeProvider(&testSizeProvider{cellW: 10, cellH: 10})

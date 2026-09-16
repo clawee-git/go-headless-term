@@ -272,45 +272,45 @@ func TestCursorStyleToString(t *testing.T) {
 	}
 }
 
-func TestSnapshot_Images(t *testing.T) {
-	cases := []struct {
-		name      string
-		setup     func(*Terminal) uint32
-		wantCount int
-	}{
-		{
-			name: "with image",
-			setup: func(term *Terminal) uint32 {
-				imgData := []byte{
-					255, 0, 0, 255,
-					0, 255, 0, 255,
-					0, 0, 255, 255,
-					255, 255, 0, 255,
-				}
-				imgID := term.images.Store(2, 2, imgData)
-				term.images.Place(&ImagePlacement{
-					ImageID: imgID,
-					Row:     1,
-					Col:     2,
-					Rows:    3,
-					Cols:    4,
-					ZIndex:  0,
-				})
-				return imgID
-			},
-			wantCount: 1,
+var snapshotImageCases = []struct {
+	name      string
+	setup     func(*Terminal) uint32
+	wantCount int
+}{
+	{
+		name: "with image",
+		setup: func(term *Terminal) uint32 {
+			imgData := []byte{
+				255, 0, 0, 255,
+				0, 255, 0, 255,
+				0, 0, 255, 255,
+				255, 255, 0, 255,
+			}
+			imgID := term.images.Store(2, 2, imgData)
+			term.images.Place(&ImagePlacement{
+				ImageID: imgID,
+				Row:     1,
+				Col:     2,
+				Rows:    3,
+				Cols:    4,
+				ZIndex:  0,
+			})
+			return imgID
 		},
-		{
-			name: "no image",
-			setup: func(term *Terminal) uint32 {
-				term.WriteString("Hello")
-				return 0
-			},
-			wantCount: 0,
+		wantCount: 1,
+	},
+	{
+		name: "no image",
+		setup: func(term *Terminal) uint32 {
+			term.WriteString("Hello")
+			return 0
 		},
-	}
+		wantCount: 0,
+	},
+}
 
-	for _, c := range cases {
+func TestSnapshot_Images(t *testing.T) {
+	for _, c := range snapshotImageCases {
 		t.Run(c.name, func(t *testing.T) {
 			term := New(WithSize(10, 20))
 			imgID := c.setup(term)

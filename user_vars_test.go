@@ -6,98 +6,98 @@ import (
 	"testing"
 )
 
-func TestUserVars(t *testing.T) {
-	cases := []struct {
-		name string
-		test func(t *testing.T, term *Terminal)
-	}{
-		{
-			name: "set and get",
-			test: func(t *testing.T, term *Terminal) {
-				term.SetUserVar("SANETTY_USER", "daniel")
-				if got := term.GetUserVar("SANETTY_USER"); got != "daniel" {
-					t.Errorf("expected 'daniel', got %q", got)
-				}
-			},
+var userVarsCases = []struct {
+	name string
+	test func(t *testing.T, term *Terminal)
+}{
+	{
+		name: "set and get",
+		test: func(t *testing.T, term *Terminal) {
+			term.SetUserVar("SANETTY_USER", "daniel")
+			if got := term.GetUserVar("SANETTY_USER"); got != "daniel" {
+				t.Errorf("expected 'daniel', got %q", got)
+			}
 		},
-		{
-			name: "unset returns empty",
-			test: func(t *testing.T, term *Terminal) {
-				if got := term.GetUserVar("NONEXISTENT"); got != "" {
-					t.Errorf("expected empty string for unset variable, got %q", got)
-				}
-			},
+	},
+	{
+		name: "unset returns empty",
+		test: func(t *testing.T, term *Terminal) {
+			if got := term.GetUserVar("NONEXISTENT"); got != "" {
+				t.Errorf("expected empty string for unset variable, got %q", got)
+			}
 		},
-		{
-			name: "get all variables",
-			test: func(t *testing.T, term *Terminal) {
-				term.SetUserVar("VAR1", "value1")
-				term.SetUserVar("VAR2", "value2")
-				term.SetUserVar("VAR3", "value3")
-				vars := term.GetUserVars()
-				if len(vars) != 3 {
-					t.Errorf("expected 3 variables, got %d", len(vars))
-				}
-				if vars["VAR1"] != "value1" {
-					t.Errorf("VAR1: expected 'value1', got %q", vars["VAR1"])
-				}
-			},
+	},
+	{
+		name: "get all variables",
+		test: func(t *testing.T, term *Terminal) {
+			term.SetUserVar("VAR1", "value1")
+			term.SetUserVar("VAR2", "value2")
+			term.SetUserVar("VAR3", "value3")
+			vars := term.GetUserVars()
+			if len(vars) != 3 {
+				t.Errorf("expected 3 variables, got %d", len(vars))
+			}
+			if vars["VAR1"] != "value1" {
+				t.Errorf("VAR1: expected 'value1', got %q", vars["VAR1"])
+			}
 		},
-		{
-			name: "get all returns a copy",
-			test: func(t *testing.T, term *Terminal) {
-				term.SetUserVar("VAR1", "value1")
-				vars := term.GetUserVars()
-				vars["VAR1"] = "modified"
-				vars["NEW_VAR"] = "new_value"
-				if got := term.GetUserVar("VAR1"); got != "value1" {
-					t.Errorf("expected original value 'value1', got %q", got)
-				}
-				if got := term.GetUserVar("NEW_VAR"); got != "" {
-					t.Errorf("expected NEW_VAR to not exist, got %q", got)
-				}
-			},
+	},
+	{
+		name: "get all returns a copy",
+		test: func(t *testing.T, term *Terminal) {
+			term.SetUserVar("VAR1", "value1")
+			vars := term.GetUserVars()
+			vars["VAR1"] = "modified"
+			vars["NEW_VAR"] = "new_value"
+			if got := term.GetUserVar("VAR1"); got != "value1" {
+				t.Errorf("expected original value 'value1', got %q", got)
+			}
+			if got := term.GetUserVar("NEW_VAR"); got != "" {
+				t.Errorf("expected NEW_VAR to not exist, got %q", got)
+			}
 		},
-		{
-			name: "clear all variables",
-			test: func(t *testing.T, term *Terminal) {
-				term.SetUserVar("VAR1", "value1")
-				term.SetUserVar("VAR2", "value2")
-				term.ClearUserVars()
-				if len(term.GetUserVars()) != 0 {
-					t.Errorf("expected 0 variables after clear, got %d", len(term.GetUserVars()))
-				}
-				if got := term.GetUserVar("VAR1"); got != "" {
-					t.Errorf("expected empty string after clear, got %q", got)
-				}
-			},
+	},
+	{
+		name: "clear all variables",
+		test: func(t *testing.T, term *Terminal) {
+			term.SetUserVar("VAR1", "value1")
+			term.SetUserVar("VAR2", "value2")
+			term.ClearUserVars()
+			if len(term.GetUserVars()) != 0 {
+				t.Errorf("expected 0 variables after clear, got %d", len(term.GetUserVars()))
+			}
+			if got := term.GetUserVar("VAR1"); got != "" {
+				t.Errorf("expected empty string after clear, got %q", got)
+			}
 		},
-		{
-			name: "overwrite",
-			test: func(t *testing.T, term *Terminal) {
-				term.SetUserVar("VAR1", "initial")
-				term.SetUserVar("VAR1", "updated")
-				if got := term.GetUserVar("VAR1"); got != "updated" {
-					t.Errorf("expected 'updated', got %q", got)
-				}
-			},
+	},
+	{
+		name: "overwrite",
+		test: func(t *testing.T, term *Terminal) {
+			term.SetUserVar("VAR1", "initial")
+			term.SetUserVar("VAR1", "updated")
+			if got := term.GetUserVar("VAR1"); got != "updated" {
+				t.Errorf("expected 'updated', got %q", got)
+			}
 		},
-		{
-			name: "empty value exists",
-			test: func(t *testing.T, term *Terminal) {
-				term.SetUserVar("VAR1", "")
-				if got := term.GetUserVar("VAR1"); got != "" {
-					t.Errorf("expected empty string, got %q", got)
-				}
-				vars := term.GetUserVars()
-				if _, exists := vars["VAR1"]; !exists {
-					t.Error("expected VAR1 to exist with empty value")
-				}
-			},
+	},
+	{
+		name: "empty value exists",
+		test: func(t *testing.T, term *Terminal) {
+			term.SetUserVar("VAR1", "")
+			if got := term.GetUserVar("VAR1"); got != "" {
+				t.Errorf("expected empty string, got %q", got)
+			}
+			vars := term.GetUserVars()
+			if _, exists := vars["VAR1"]; !exists {
+				t.Error("expected VAR1 to exist with empty value")
+			}
 		},
-	}
+	},
+}
 
-	for _, c := range cases {
+func TestUserVars(t *testing.T) {
+	for _, c := range userVarsCases {
 		t.Run(c.name, func(t *testing.T) {
 			c.test(t, New())
 		})
@@ -190,51 +190,51 @@ func TestUserVarThreadSafety(t *testing.T) {
 	}
 }
 
-func TestOSC1337SetUserVar(t *testing.T) {
-	cases := []struct {
-		name     string
-		osc      string
-		varName  string
-		expected string
-		exists   bool
-	}{
-		{
-			name:     "basic BEL terminator",
-			osc:      "\x1b]1337;SetUserVar=TEST_VAR=dGVzdF92YWx1ZQ==\x07",
-			varName:  "TEST_VAR",
-			expected: "test_value",
-			exists:   true,
-		},
-		{
-			name:     "ST terminator",
-			osc:      "\x1b]1337;SetUserVar=HELLO=aGVsbG8=\x1b\\",
-			varName:  "HELLO",
-			expected: "hello",
-			exists:   true,
-		},
-		{
-			name:    "invalid base64",
-			osc:     "\x1b]1337;SetUserVar=TEST=!@#$%^\x07",
-			varName: "TEST",
-			exists:  false,
-		},
-		{
-			name:     "empty value",
-			osc:      "\x1b]1337;SetUserVar=EMPTY=\x07",
-			varName:  "EMPTY",
-			expected: "",
-			exists:   true,
-		},
-		{
-			name:     "special characters",
-			osc:      "\x1b]1337;SetUserVar=SPECIAL=aGVsbG8Kd29ybGQJdGFi\x07",
-			varName:  "SPECIAL",
-			expected: "hello\nworld\ttab",
-			exists:   true,
-		},
-	}
+var osc1337SetUserVarCases = []struct {
+	name     string
+	osc      string
+	varName  string
+	expected string
+	exists   bool
+}{
+	{
+		name:     "basic BEL terminator",
+		osc:      "\x1b]1337;SetUserVar=TEST_VAR=dGVzdF92YWx1ZQ==\x07",
+		varName:  "TEST_VAR",
+		expected: "test_value",
+		exists:   true,
+	},
+	{
+		name:     "ST terminator",
+		osc:      "\x1b]1337;SetUserVar=HELLO=aGVsbG8=\x1b\\",
+		varName:  "HELLO",
+		expected: "hello",
+		exists:   true,
+	},
+	{
+		name:    "invalid base64",
+		osc:     "\x1b]1337;SetUserVar=TEST=!@#$%^\x07",
+		varName: "TEST",
+		exists:  false,
+	},
+	{
+		name:     "empty value",
+		osc:      "\x1b]1337;SetUserVar=EMPTY=\x07",
+		varName:  "EMPTY",
+		expected: "",
+		exists:   true,
+	},
+	{
+		name:     "special characters",
+		osc:      "\x1b]1337;SetUserVar=SPECIAL=aGVsbG8Kd29ybGQJdGFi\x07",
+		varName:  "SPECIAL",
+		expected: "hello\nworld\ttab",
+		exists:   true,
+	},
+}
 
-	for _, c := range cases {
+func TestOSC1337SetUserVar(t *testing.T) {
+	for _, c := range osc1337SetUserVarCases {
 		t.Run(c.name, func(t *testing.T) {
 			term := New()
 			_, _ = term.Write([]byte(c.osc))

@@ -342,47 +342,47 @@ func TestBufferWrappedLineTracking(t *testing.T) {
 	})
 }
 
-func TestBufferGrow(t *testing.T) {
-	cases := []struct {
-		name      string
-		axis      string
-		setup     func(*Buffer)
-		grow      func(*Buffer)
-		checkDim  func(*Buffer) int
-		expected  int
-		checkPres func(*Buffer) bool
-	}{
-		{
-			name: "rows",
-			axis: "rows",
-			setup: func(b *Buffer) {
-				b.Cell(0, 0).Char = 'A'
-				b.Cell(4, 0).Char = 'E'
-			},
-			grow:     func(b *Buffer) { b.GrowRows(3) },
-			checkDim: func(b *Buffer) int { return b.Rows() },
-			expected: 8,
-			checkPres: func(b *Buffer) bool {
-				return b.Cell(0, 0).Char == 'A' && b.Cell(4, 0).Char == 'E' && b.Cell(7, 0).Char == ' '
-			},
+var bufferGrowCases = []struct {
+	name      string
+	axis      string
+	setup     func(*Buffer)
+	grow      func(*Buffer)
+	checkDim  func(*Buffer) int
+	expected  int
+	checkPres func(*Buffer) bool
+}{
+	{
+		name: "rows",
+		axis: "rows",
+		setup: func(b *Buffer) {
+			b.Cell(0, 0).Char = 'A'
+			b.Cell(4, 0).Char = 'E'
 		},
-		{
-			name: "cols",
-			axis: "cols",
-			setup: func(b *Buffer) {
-				b.Cell(0, 0).Char = 'A'
-				b.Cell(0, 9).Char = 'B'
-			},
-			grow:     func(b *Buffer) { b.GrowCols(0, 20) },
-			checkDim: func(b *Buffer) int { return b.Cols() },
-			expected: 20,
-			checkPres: func(b *Buffer) bool {
-				return b.Cell(0, 0).Char == 'A' && b.Cell(0, 9).Char == 'B' && b.Cell(0, 15).Char == ' '
-			},
+		grow:     func(b *Buffer) { b.GrowRows(3) },
+		checkDim: func(b *Buffer) int { return b.Rows() },
+		expected: 8,
+		checkPres: func(b *Buffer) bool {
+			return b.Cell(0, 0).Char == 'A' && b.Cell(4, 0).Char == 'E' && b.Cell(7, 0).Char == ' '
 		},
-	}
+	},
+	{
+		name: "cols",
+		axis: "cols",
+		setup: func(b *Buffer) {
+			b.Cell(0, 0).Char = 'A'
+			b.Cell(0, 9).Char = 'B'
+		},
+		grow:     func(b *Buffer) { b.GrowCols(0, 20) },
+		checkDim: func(b *Buffer) int { return b.Cols() },
+		expected: 20,
+		checkPres: func(b *Buffer) bool {
+			return b.Cell(0, 0).Char == 'A' && b.Cell(0, 9).Char == 'B' && b.Cell(0, 15).Char == ' '
+		},
+	},
+}
 
-	for _, c := range cases {
+func TestBufferGrow(t *testing.T) {
+	for _, c := range bufferGrowCases {
 		t.Run(c.name, func(t *testing.T) {
 			b := NewBuffer(5, 10)
 			c.setup(b)

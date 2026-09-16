@@ -171,84 +171,84 @@ func TestImageManager_Placements(t *testing.T) {
 	}
 }
 
-func TestImageManager_DeletePlacements(t *testing.T) {
-	cases := []struct {
-		name      string
-		setup     func(*ImageManager) uint32
-		delete    func(*ImageManager)
-		wantCount int
-	}{
-		{
-			name: "by position",
-			setup: func(m *ImageManager) uint32 {
-				imageID := m.Store(10, 10, make([]byte, 100))
-				m.Place(&ImagePlacement{ImageID: imageID, Row: 0, Col: 0, Cols: 2, Rows: 2})
-				m.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 5, Cols: 2, Rows: 2})
-				return imageID
-			},
-			delete: func(m *ImageManager) {
-				m.DeletePlacementsByPosition(0, 0)
-			},
-			wantCount: 1,
+var deletePlacementsCases = []struct {
+	name      string
+	setup     func(*ImageManager) uint32
+	delete    func(*ImageManager)
+	wantCount int
+}{
+	{
+		name: "by position",
+		setup: func(m *ImageManager) uint32 {
+			imageID := m.Store(10, 10, make([]byte, 100))
+			m.Place(&ImagePlacement{ImageID: imageID, Row: 0, Col: 0, Cols: 2, Rows: 2})
+			m.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 5, Cols: 2, Rows: 2})
+			return imageID
 		},
-		{
-			name: "in row",
-			setup: func(m *ImageManager) uint32 {
-				imageID := m.Store(10, 10, make([]byte, 100))
-				m.Place(&ImagePlacement{ImageID: imageID, Row: 0, Col: 0, Cols: 2, Rows: 2})
-				m.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 5, Cols: 2, Rows: 2})
-				return imageID
-			},
-			delete: func(m *ImageManager) {
-				m.DeletePlacementsInRow(1)
-			},
-			wantCount: 1,
+		delete: func(m *ImageManager) {
+			m.DeletePlacementsByPosition(0, 0)
 		},
-		{
-			name: "in row range",
-			setup: func(m *ImageManager) uint32 {
-				imageID := m.Store(10, 10, make([]byte, 100))
-				m.Place(&ImagePlacement{ImageID: imageID, Row: 0, Col: 0, Cols: 2, Rows: 3})
-				m.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 0, Cols: 2, Rows: 3})
-				m.Place(&ImagePlacement{ImageID: imageID, Row: 10, Col: 0, Cols: 2, Rows: 3})
-				return imageID
-			},
-			delete: func(m *ImageManager) {
-				m.DeletePlacementsInRowRange(4, 8)
-			},
-			wantCount: 2,
+		wantCount: 1,
+	},
+	{
+		name: "in row",
+		setup: func(m *ImageManager) uint32 {
+			imageID := m.Store(10, 10, make([]byte, 100))
+			m.Place(&ImagePlacement{ImageID: imageID, Row: 0, Col: 0, Cols: 2, Rows: 2})
+			m.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 5, Cols: 2, Rows: 2})
+			return imageID
 		},
-		{
-			name: "below",
-			setup: func(m *ImageManager) uint32 {
-				imageID := m.Store(10, 10, make([]byte, 100))
-				m.Place(&ImagePlacement{ImageID: imageID, Row: 0, Col: 0, Cols: 2, Rows: 3})
-				m.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 0, Cols: 2, Rows: 3})
-				m.Place(&ImagePlacement{ImageID: imageID, Row: 10, Col: 0, Cols: 2, Rows: 3})
-				return imageID
-			},
-			delete: func(m *ImageManager) {
-				m.DeletePlacementsBelow(4)
-			},
-			wantCount: 1,
+		delete: func(m *ImageManager) {
+			m.DeletePlacementsInRow(1)
 		},
-		{
-			name: "above",
-			setup: func(m *ImageManager) uint32 {
-				imageID := m.Store(10, 10, make([]byte, 100))
-				m.Place(&ImagePlacement{ImageID: imageID, Row: 0, Col: 0, Cols: 2, Rows: 3})
-				m.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 0, Cols: 2, Rows: 3})
-				m.Place(&ImagePlacement{ImageID: imageID, Row: 10, Col: 0, Cols: 2, Rows: 3})
-				return imageID
-			},
-			delete: func(m *ImageManager) {
-				m.DeletePlacementsAbove(7)
-			},
-			wantCount: 1,
+		wantCount: 1,
+	},
+	{
+		name: "in row range",
+		setup: func(m *ImageManager) uint32 {
+			imageID := m.Store(10, 10, make([]byte, 100))
+			m.Place(&ImagePlacement{ImageID: imageID, Row: 0, Col: 0, Cols: 2, Rows: 3})
+			m.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 0, Cols: 2, Rows: 3})
+			m.Place(&ImagePlacement{ImageID: imageID, Row: 10, Col: 0, Cols: 2, Rows: 3})
+			return imageID
 		},
-	}
+		delete: func(m *ImageManager) {
+			m.DeletePlacementsInRowRange(4, 8)
+		},
+		wantCount: 2,
+	},
+	{
+		name: "below",
+		setup: func(m *ImageManager) uint32 {
+			imageID := m.Store(10, 10, make([]byte, 100))
+			m.Place(&ImagePlacement{ImageID: imageID, Row: 0, Col: 0, Cols: 2, Rows: 3})
+			m.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 0, Cols: 2, Rows: 3})
+			m.Place(&ImagePlacement{ImageID: imageID, Row: 10, Col: 0, Cols: 2, Rows: 3})
+			return imageID
+		},
+		delete: func(m *ImageManager) {
+			m.DeletePlacementsBelow(4)
+		},
+		wantCount: 1,
+	},
+	{
+		name: "above",
+		setup: func(m *ImageManager) uint32 {
+			imageID := m.Store(10, 10, make([]byte, 100))
+			m.Place(&ImagePlacement{ImageID: imageID, Row: 0, Col: 0, Cols: 2, Rows: 3})
+			m.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 0, Cols: 2, Rows: 3})
+			m.Place(&ImagePlacement{ImageID: imageID, Row: 10, Col: 0, Cols: 2, Rows: 3})
+			return imageID
+		},
+		delete: func(m *ImageManager) {
+			m.DeletePlacementsAbove(7)
+		},
+		wantCount: 1,
+	},
+}
 
-	for _, c := range cases {
+func TestImageManager_DeletePlacements(t *testing.T) {
+	for _, c := range deletePlacementsCases {
 		t.Run(c.name, func(t *testing.T) {
 			m := NewImageManager()
 			c.setup(m)
@@ -289,80 +289,80 @@ func TestCellImage(t *testing.T) {
 	}
 }
 
-func TestTerminalImageClearing(t *testing.T) {
-	cases := []struct {
-		name           string
-		setup          func(*Terminal) (imageID uint32, preservedImageID uint32)
-		act            func(*Terminal)
-		wantPlacements int
-		wantImages     int
-	}{
-		{
-			name: "CSI 2J clears placements preserves images",
-			setup: func(term *Terminal) (uint32, uint32) {
-				data := make([]byte, 100)
-				imageID := term.images.Store(10, 10, data)
-				term.images.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 5, Cols: 2, Rows: 2})
-				return imageID, 0
-			},
-			act: func(term *Terminal) {
-				term.WriteString("\x1b[2J")
-			},
-			wantPlacements: 0,
-			wantImages:     1,
+var terminalImageClearingCases = []struct {
+	name           string
+	setup          func(*Terminal) (imageID uint32, preservedImageID uint32)
+	act            func(*Terminal)
+	wantPlacements int
+	wantImages     int
+}{
+	{
+		name: "CSI 2J clears placements preserves images",
+		setup: func(term *Terminal) (uint32, uint32) {
+			data := make([]byte, 100)
+			imageID := term.images.Store(10, 10, data)
+			term.images.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 5, Cols: 2, Rows: 2})
+			return imageID, 0
 		},
-		{
-			name: "CSI 0J clears below cursor",
-			setup: func(term *Terminal) (uint32, uint32) {
-				data := make([]byte, 100)
-				imageID := term.images.Store(10, 10, data)
-				term.images.Place(&ImagePlacement{ImageID: imageID, Row: 2, Col: 0, Cols: 2, Rows: 2})  // Above
-				term.images.Place(&ImagePlacement{ImageID: imageID, Row: 10, Col: 0, Cols: 2, Rows: 2}) // Below
-				return imageID, 0
-			},
-			act: func(term *Terminal) {
-				term.WriteString("\x1b[6;1H")
-				term.WriteString("\x1b[0J")
-			},
-			wantPlacements: 1,
-			wantImages:     1,
+		act: func(term *Terminal) {
+			term.WriteString("\x1b[2J")
 		},
-		{
-			name: "RIS clears images and placements",
-			setup: func(term *Terminal) (uint32, uint32) {
-				data := make([]byte, 100)
-				imageID := term.images.Store(10, 10, data)
-				term.images.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 5, Cols: 2, Rows: 2})
-				return imageID, 0
-			},
-			act: func(term *Terminal) {
-				term.WriteString("\x1bc")
-			},
-			wantPlacements: 0,
-			wantImages:     0,
+		wantPlacements: 0,
+		wantImages:     1,
+	},
+	{
+		name: "CSI 0J clears below cursor",
+		setup: func(term *Terminal) (uint32, uint32) {
+			data := make([]byte, 100)
+			imageID := term.images.Store(10, 10, data)
+			term.images.Place(&ImagePlacement{ImageID: imageID, Row: 2, Col: 0, Cols: 2, Rows: 2})  // Above
+			term.images.Place(&ImagePlacement{ImageID: imageID, Row: 10, Col: 0, Cols: 2, Rows: 2}) // Below
+			return imageID, 0
 		},
-		{
-			name: "alternate screen clears placements on both switches",
-			setup: func(term *Terminal) (uint32, uint32) {
-				data := make([]byte, 100)
-				imageID := term.images.Store(10, 10, data)
-				term.images.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 5, Cols: 2, Rows: 2})
-				return imageID, 0
-			},
-			act: func(term *Terminal) {
-				term.WriteString("\x1b[?1049h")
-				data := make([]byte, 100)
-				data[0] = 1
-				imageID2 := term.images.Store(20, 20, data)
-				term.images.Place(&ImagePlacement{ImageID: imageID2, Row: 0, Col: 0, Cols: 3, Rows: 3})
-				term.WriteString("\x1b[?1049l")
-			},
-			wantPlacements: 0,
-			wantImages:     2,
+		act: func(term *Terminal) {
+			term.WriteString("\x1b[6;1H")
+			term.WriteString("\x1b[0J")
 		},
-	}
+		wantPlacements: 1,
+		wantImages:     1,
+	},
+	{
+		name: "RIS clears images and placements",
+		setup: func(term *Terminal) (uint32, uint32) {
+			data := make([]byte, 100)
+			imageID := term.images.Store(10, 10, data)
+			term.images.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 5, Cols: 2, Rows: 2})
+			return imageID, 0
+		},
+		act: func(term *Terminal) {
+			term.WriteString("\x1bc")
+		},
+		wantPlacements: 0,
+		wantImages:     0,
+	},
+	{
+		name: "alternate screen clears placements on both switches",
+		setup: func(term *Terminal) (uint32, uint32) {
+			data := make([]byte, 100)
+			imageID := term.images.Store(10, 10, data)
+			term.images.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 5, Cols: 2, Rows: 2})
+			return imageID, 0
+		},
+		act: func(term *Terminal) {
+			term.WriteString("\x1b[?1049h")
+			data := make([]byte, 100)
+			data[0] = 1
+			imageID2 := term.images.Store(20, 20, data)
+			term.images.Place(&ImagePlacement{ImageID: imageID2, Row: 0, Col: 0, Cols: 3, Rows: 3})
+			term.WriteString("\x1b[?1049l")
+		},
+		wantPlacements: 0,
+		wantImages:     2,
+	},
+}
 
-	for _, c := range cases {
+func TestTerminalImageClearing(t *testing.T) {
+	for _, c := range terminalImageClearingCases {
 		t.Run(c.name, func(t *testing.T) {
 			term := New(WithSize(24, 80))
 			c.setup(term)

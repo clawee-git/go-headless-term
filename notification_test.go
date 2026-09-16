@@ -65,67 +65,67 @@ func TestNotificationProviderWiring(t *testing.T) {
 	})
 }
 
-func TestDesktopNotification_Cases(t *testing.T) {
-	cases := []struct {
-		name       string
-		provider   *testNotificationProvider
-		payload    *NotificationPayload
-		wantCount  int
-		checkLast  bool
-		wantID     string
-		wantData   string
-		wantField  string
-		fieldValue interface{}
-	}{
-		{
-			name:      "basic handler",
-			provider:  &testNotificationProvider{},
-			payload:   &NotificationPayload{ID: "test-1", PayloadType: "title", Data: []byte("Test Title"), Done: true},
-			wantCount: 1,
-			checkLast: true,
-			wantID:    "test-1",
-			wantData:  "Test Title",
+var desktopNotificationCases = []struct {
+	name       string
+	provider   *testNotificationProvider
+	payload    *NotificationPayload
+	wantCount  int
+	checkLast  bool
+	wantID     string
+	wantData   string
+	wantField  string
+	fieldValue interface{}
+}{
+	{
+		name:      "basic handler",
+		provider:  &testNotificationProvider{},
+		payload:   &NotificationPayload{ID: "test-1", PayloadType: "title", Data: []byte("Test Title"), Done: true},
+		wantCount: 1,
+		checkLast: true,
+		wantID:    "test-1",
+		wantData:  "Test Title",
+	},
+	{
+		name:      "nil provider",
+		provider:  nil,
+		payload:   &NotificationPayload{PayloadType: "title", Data: []byte("Test")},
+		wantCount: 0,
+	},
+	{
+		name:     "full payload fields",
+		provider: &testNotificationProvider{},
+		payload: &NotificationPayload{
+			ID:          "notify-123",
+			Done:        true,
+			PayloadType: "body",
+			Encoding:    "1",
+			Actions:     []string{"focus", "report"},
+			TrackClose:  true,
+			Timeout:     5000,
+			AppName:     "TestApp",
+			Type:        "alert",
+			IconName:    "warning",
+			IconCacheID: "cache-456",
+			Sound:       "system",
+			Urgency:     2,
+			Occasion:    "always",
+			Data:        []byte("Notification body content"),
 		},
-		{
-			name:      "nil provider",
-			provider:  nil,
-			payload:   &NotificationPayload{PayloadType: "title", Data: []byte("Test")},
-			wantCount: 0,
-		},
-		{
-			name:     "full payload fields",
-			provider: &testNotificationProvider{},
-			payload: &NotificationPayload{
-				ID:          "notify-123",
-				Done:        true,
-				PayloadType: "body",
-				Encoding:    "1",
-				Actions:     []string{"focus", "report"},
-				TrackClose:  true,
-				Timeout:     5000,
-				AppName:     "TestApp",
-				Type:        "alert",
-				IconName:    "warning",
-				IconCacheID: "cache-456",
-				Sound:       "system",
-				Urgency:     2,
-				Occasion:    "always",
-				Data:        []byte("Notification body content"),
-			},
-			wantCount: 1,
-			checkLast: true,
-			wantID:    "notify-123",
-			wantData:  "Notification body content",
-		},
-		{
-			name:      "empty payload",
-			provider:  &testNotificationProvider{},
-			payload:   &NotificationPayload{},
-			wantCount: 1,
-		},
-	}
+		wantCount: 1,
+		checkLast: true,
+		wantID:    "notify-123",
+		wantData:  "Notification body content",
+	},
+	{
+		name:      "empty payload",
+		provider:  &testNotificationProvider{},
+		payload:   &NotificationPayload{},
+		wantCount: 1,
+	},
+}
 
-	for _, c := range cases {
+func TestDesktopNotification_Cases(t *testing.T) {
+	for _, c := range desktopNotificationCases {
 		t.Run(c.name, func(t *testing.T) {
 			term := New()
 			if c.provider != nil {
