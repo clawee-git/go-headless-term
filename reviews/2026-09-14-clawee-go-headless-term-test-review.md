@@ -40,18 +40,38 @@ Consequence for the workstation checklist: `gofmt -s -l .` on this branch report
 `providers.go` and `terminal.go` — dev's pre-existing state, deliberately not "fixed" here.
 
 **Mixed-verdict commits `046bba9`, `6add4f7` (TABLE + REWRITE) and `0eb7472`, `79f2452`, `34b34eb`
-(TABLE + RENAME) left as is.** This ruling has now been under-inclusive twice, which is itself the
-lesson. Revision 1 named `046bba9` as *the* mixed-verdict commit; the 02-audit review found a second,
-`6add4f7`. Revision 2's re-verdict then created three more without extending the ruling — round 2 of
-the review caught that — because relabelling twenty rows from `TABLE` to `RENAME` retroactively made
-the commits that executed them mixed-kind: `0eb7472` (kitty) carries 4 RENAME rows beside the
-`parseKittyGraphicsCases` TABLE; `34b34eb` (terminal) carries 10 — the five resize-scrollback, three
-recording and two row-conversion rows — beside its tables and the resize SPLIT; `79f2452`
-(semantic-prompt) carries the two `TestSemanticPromptMark_ScrollbackNavigation` rows beside its
-tables. No re-commit is possible or needed; the disclosure is the remedy. Note for the sibling audits
-(`cli`, `core`, `release`): a late re-verdict rewrites the *kind* of a commit that is already made, so
-the ruling must be re-read after any re-verdict, not only after the refactor. `6add4f7` ("table-driven consolidations in snapshot
-tests") also carries out the `TestSnapshot_UnderlineColor` REWRITE row — `- t.Logf("UnderlineColor
+and `d6b1161` (TABLE + RENAME) left as is; `fa669f3` is separately MISLABELLED.** This ruling has now
+been under-inclusive **three times**, which is itself the lesson, and the third time was inside the
+edit that claimed to fix the second. Revision 1 named `046bba9` as *the* mixed-verdict commit; the
+02-audit review found a second, `6add4f7`. Revision 2's re-verdict then made more commits mixed-kind
+without extending the ruling, because relabelling twenty rows from `TABLE` to `RENAME` retroactively
+rewrites the KIND of commits already made; the first correction then enumerated only three of them
+and miscounted one. Round 2 of the review mapped all twenty rows to the commit that introduced their
+implementing function (`git log -S"func <name>"`), which is the only way to get this right:
+
+| commit | RENAME rows it introduced |
+|---|---|
+| `0eb7472` (kitty) | **4** — the kitty end-to-end cases, beside the `parseKittyGraphicsCases` TABLE |
+| `34b34eb` (terminal) | **12** — five resize-scrollback, three recording, two row-conversion, plus `cursorBoundsAfterGrowColsCase` (T31) and `terminalWideCharacterCursorWriteCase` (T12) — beside its tables and the resize SPLIT |
+| `79f2452` (semantic-prompt) | **2** — the `TestSemanticPromptMark_ScrollbackNavigation` rows, beside its tables |
+| `d6b1161` (alternate-screen resize) | **1** — `resizePairsLikePrimaryCase` |
+| `fa669f3` (snapshot cursor) | **1** — `snapshotTextCursorCase` |
+| | **4 + 12 + 2 + 1 + 1 = 20**, the number of `RENAME` rows in the verdict table |
+
+**That sum is the closing check this ruling lacked**, and it is what would have caught all three
+rounds: the per-commit RENAME counts must total the `RENAME` row count (`grep -c '| RENAME |'`).
+Re-run it after any re-verdict.
+
+`fa669f3` is a different defect from the rest: it is **not mixed, it is mislabelled**. Its only row
+is `TestSnapshot_Cursor`, now `RENAME`, so it is a **pure RENAME commit still recorded as TABLE** —
+and its subject, "fold `TestSnapshot_Cursor` into `TestSnapshot_Text` as subtests", is the very
+"fold … as subtests" language the re-verdict repudiated. No re-commit is possible or needed for any
+of these; the disclosure is the remedy. Note for the sibling audits (`cli`, `core`, `release`): a
+late re-verdict rewrites the kind of commits already made, so the ruling must be re-read — and its
+counts re-summed — after any re-verdict, not only after the refactor.
+
+As for the two TABLE + REWRITE commits: `6add4f7` ("table-driven consolidations in snapshot
+tests") carries out the `TestSnapshot_UnderlineColor` REWRITE row — `- t.Logf("UnderlineColor
 = %q", got)` becomes `+ t.Errorf("UnderlineColor = %q, want %q", ...)` — so it is TABLE + REWRITE
 exactly as `046bba9` is. Both are left unsplit for the same reason, recorded once below, and both
 are named here. `046bba9` consolidates the ten
@@ -76,8 +96,9 @@ case or coverage change; the only renamed tests are the colors ones, in the name
 workers' verdict tables and name map described an end state that was never committed: forty-odd
 TABLE rows, one MERGE (`TestMiddlewareMergeSetUserVar`) and one REWRITE (`TestImageManager_Prune`
 — its "rewrite" in `eeed24e` had left a can't-fail body) had no matching code change. The
-finishing session executed them all: `cc969b8`, `fa669f3`, `7d36b3b`, `0eb7472`, `79f2452`,
-`d6b1161` (TABLE), `6deec26` (MERGE), `04326c2` (REWRITE), `34b34eb` (TABLE + SPLIT — the
+finishing session executed them all: `cc969b8`, `7d36b3b` (TABLE), `fa669f3` (recorded TABLE, in
+fact pure RENAME after the re-verdict), `0eb7472`, `79f2452`, `d6b1161` (TABLE + RENAME),
+`6deec26` (MERGE), `04326c2` (REWRITE), `34b34eb` (TABLE + RENAME + SPLIT — the
 consolidations pushed `terminal_test.go` to 1082 code lines, over the 1000 hard limit, so the
 resize concern moved to `resize_test.go`; mixed kinds in one commit because the split is a direct
 consequence of the same edit), `4c004f3` (SPLIT: `checkImageData` helper, function limit). These
@@ -620,14 +641,14 @@ ruling above):
 | FIX | `8faf70b` | type mismatches and table expectations in buffer, image, sixel, snapshot tests |
 | SPLIT | `2d8fa5a` | oversized table-driven tests under the 50-line function limit (ruling above) |
 | TABLE | `cc969b8` | `TestBufferCellOutOfBounds` folded into `TestBufferCell` |
-| TABLE | `fa669f3` | `TestSnapshot_Cursor` folded into `TestSnapshot_Text` |
+| RENAME (recorded TABLE) | `fa669f3` | `TestSnapshot_Cursor` regrouped as a subtest of `TestSnapshot_Text`. Its one row was re-verdicted `RENAME` in revision 2, making this a **pure RENAME commit still labelled TABLE**; its "folded … as subtests" subject is the language the re-verdict repudiated (ruling above) |
 | TABLE | `7d36b3b` | `TestUserVarMiddlewareBlocks` folded into `TestUserVarMiddleware` |
 | MERGE | `6deec26` | `TestMiddlewareMergeSetUserVar` into `TestMiddlewareMerge`; restores the desktop-notification merge case dropped by `7bc970d` |
 | REWRITE | `04326c2` | `TestImageManager_Prune` asserts the eviction contract (real rewrite; `eeed24e`'s body could not fail) |
 | TABLE + RENAME | `0eb7472` | kitty tests; also carries 4 rows re-verdicted `RENAME` in revision 2 (mixed kinds, ruling above) |
 | TABLE + RENAME | `79f2452` | semantic-prompt tests; also carries the 2 `ScrollbackNavigation` `RENAME` rows (mixed kinds, ruling above) |
 | TABLE + RENAME + SPLIT | `34b34eb` | terminal tests; resize concern split into `resize_test.go`; also carries 10 `RENAME` rows — five resize-scrollback, three recording, two row-conversion (mixed kinds, ruling above) |
-| TABLE | `d6b1161` | alternate-screen resize scenarios into `TestResizeOnAlternateScreenKeepsPrimary` |
+| TABLE + RENAME | `d6b1161` | alternate-screen resize scenarios into `TestResizeOnAlternateScreenKeepsPrimary`; also carries the `resizePairsLikePrimaryCase` `RENAME` row (mixed kinds, ruling above) |
 | SPLIT | `4c004f3` | `checkImageData` helper under the function limit |
 | FIX | `8c77e78` | repeat-unsafe notification table and unreachable prune case, caught by verify (ruling above) |
 
