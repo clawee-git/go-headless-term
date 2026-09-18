@@ -221,79 +221,58 @@ func TestImageManager_Placements(t *testing.T) {
 	}
 }
 
+// deletePlacementsCases: every placement-deletion entry point is the same
+// contract with a different selector. The placements laid down, the selector
+// and its arguments, and the number of survivors are the data.
 var deletePlacementsCases = []struct {
 	name      string
-	setup     func(*ImageManager) uint32
-	delete    func(*ImageManager)
+	places    []ImagePlacement // ImageID is filled in by the runner
+	del       string
+	args      [2]int
 	wantCount int
 }{
 	{
 		name: "by position",
-		setup: func(m *ImageManager) uint32 {
-			imageID := m.Store(10, 10, make([]byte, 100))
-			m.Place(&ImagePlacement{ImageID: imageID, Row: 0, Col: 0, Cols: 2, Rows: 2})
-			m.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 5, Cols: 2, Rows: 2})
-			return imageID
+		places: []ImagePlacement{
+			{Row: 0, Col: 0, Cols: 2, Rows: 2},
+			{Row: 5, Col: 5, Cols: 2, Rows: 2},
 		},
-		delete: func(m *ImageManager) {
-			m.DeletePlacementsByPosition(0, 0)
-		},
-		wantCount: 1,
+		del: "byPosition", args: [2]int{0, 0}, wantCount: 1,
 	},
 	{
 		name: "in row",
-		setup: func(m *ImageManager) uint32 {
-			imageID := m.Store(10, 10, make([]byte, 100))
-			m.Place(&ImagePlacement{ImageID: imageID, Row: 0, Col: 0, Cols: 2, Rows: 2})
-			m.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 5, Cols: 2, Rows: 2})
-			return imageID
+		places: []ImagePlacement{
+			{Row: 0, Col: 0, Cols: 2, Rows: 2},
+			{Row: 5, Col: 5, Cols: 2, Rows: 2},
 		},
-		delete: func(m *ImageManager) {
-			m.DeletePlacementsInRow(1)
-		},
-		wantCount: 1,
+		del: "inRow", args: [2]int{1, 0}, wantCount: 1,
 	},
 	{
 		name: "in row range",
-		setup: func(m *ImageManager) uint32 {
-			imageID := m.Store(10, 10, make([]byte, 100))
-			m.Place(&ImagePlacement{ImageID: imageID, Row: 0, Col: 0, Cols: 2, Rows: 3})
-			m.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 0, Cols: 2, Rows: 3})
-			m.Place(&ImagePlacement{ImageID: imageID, Row: 10, Col: 0, Cols: 2, Rows: 3})
-			return imageID
+		places: []ImagePlacement{
+			{Row: 0, Col: 0, Cols: 2, Rows: 3},
+			{Row: 5, Col: 0, Cols: 2, Rows: 3},
+			{Row: 10, Col: 0, Cols: 2, Rows: 3},
 		},
-		delete: func(m *ImageManager) {
-			m.DeletePlacementsInRowRange(4, 8)
-		},
-		wantCount: 2,
+		del: "inRowRange", args: [2]int{4, 8}, wantCount: 2,
 	},
 	{
 		name: "below",
-		setup: func(m *ImageManager) uint32 {
-			imageID := m.Store(10, 10, make([]byte, 100))
-			m.Place(&ImagePlacement{ImageID: imageID, Row: 0, Col: 0, Cols: 2, Rows: 3})
-			m.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 0, Cols: 2, Rows: 3})
-			m.Place(&ImagePlacement{ImageID: imageID, Row: 10, Col: 0, Cols: 2, Rows: 3})
-			return imageID
+		places: []ImagePlacement{
+			{Row: 0, Col: 0, Cols: 2, Rows: 3},
+			{Row: 5, Col: 0, Cols: 2, Rows: 3},
+			{Row: 10, Col: 0, Cols: 2, Rows: 3},
 		},
-		delete: func(m *ImageManager) {
-			m.DeletePlacementsBelow(4)
-		},
-		wantCount: 1,
+		del: "below", args: [2]int{4, 0}, wantCount: 1,
 	},
 	{
 		name: "above",
-		setup: func(m *ImageManager) uint32 {
-			imageID := m.Store(10, 10, make([]byte, 100))
-			m.Place(&ImagePlacement{ImageID: imageID, Row: 0, Col: 0, Cols: 2, Rows: 3})
-			m.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 0, Cols: 2, Rows: 3})
-			m.Place(&ImagePlacement{ImageID: imageID, Row: 10, Col: 0, Cols: 2, Rows: 3})
-			return imageID
+		places: []ImagePlacement{
+			{Row: 0, Col: 0, Cols: 2, Rows: 3},
+			{Row: 5, Col: 0, Cols: 2, Rows: 3},
+			{Row: 10, Col: 0, Cols: 2, Rows: 3},
 		},
-		delete: func(m *ImageManager) {
-			m.DeletePlacementsAbove(7)
-		},
-		wantCount: 1,
+		del: "above", args: [2]int{7, 0}, wantCount: 1,
 	},
 }
 
@@ -301,11 +280,30 @@ func TestImageManager_DeletePlacements(t *testing.T) {
 	for _, c := range deletePlacementsCases {
 		t.Run(c.name, func(t *testing.T) {
 			m := NewImageManager()
-			c.setup(m)
-			c.delete(m)
+			imageID := m.Store(10, 10, make([]byte, 100))
+			for _, place := range c.places {
+				p := place
+				p.ImageID = imageID
+				m.Place(&p)
+			}
 
-			if m.PlacementCount() != c.wantCount {
-				t.Errorf("expected %d placements after delete, got %d", c.wantCount, m.PlacementCount())
+			switch c.del {
+			case "byPosition":
+				m.DeletePlacementsByPosition(c.args[0], c.args[1])
+			case "inRow":
+				m.DeletePlacementsInRow(c.args[0])
+			case "inRowRange":
+				m.DeletePlacementsInRowRange(c.args[0], c.args[1])
+			case "below":
+				m.DeletePlacementsBelow(c.args[0])
+			case "above":
+				m.DeletePlacementsAbove(c.args[0])
+			default:
+				t.Fatalf("unknown selector %q", c.del)
+			}
+
+			if got := m.PlacementCount(); got != c.wantCount {
+				t.Errorf("PlacementCount() = %d, want %d", got, c.wantCount)
 			}
 		})
 	}

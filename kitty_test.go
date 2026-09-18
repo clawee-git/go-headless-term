@@ -2,99 +2,96 @@ package headlessterm
 
 import (
 	"encoding/base64"
+	"reflect"
 	"testing"
 )
 
+// parseKittyGraphicsCases: the parser's contract is the whole command it
+// returns, so each case states the whole expected KittyCommand. The parser
+// defaults Action to transmit-and-display, Transmission to direct and Format to
+// RGBA, so every case carries those unless its control data overrides them.
 var parseKittyGraphicsCases = []struct {
-	name  string
-	data  string
-	check func(t *testing.T, cmd *KittyCommand)
+	name           string
+	data           string
+	want           KittyCommand // Payload compared separately, by length
+	wantPayloadLen int
 }{
 	{
 		name: "basic transmit and display",
 		data: "Ga=T,f=32,s=2,v=2;AAAAAAAAAAAAAAAAAAAAAAA=",
-		check: func(t *testing.T, cmd *KittyCommand) {
-			if cmd.Action != KittyActionTransmitDisplay {
-				t.Errorf("expected action T, got %c", cmd.Action)
-			}
-			if cmd.Format != KittyFormatRGBA {
-				t.Errorf("expected format 32, got %d", cmd.Format)
-			}
-			if cmd.Width != 2 {
-				t.Errorf("expected width 2, got %d", cmd.Width)
-			}
-			if cmd.Height != 2 {
-				t.Errorf("expected height 2, got %d", cmd.Height)
-			}
+		want: KittyCommand{
+			Action:       KittyActionTransmitDisplay,
+			Transmission: KittyTransmitDirect,
+			Format:       KittyFormatRGBA,
+			Width:        2,
+			Height:       2,
 		},
+		wantPayloadLen: 17,
 	},
 	{
 		name: "query",
 		data: "Ga=q,i=1;",
-		check: func(t *testing.T, cmd *KittyCommand) {
-			if cmd.Action != KittyActionQuery {
-				t.Errorf("expected action q, got %c", cmd.Action)
-			}
-			if cmd.ImageID != 1 {
-				t.Errorf("expected image ID 1, got %d", cmd.ImageID)
-			}
+		want: KittyCommand{
+			Action:       KittyActionQuery,
+			Transmission: KittyTransmitDirect,
+			Format:       KittyFormatRGBA,
+			ImageID:      1,
 		},
 	},
 	{
 		name: "delete",
 		data: "Ga=d,d=a;",
-		check: func(t *testing.T, cmd *KittyCommand) {
-			if cmd.Action != KittyActionDelete {
-				t.Errorf("expected action d, got %c", cmd.Action)
-			}
-			if cmd.Delete != KittyDeleteAll {
-				t.Errorf("expected delete all, got %c", cmd.Delete)
-			}
+		want: KittyCommand{
+			Action:       KittyActionDelete,
+			Transmission: KittyTransmitDirect,
+			Format:       KittyFormatRGBA,
+			Delete:       KittyDeleteAll,
 		},
 	},
 	{
 		name: "chunked",
 		data: "Ga=T,m=1;AAAA",
-		check: func(t *testing.T, cmd *KittyCommand) {
-			if !cmd.More {
-				t.Error("expected more=true")
-			}
+		want: KittyCommand{
+			Action:       KittyActionTransmitDisplay,
+			Transmission: KittyTransmitDirect,
+			Format:       KittyFormatRGBA,
+			More:         true,
 		},
+		wantPayloadLen: 3,
 	},
 	{
 		name: "with z-index",
 		data: "Ga=p,i=1,z=-1;",
-		check: func(t *testing.T, cmd *KittyCommand) {
-			if cmd.ZIndex != -1 {
-				t.Errorf("expected z-index -1, got %d", cmd.ZIndex)
-			}
+		want: KittyCommand{
+			Action:       KittyActionDisplay,
+			Transmission: KittyTransmitDirect,
+			Format:       KittyFormatRGBA,
+			ImageID:      1,
+			ZIndex:       -1,
 		},
 	},
 	{
 		name: "placement",
 		data: "Ga=p,i=1,c=10,r=5,X=2,Y=3;",
-		check: func(t *testing.T, cmd *KittyCommand) {
-			if cmd.Cols != 10 {
-				t.Errorf("expected cols 10, got %d", cmd.Cols)
-			}
-			if cmd.Rows != 5 {
-				t.Errorf("expected rows 5, got %d", cmd.Rows)
-			}
-			if cmd.CellOffsetX != 2 {
-				t.Errorf("expected offsetX 2, got %d", cmd.CellOffsetX)
-			}
-			if cmd.CellOffsetY != 3 {
-				t.Errorf("expected offsetY 3, got %d", cmd.CellOffsetY)
-			}
+		want: KittyCommand{
+			Action:       KittyActionDisplay,
+			Transmission: KittyTransmitDirect,
+			Format:       KittyFormatRGBA,
+			ImageID:      1,
+			Cols:         10,
+			Rows:         5,
+			CellOffsetX:  2,
+			CellOffsetY:  3,
 		},
 	},
 	{
 		name: "do not move cursor",
 		data: "Ga=T,C=1;",
-		check: func(t *testing.T, cmd *KittyCommand) {
-			if !cmd.DoNotMoveCursor {
-				t.Error("expected DoNotMoveCursor=true")
-			}
+		want: KittyCommand{
+			Action:          KittyActionTransmitDisplay,
+			Transmission:    KittyTransmitDirect,
+			Format:          KittyFormatRGBA,
+			DoNotMoveCursor: true,
 		},
 	},
 }
@@ -106,7 +103,16 @@ func TestParseKittyGraphics(t *testing.T) {
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
-			c.check(t, cmd)
+
+			if got := len(cmd.Payload); got != c.wantPayloadLen {
+				t.Errorf("len(Payload) = %d, want %d", got, c.wantPayloadLen)
+			}
+
+			got := *cmd
+			got.Payload = nil
+			if !reflect.DeepEqual(got, c.want) {
+				t.Errorf("command = %+v, want %+v", got, c.want)
+			}
 		})
 	}
 }

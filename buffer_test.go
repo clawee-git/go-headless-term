@@ -344,42 +344,40 @@ func TestBufferWrappedLineTracking(t *testing.T) {
 	})
 }
 
+// bufferCellWant is one cell's expected rune: the seed a case writes before the
+// grow, and the contents it asserts after.
+type bufferCellWant struct {
+	row, col int
+	char     rune
+}
+
+// bufferGrowCases: growing an axis keeps the cells that were there and leaves
+// the new ones blank. The axis, the seeded cells and the expected cells are the
+// only things that vary.
 var bufferGrowCases = []struct {
 	name      string
-	axis      string
-	setup     func(*Buffer)
-	grow      func(*Buffer)
-	checkDim  func(*Buffer) int
-	expected  int
-	checkPres func(*Buffer) bool
+	axis      string // "rows" or "cols": the dimension the grow changes
+	seed      []bufferCellWant
+	growRows  int
+	growCols  int
+	wantDim   int
+	wantCells []bufferCellWant
 }{
 	{
-		name: "rows",
-		axis: "rows",
-		setup: func(b *Buffer) {
-			b.Cell(0, 0).Char = 'A'
-			b.Cell(4, 0).Char = 'E'
-		},
-		grow:     func(b *Buffer) { b.GrowRows(3) },
-		checkDim: func(b *Buffer) int { return b.Rows() },
-		expected: 8,
-		checkPres: func(b *Buffer) bool {
-			return b.Cell(0, 0).Char == 'A' && b.Cell(4, 0).Char == 'E' && b.Cell(7, 0).Char == ' '
-		},
+		name:      "rows",
+		axis:      "rows",
+		seed:      []bufferCellWant{{0, 0, 'A'}, {4, 0, 'E'}},
+		growRows:  3,
+		wantDim:   8,
+		wantCells: []bufferCellWant{{0, 0, 'A'}, {4, 0, 'E'}, {7, 0, ' '}},
 	},
 	{
-		name: "cols",
-		axis: "cols",
-		setup: func(b *Buffer) {
-			b.Cell(0, 0).Char = 'A'
-			b.Cell(0, 9).Char = 'B'
-		},
-		grow:     func(b *Buffer) { b.GrowCols(0, 20) },
-		checkDim: func(b *Buffer) int { return b.Cols() },
-		expected: 20,
-		checkPres: func(b *Buffer) bool {
-			return b.Cell(0, 0).Char == 'A' && b.Cell(0, 9).Char == 'B' && b.Cell(0, 15).Char == ' '
-		},
+		name:      "cols",
+		axis:      "cols",
+		seed:      []bufferCellWant{{0, 0, 'A'}, {0, 9, 'B'}},
+		growCols:  20,
+		wantDim:   20,
+		wantCells: []bufferCellWant{{0, 0, 'A'}, {0, 9, 'B'}, {0, 15, ' '}},
 	},
 }
 
@@ -387,13 +385,28 @@ func TestBufferGrow(t *testing.T) {
 	for _, c := range bufferGrowCases {
 		t.Run(c.name, func(t *testing.T) {
 			b := NewBuffer(5, 10)
-			c.setup(b)
-			c.grow(b)
-			if got := c.checkDim(b); got != c.expected {
-				t.Errorf("expected %d %s, got %d", c.expected, c.axis, got)
+			for _, seed := range c.seed {
+				b.Cell(seed.row, seed.col).Char = seed.char
 			}
-			if !c.checkPres(b) {
-				t.Errorf("expected content preserved and new %s empty", c.axis)
+
+			if c.growRows > 0 {
+				b.GrowRows(c.growRows)
+			} else {
+				b.GrowCols(0, c.growCols)
+			}
+
+			got := b.Rows()
+			if c.axis == "cols" {
+				got = b.Cols()
+			}
+			if got != c.wantDim {
+				t.Errorf("%s = %d, want %d", c.axis, got, c.wantDim)
+			}
+
+			for _, want := range c.wantCells {
+				if ch := b.Cell(want.row, want.col).Char; ch != want.char {
+					t.Errorf("cell(%d,%d) = %q, want %q", want.row, want.col, ch, want.char)
+				}
 			}
 		})
 	}

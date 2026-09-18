@@ -2,106 +2,95 @@ package headlessterm
 
 import (
 	"bytes"
+	"maps"
 	"sync"
 	"testing"
 )
 
+// userVarsCases: the user-variable store is set, optionally cleared, and then
+// read back. The calls and the expected reads are the only things that vary.
 var userVarsCases = []struct {
-	name string
-	test func(t *testing.T, term *Terminal)
+	name     string
+	sets     [][2]string       // SetUserVar calls, in order
+	clear    bool              // ClearUserVars after the sets
+	wantVars [][2]string       // GetUserVar(name) must return value
+	wantAll  map[string]string // GetUserVars() whole; nil means unchecked
 }{
 	{
-		name: "set and get",
-		test: func(t *testing.T, term *Terminal) {
-			term.SetUserVar("SANETTY_USER", "daniel")
-			if got := term.GetUserVar("SANETTY_USER"); got != "daniel" {
-				t.Errorf("expected 'daniel', got %q", got)
-			}
-		},
+		name:     "set and get",
+		sets:     [][2]string{{"SANETTY_USER", "daniel"}},
+		wantVars: [][2]string{{"SANETTY_USER", "daniel"}},
 	},
 	{
-		name: "unset returns empty",
-		test: func(t *testing.T, term *Terminal) {
-			if got := term.GetUserVar("NONEXISTENT"); got != "" {
-				t.Errorf("expected empty string for unset variable, got %q", got)
-			}
-		},
+		name:     "unset returns empty",
+		wantVars: [][2]string{{"NONEXISTENT", ""}},
 	},
 	{
-		name: "get all variables",
-		test: func(t *testing.T, term *Terminal) {
-			term.SetUserVar("VAR1", "value1")
-			term.SetUserVar("VAR2", "value2")
-			term.SetUserVar("VAR3", "value3")
-			vars := term.GetUserVars()
-			if len(vars) != 3 {
-				t.Errorf("expected 3 variables, got %d", len(vars))
-			}
-			if vars["VAR1"] != "value1" {
-				t.Errorf("VAR1: expected 'value1', got %q", vars["VAR1"])
-			}
-		},
+		name:    "get all variables",
+		sets:    [][2]string{{"VAR1", "value1"}, {"VAR2", "value2"}, {"VAR3", "value3"}},
+		wantAll: map[string]string{"VAR1": "value1", "VAR2": "value2", "VAR3": "value3"},
 	},
 	{
-		name: "get all returns a copy",
-		test: func(t *testing.T, term *Terminal) {
-			term.SetUserVar("VAR1", "value1")
-			vars := term.GetUserVars()
-			vars["VAR1"] = "modified"
-			vars["NEW_VAR"] = "new_value"
-			if got := term.GetUserVar("VAR1"); got != "value1" {
-				t.Errorf("expected original value 'value1', got %q", got)
-			}
-			if got := term.GetUserVar("NEW_VAR"); got != "" {
-				t.Errorf("expected NEW_VAR to not exist, got %q", got)
-			}
-		},
+		name:     "clear all variables",
+		sets:     [][2]string{{"VAR1", "value1"}, {"VAR2", "value2"}},
+		clear:    true,
+		wantVars: [][2]string{{"VAR1", ""}},
+		wantAll:  map[string]string{},
 	},
 	{
-		name: "clear all variables",
-		test: func(t *testing.T, term *Terminal) {
-			term.SetUserVar("VAR1", "value1")
-			term.SetUserVar("VAR2", "value2")
-			term.ClearUserVars()
-			if len(term.GetUserVars()) != 0 {
-				t.Errorf("expected 0 variables after clear, got %d", len(term.GetUserVars()))
-			}
-			if got := term.GetUserVar("VAR1"); got != "" {
-				t.Errorf("expected empty string after clear, got %q", got)
-			}
-		},
+		name:     "overwrite",
+		sets:     [][2]string{{"VAR1", "initial"}, {"VAR1", "updated"}},
+		wantVars: [][2]string{{"VAR1", "updated"}},
 	},
 	{
-		name: "overwrite",
-		test: func(t *testing.T, term *Terminal) {
-			term.SetUserVar("VAR1", "initial")
-			term.SetUserVar("VAR1", "updated")
-			if got := term.GetUserVar("VAR1"); got != "updated" {
-				t.Errorf("expected 'updated', got %q", got)
-			}
-		},
-	},
-	{
-		name: "empty value exists",
-		test: func(t *testing.T, term *Terminal) {
-			term.SetUserVar("VAR1", "")
-			if got := term.GetUserVar("VAR1"); got != "" {
-				t.Errorf("expected empty string, got %q", got)
-			}
-			vars := term.GetUserVars()
-			if _, exists := vars["VAR1"]; !exists {
-				t.Error("expected VAR1 to exist with empty value")
-			}
-		},
+		name:     "empty value exists",
+		sets:     [][2]string{{"VAR1", ""}},
+		wantVars: [][2]string{{"VAR1", ""}},
+		wantAll:  map[string]string{"VAR1": ""},
 	},
 }
 
 func TestUserVars(t *testing.T) {
 	for _, c := range userVarsCases {
 		t.Run(c.name, func(t *testing.T) {
-			c.test(t, New())
+			term := New()
+			for _, set := range c.sets {
+				term.SetUserVar(set[0], set[1])
+			}
+			if c.clear {
+				term.ClearUserVars()
+			}
+
+			for _, want := range c.wantVars {
+				if got := term.GetUserVar(want[0]); got != want[1] {
+					t.Errorf("GetUserVar(%q) = %q, want %q", want[0], got, want[1])
+				}
+			}
+			if c.wantAll != nil {
+				if got := term.GetUserVars(); !maps.Equal(got, c.wantAll) {
+					t.Errorf("GetUserVars() = %v, want %v", got, c.wantAll)
+				}
+			}
 		})
 	}
+
+	// The copy contract is behaviour, not data: the caller mutates what
+	// GetUserVars returned and the store must not see it.
+	t.Run("get all returns a copy", func(t *testing.T) {
+		term := New()
+		term.SetUserVar("VAR1", "value1")
+
+		vars := term.GetUserVars()
+		vars["VAR1"] = "modified"
+		vars["NEW_VAR"] = "new_value"
+
+		if got := term.GetUserVar("VAR1"); got != "value1" {
+			t.Errorf("GetUserVar(%q) = %q, want %q", "VAR1", got, "value1")
+		}
+		if got := term.GetUserVar("NEW_VAR"); got != "" {
+			t.Errorf("GetUserVar(%q) = %q, want empty", "NEW_VAR", got)
+		}
+	})
 }
 
 func TestUserVarMiddleware(t *testing.T) {
