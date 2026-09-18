@@ -60,11 +60,38 @@ implementing function (`git log -S"func <name>"`), which is the only way to get 
 
 **That sum is the closing check this ruling lacked**, and it is what would have caught all three
 rounds: the per-commit RENAME counts must total the number of rows whose Verdict column reads
-RENAME — **twenty**. Count them with `grep -cE '\| RENAM[E] \|'`; the character class is deliberate,
-so the check does not match its own sentence. (It did on the first attempt: the pattern written out
-in full counted this paragraph as a twenty-first row, which is the same class of error the ruling
-itself keeps making — a record that fails to account for its own effect on what it measures.)
-Re-run it after any re-verdict.
+RENAME — **twenty**, the one place that number is stated. Count them structurally, by parsing the
+verdict table's columns rather than grepping its rendered text:
+
+```
+awk -F'|' 'NF>=7 && $1=="" {v=$5; gsub(/^[ \t]+|[ \t]+$/,"",v); n[v]++} END{print n["RENAME"]}' <report>
+```
+
+The targeted lookup is exact. Dropping the `["RENAME"]` also gives every verdict's count —
+`KEEP 119 · TABLE 104 · RENAME 20 · REWRITE 4 · MERGE 3 · ADD 1 · SPLIT 1`, what a future ruling
+needs for its own sum — but read those keys out deliberately rather than trusting the whole output:
+the inventory and name-map tables share the six-column shape, so their field 5 (test names, prose)
+appears in the same tally. The verdict keys are unaffected, because no other table puts a bare
+verdict word in that column.
+
+A grep of the rendered row (`grep -c` on the pipe-delimited literal) was tried first and is **not**
+good enough, for a reason worth keeping: as first written its own sentence contained the literal it
+searched for, so it counted itself and reported 21 against a true 20 — the same class of error the
+ruling keeps making, a record failing to account for its own effect on what it measures. Even
+repaired it silently drifts three ways without the underlying fact changing: a later prose line
+quoting a row verbatim (+1), a padding change (`|RENAME|`, `| RENAME  |` → 0), or a qualified cell
+(`| RENAME (host) |` → 0). The awk form is immune to all three and fails loudly if the table's shape
+changes.
+
+**The limitation neither form removes — recorded, not fixed:** both check only the TOTAL. A wrong
+per-commit attribution that still sums to twenty passes both. The per-commit numbers come from
+resolving each RENAME row's implementing function and running
+`git log --oneline --reverse -S"func <name>" a2b682e..HEAD | head -1`, then grouping; that is the
+only derivation which cannot agree by coincidence. It is not fully mechanical: **2 of the 20** (the
+`TestSemanticPromptMark_ScrollbackNavigation` rows) are inline `t.Run` closures with no named
+function and were attributed by `-S` on the host name instead. So: the sum check catches miscounts,
+the `-S` mapping catches misattributions, and two rows need a human. Re-run all of it after any
+re-verdict.
 
 `fa669f3` is a different defect from the rest: it is **not mixed, it is mislabelled**. Its only row
 is `TestSnapshot_Cursor`, now `RENAME`, so it is a **pure RENAME commit still recorded as TABLE** —
@@ -649,9 +676,9 @@ ruling above):
 | TABLE | `7d36b3b` | `TestUserVarMiddlewareBlocks` folded into `TestUserVarMiddleware` |
 | MERGE | `6deec26` | `TestMiddlewareMergeSetUserVar` into `TestMiddlewareMerge`; restores the desktop-notification merge case dropped by `7bc970d` |
 | REWRITE | `04326c2` | `TestImageManager_Prune` asserts the eviction contract (real rewrite; `eeed24e`'s body could not fail) |
-| TABLE + RENAME | `0eb7472` | kitty tests; also carries 4 rows re-verdicted `RENAME` in revision 2 (mixed kinds, ruling above) |
+| TABLE + RENAME | `0eb7472` | kitty tests; also carries the kitty end-to-end rows re-verdicted `RENAME` in revision 2 (mixed kinds, count stated in the ruling only) |
 | TABLE + RENAME | `79f2452` | semantic-prompt tests; also carries the 2 `ScrollbackNavigation` `RENAME` rows (mixed kinds, ruling above) |
-| TABLE + RENAME + SPLIT | `34b34eb` | terminal tests; resize concern split into `resize_test.go`; also carries 10 `RENAME` rows — five resize-scrollback, three recording, two row-conversion (mixed kinds, ruling above) |
+| TABLE + RENAME + SPLIT | `34b34eb` | terminal tests; resize concern split into `resize_test.go`; also carries the `RENAME` rows the mixed-verdict ruling lists for it (mixed kinds, count stated there only) |
 | TABLE + RENAME | `d6b1161` | alternate-screen resize scenarios into `TestResizeOnAlternateScreenKeepsPrimary`; also carries the `resizePairsLikePrimaryCase` `RENAME` row (mixed kinds, ruling above) |
 | SPLIT | `4c004f3` | `checkImageData` helper under the function limit |
 | FIX | `8c77e78` | repeat-unsafe notification table and unreachable prune case, caught by verify (ruling above) |
