@@ -59,7 +59,11 @@ implementing function (`git log -S"func <name>"`), which is the only way to get 
 | | **4 + 12 + 2 + 1 + 1 = 20**, the number of `RENAME` rows in the verdict table |
 
 **That sum is the closing check this ruling lacked**, and it is what would have caught all three
-rounds: the per-commit RENAME counts must total the `RENAME` row count (`grep -c '| RENAME |'`).
+rounds: the per-commit RENAME counts must total the number of rows whose Verdict column reads
+RENAME — **twenty**. Count them with `grep -cE '\| RENAM[E] \|'`; the character class is deliberate,
+so the check does not match its own sentence. (It did on the first attempt: the pattern written out
+in full counted this paragraph as a twenty-first row, which is the same class of error the ruling
+itself keeps making — a record that fails to account for its own effect on what it measures.)
 Re-run it after any re-verdict.
 
 `fa669f3` is a different defect from the rest: it is **not mixed, it is mislabelled**. Its only row
