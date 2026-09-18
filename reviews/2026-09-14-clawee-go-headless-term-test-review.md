@@ -39,9 +39,18 @@ under `reviews/2026-09-14-clawee-go-headless-term-coverage/` for provenance. The
 Consequence for the workstation checklist: `gofmt -s -l .` on this branch reports exactly
 `providers.go` and `terminal.go` — dev's pre-existing state, deliberately not "fixed" here.
 
-**Mixed-verdict commits `046bba9` and `6add4f7` (TABLE + REWRITE) left as is.** Revision 1 of
-this ruling named `046bba9` as *the* mixed-verdict commit; the 02-audit review found a second one
-and the claim of exhaustiveness was wrong. `6add4f7` ("table-driven consolidations in snapshot
+**Mixed-verdict commits `046bba9`, `6add4f7` (TABLE + REWRITE) and `0eb7472`, `79f2452`, `34b34eb`
+(TABLE + RENAME) left as is.** This ruling has now been under-inclusive twice, which is itself the
+lesson. Revision 1 named `046bba9` as *the* mixed-verdict commit; the 02-audit review found a second,
+`6add4f7`. Revision 2's re-verdict then created three more without extending the ruling — round 2 of
+the review caught that — because relabelling twenty rows from `TABLE` to `RENAME` retroactively made
+the commits that executed them mixed-kind: `0eb7472` (kitty) carries 4 RENAME rows beside the
+`parseKittyGraphicsCases` TABLE; `34b34eb` (terminal) carries 10 — the five resize-scrollback, three
+recording and two row-conversion rows — beside its tables and the resize SPLIT; `79f2452`
+(semantic-prompt) carries the two `TestSemanticPromptMark_ScrollbackNavigation` rows beside its
+tables. No re-commit is possible or needed; the disclosure is the remedy. Note for the sibling audits
+(`cli`, `core`, `release`): a late re-verdict rewrites the *kind* of a commit that is already made, so
+the ruling must be re-read after any re-verdict, not only after the refactor. `6add4f7` ("table-driven consolidations in snapshot
 tests") also carries out the `TestSnapshot_UnderlineColor` REWRITE row — `- t.Logf("UnderlineColor
 = %q", got)` becomes `+ t.Errorf("UnderlineColor = %q, want %q", ...)` — so it is TABLE + REWRITE
 exactly as `046bba9` is. Both are left unsplit for the same reason, recorded once below, and both
@@ -584,7 +593,7 @@ evidence line and a target like any other row.
 | C4 | `parseKittyGraphicsCases` (`check func(t, *KittyCommand)` field) | REWRITE | The closure held the ASSERTION, and each case asserted only the two or three fields it happened to look at; the parser's contract is the whole command it returns (guideline §2.4) | a whole `want KittyCommand` compared with `reflect.DeepEqual`, plus the payload length |
 | C5 | `terminalImageClearingCases`, `sixelEndToEndCases`, `snapshotImagesCases` (`setup`/`act` func fields) | KEEP | Judged and kept: their closures build the SCENARIO (terminal writes, image stores) while every assertion lives once in the shared runner, so no assertion is collapsed and "one reason to fail" holds. Turning a sequence of terminal operations into data would need an interpreter for them — more test code, not less | — |
 
-Deliberate non-fold: the nineteen rows re-verdicted `RENAME` above. Each was checked case by case;
+Deliberate non-fold: the twenty rows re-verdicted `RENAME` above. Each was checked case by case;
 in every one the cases differ in the API called or the contract asserted, not in input and expected
 output. §2.2 folds variation, not behaviour, and the LOW 3 finding above is what forcing the second
 kind into a table costs.
@@ -615,9 +624,9 @@ ruling above):
 | TABLE | `7d36b3b` | `TestUserVarMiddlewareBlocks` folded into `TestUserVarMiddleware` |
 | MERGE | `6deec26` | `TestMiddlewareMergeSetUserVar` into `TestMiddlewareMerge`; restores the desktop-notification merge case dropped by `7bc970d` |
 | REWRITE | `04326c2` | `TestImageManager_Prune` asserts the eviction contract (real rewrite; `eeed24e`'s body could not fail) |
-| TABLE | `0eb7472` | kitty tests |
-| TABLE | `79f2452` | semantic-prompt tests |
-| TABLE + SPLIT | `34b34eb` | terminal tests; resize concern split into `resize_test.go` (mixed kinds, ruling above) |
+| TABLE + RENAME | `0eb7472` | kitty tests; also carries 4 rows re-verdicted `RENAME` in revision 2 (mixed kinds, ruling above) |
+| TABLE + RENAME | `79f2452` | semantic-prompt tests; also carries the 2 `ScrollbackNavigation` `RENAME` rows (mixed kinds, ruling above) |
+| TABLE + RENAME + SPLIT | `34b34eb` | terminal tests; resize concern split into `resize_test.go`; also carries 10 `RENAME` rows — five resize-scrollback, three recording, two row-conversion (mixed kinds, ruling above) |
 | TABLE | `d6b1161` | alternate-screen resize scenarios into `TestResizeOnAlternateScreenKeepsPrimary` |
 | SPLIT | `4c004f3` | `checkImageData` helper under the function limit |
 | FIX | `8c77e78` | repeat-unsafe notification table and unreachable prune case, caught by verify (ruling above) |
@@ -627,7 +636,7 @@ Revision-2 commits (2026-09-17), in the guideline's order among themselves:
 | Verdict kind | Commit | Summary |
 |---|---|---|
 | EXTRACT | `1c024cb` | rows X01-X03: shared scrollback-terminal, numbered-lines and kitty-payload fixtures |
-| TABLE | `f8679b4` | the twenty rows that were subtest extraction folded into real data tables (R01/PR1 x8, T31 x3, T34 x2, T30 x2, SN01 x2, and the three parents they collapse) |
+| TABLE | `f8679b4` | the **sixteen** rows that were subtest extraction folded into real data tables (R01/PR1 x8, T31 x3, T34, T30, SN01, and the three parents they collapse). The other twenty of the ~44 flagged rows were re-verdicted `RENAME`, not folded — `32e1182` exists to retract this row's earlier "twenty folded" over-count |
 | REWRITE | `b2dd063` | rows C1-C4: func-typed table fields replaced by data and whole-contract assertions |
 
 Outstanding: none. Every verdict row is executed. DELETE: none — `TestClipboardProvider` was
@@ -912,12 +921,19 @@ not claim to. Where the growth is, and what was bought with it:
 | | lines | what it bought |
 |---|---|---|
 | `colors_test.go` (ADD) | +148 | an inventory row that had **no test at all** — 15 of the 19 gained covered blocks are its |
-| `helpers_test.go` (EXTRACT) | +48 | shared fixtures that removed copy-paste setup from four files |
-| everything else, net | **+32** | 23 → 191 real subtests, whole-contract assertions replacing `t.Logf`, and a rewritten `TestImageManager_Prune` that can now fail |
+| `helpers_test.go` (EXTRACT), file alone | +48 | shared fixtures that removed copy-paste setup from four files |
+| everything else, net | +32 | 23 → 191 real subtests, whole-contract assertions replacing `t.Logf`, and a rewritten `TestImageManager_Prune` that can now fail |
 
-Excluding the ADD and the EXTRACT — neither of which is compaction work — the suite the audit
-actually compacted is **+32 lines on 4 045**, against 168 more counted cases and 19 more covered
-blocks. That is a fair trade, not a compaction; the compaction the guideline asks for did not
+**The honest compaction figure is +80, not +32** (corrected after round 2 of the 02-audit review).
+The two rows above are a per-file decomposition and nothing more: +32 is obtained by charging the
+EXTRACT's cost to a separate line while keeping its savings inside "everything else", which flatters
+the result. An EXTRACT *is* one of the guideline's verdict kinds and is §2.5 compaction work, and
+measured across both EXTRACT commits it is net **−39** for the suite — `9b314a1` 4 189→4 182
+(helpers +33, other files −40) and `1c024cb` 4 383→4 351 (helpers +15, other files −47): **87 lines
+moved out of the 14 pre-existing files**. So the defensible statements are **+80 excluding only the
+ADD** (4 273 − 148 = 4 125 against baseline 4 045), or **+119** if the extract's effect is excluded
+along with its cost. Against 168 more counted cases and 19 more covered blocks, +80 is the number
+that argument has to stand on; the compaction the guideline asks for did not
 happen here, and the reason is in the TABLE ruling above: roughly half the rows recorded `TABLE`
 described cases that differ in *behaviour*, and forcing those into tables is the defect the review
 found in `bufferGrowCases`, not a saving.
