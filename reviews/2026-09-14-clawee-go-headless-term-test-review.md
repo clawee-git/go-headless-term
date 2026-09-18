@@ -1,6 +1,15 @@
 # Test-suite review — go-headless-term
 
-Module: `github.com/clawee-git/go-headless-term` · baseline commit `a2b682e` · after commit `8c77e78` (test-code head; the report and evidence commit follows it) · suite command: `ci/run-tests.sh [options] [pkg...]` · target: `burrowee-ci` · runtime = plain uninstrumented run · covered = set mode profile
+Module: `github.com/clawee-git/go-headless-term` · baseline commit `a2b682e` · after commit `b2dd063` (revision-2 test-code head; the report and evidence commit follows it) · suite command: `ci/run-tests.sh [options] [pkg...]` · target: `burrowee-ci` · runtime = plain uninstrumented run · covered = set mode profile
+
+**Revision 2 (2026-09-17)** — this report was reviewed at `a2b682e..c412993`
+(`../reviews/2026-09-17-clawee-go-headless-term-test-suite-review-02-review.md` in the
+resources repo) and came back NOT CLEAN with twelve findings. All twelve are carried out here:
+three MERGE mutations taken at head, the non-compiling commit window ruled on, the `After`
+table added with the honest line delta, the two false statements corrected, seventeen missing
+verdict rows added, and every row that was recorded `TABLE` but executed as a named subtest
+func either folded into a real data table or re-verdicted `RENAME`. Revision-2 commits are
+`1c024cb`, `f8679b4`, `b2dd063` and this one.
 
 ## Rulings (finishing session, 2026-09-15)
 
@@ -21,16 +30,22 @@ under `reviews/2026-09-14-clawee-go-headless-term-coverage/` for provenance. The
 Consequence for the workstation checklist: `gofmt -s -l .` on this branch reports exactly
 `providers.go` and `terminal.go` — dev's pre-existing state, deliberately not "fixed" here.
 
-**Mixed-verdict commit `046bba9` (TABLE + REWRITE) left as is.** That commit consolidates the ten
+**Mixed-verdict commits `046bba9` and `6add4f7` (TABLE + REWRITE) left as is.** Revision 1 of
+this ruling named `046bba9` as *the* mixed-verdict commit; the 02-audit review found a second one
+and the claim of exhaustiveness was wrong. `6add4f7` ("table-driven consolidations in snapshot
+tests") also carries out the `TestSnapshot_UnderlineColor` REWRITE row — `- t.Logf("UnderlineColor
+= %q", got)` becomes `+ t.Errorf("UnderlineColor = %q, want %q", ...)` — so it is TABLE + REWRITE
+exactly as `046bba9` is. Both are left unsplit for the same reason, recorded once below, and both
+are named here. `046bba9` consolidates the ten
 `TestParseSixel_*` functions and three end-to-end sixel tests into tables (TABLE) and also rewrites
 `TestSixelScrollingAtBottom`'s assertions (REWRITE). The two portions are textually disjoint (the
 rewrite is a separate function body, not folded into `TestSixelEndToEnd`), so strictly it should
 have been two commits, TABLE then REWRITE. It was left unsplit because splitting a mid-chain commit
 under the follow-on FIX commit (which touches the same file) risks rebase churn for a cosmetic
 ordering gain, and the deviation does not undermine the order rule's purpose: no `DELETE`/`MERGE`
-evidence depended on sequence here (there are no DELETEs at all), and the rewrite's target still
-exists under its own name with its verdict, evidence and target recorded below. Recorded as a
-documented deviation from "one verdict kind per commit".
+evidence depended on sequence here (there are no DELETEs at all), and each rewrite's target still
+exists under its own name with its verdict, evidence and target recorded below. The same holds for
+`6add4f7`. Recorded as a documented deviation from "one verdict kind per commit", in both commits.
 
 **SPLIT step added.** The TABLE/ADD consolidations had left eleven test functions over the hard
 50-code-line function limit (`architecture.md` §3; table literals are code the compiler acts on).
@@ -50,10 +65,17 @@ resize concern moved to `resize_test.go`; mixed kinds in one commit because the 
 consequence of the same edit), `4c004f3` (SPLIT: `checkImageData` helper, function limit). These
 land after the recorded SPLIT commit, out of the fixed ADD→…→SPLIT→DELETE order. The deviation is
 safe for the same reason as `046bba9`'s: there are no DELETEs, and the one MERGE's evidence does
-not depend on commit sequence. `6deec26` also repairs a coverage drop from `7bc970d`: that MERGE
-had removed `TestMiddlewareMergeDesktopNotification` without a replacement, uncovering
-`Middleware.Merge`'s `DesktopNotification` field-copy branch; the case now exists as a subtest of
-the `TestMiddlewareMerge` host.
+not depend on commit sequence. `6deec26` restores the case `7bc970d` dropped, and the
+revision-1 claim about *why* was wrong. It said `7bc970d` had "uncovered `Middleware.Merge`'s
+`DesktopNotification` field-copy branch". It had not: `middleware.go:433.38,435.3` was never
+uncovered, because `TestDesktopNotificationMiddleware` reaches it through `WithMiddleware` →
+`terminal.go:287 t.middleware.Merge(mw)` at `a2b682e`, `7bc970d`, `2d8fa5a` and `6deec26` alike.
+The 02-audit review disproved the claim with a mutation, and mutation M1 below reproduces it at
+this head: removing the restored case loses **zero** middleware blocks. What `7bc970d` actually
+dropped was the *assertion* that a merged handler is invoked and forwards to the provider — a loss
+no coverage gate can see, which is precisely why the guideline requires a break-the-code mutation
+for every MERGE rather than a coverage comparison. `6deec26` restored that assertion; the case now
+exists as a subtest of the `TestMiddlewareMerge` host.
 
 **Verify phase caught two test-code defects (fixed in `8c77e78`).** (1) `desktopNotificationCases`
 embedded `*testNotificationProvider` instances in the package-level table, so `notifyCount`
@@ -65,13 +87,77 @@ reference the new image, so "all-referenced over budget" cannot arise through th
 now documents the real contract — an over-budget image is evicted by its own `Store` call. No
 production bug found; no audit row stopped on a defect.
 
+**Six commits in the range do not compile — documented deviation, not repaired.** `GOOS=linux go
+vet ./...` over an archived tree of every commit in `a2b682e..c412993` fails on exactly six
+consecutive commits — `eeed24e`, `f8550ba`, `6add4f7`, `046bba9`, `7bc970d`, `1789aea` — each with
+the same error:
+
+    vet: ./image_test.go:44:25: invalid operation: m.UsedMemory() != c.wantMemory (mismatched types int64 and int)
+
+`eeed24e` introduced it (an `int` literal field against an `int64` accessor in the image table) and
+`8faf70b` repaired it; every other commit in the range vets clean. **The MERGE commit `7bc970d`
+sits inside that window**, so the guideline's "every `DELETE` and `MERGE` mutation is re-run
+immediately before its commit, against the suite as refactored so far" was not merely skipped
+there — it was not performable, because the suite does not build at that commit. `git bisect` over
+the window is broken for the same reason.
+
+The window is **not repaired here**. Repairing it means folding `8faf70b`'s type fixes back into
+`eeed24e` (or splitting them across the commits that introduced them), which rewrites six pushed
+commits and requires a force-push of the project branch. History is append-only for this session,
+so the deviation is documented instead and the decision to rewrite is left to the operator.
+
+What is done instead: **all three MERGE mutations are taken at this head** and recorded under the
+current test names in the Gates block below. What that proves and what it does not:
+
+- it **proves** that at the head of this range each merge preserves the behaviour its row claims —
+  the folded case is the unique catcher of the mutation, or (for `TestMiddlewareMergeDesktopNotification`)
+  it is not, and the row's evidence says so in full;
+- it does **not** prove the merge preserved behaviour *at `7bc970d`*, where the evidence was owed.
+  Nine commits land between `7bc970d` and this head, one of them (`8c77e78`) a fix to the very
+  table `7bc970d` created. Head evidence is the strongest evidence obtainable without rewriting
+  pushed history; it is not the evidence the guideline asks for, and it is not presented as such.
+
+**Coverage artifact layout deviates from the spec (recorded, not changed).** The feature spec asked
+for `reviews/2026-09-14-clawee-go-headless-term-coverage/<phase>-covered.txt`. The layout on disk is
+`<phase>/covered.txt` directories — the runner's `--artifacts <dir>` writes `test.json`, `cover.out`
+and `covered.txt` into one directory per run, so a per-phase directory is what the runner produces —
+plus a top-level `baseline-covered.txt` (and `baseline-covered-pre-excision.txt`) which are the
+baseline sets the coverage gate is quoted against. Harmless; recorded here because it was an
+undocumented spec deviation.
+
+**Revision 2: what was folded and what was re-verdicted (the `TABLE`-row finding).** The 02-audit
+review found that around forty-four rows recorded `TABLE` had been executed by moving a test body
+into a named `func <lowercase>Case(t *testing.T)` and registering it with `t.Run` — a rename and a
+regroup, not "variation is data" (guideline §2.2) — and that the suite had grown rather than shrunk.
+Every one of those rows was re-examined, one at a time, and resolved one of two ways:
+
+- **folded** into a real data table where the cases genuinely differ only in input and expectation
+  (commit `f8679b4`): the eight alternate-screen resize scenarios, three of the five resize-bounds
+  cases, the two recording-capture cases, the two snapshot-text cases, and the two row-conversion
+  assertion runs. **20 rows.**
+- **re-verdicted `RENAME`** where the cases differ in *behaviour* rather than data: a different API,
+  a different assertion, a different contract. They stay separate named subtests under their host,
+  and their rows now say so. **19 rows.** Forcing these into a table is the mistake the same review
+  found in `bufferGrowCases` — three assertions collapsed into one boolean — and it is not repeated
+  to improve a number.
+
+Fixture sprawl found on the way is extracted rather than tabled (`1c024cb`, rows X01-X03), and the
+four tables carrying `func`-typed fields are dealt with in `b2dd063` (rows below). The resulting
+test-code line delta is stated plainly in the `After` section; it is still above baseline and the
+reasons are given there rather than smoothed over.
+
+**Revision 2: commit messages cite report rows.** The guideline requires each commit message to cite
+the report rows it carries out. Of the revision-1 commits only `d6b1161` does; the rest cite test
+names. Those messages cannot be corrected without rewriting pushed history (see the compile-window
+ruling), so they stand. All three revision-2 test-code commits cite row ids.
+
 ## Baseline
 
 | package | files | test code lines | tests | cases | skips | covered blocks | runtime | failing |
 |---|---|---|---|---|---|---|---|---|
 | `headlessterm` | 13 | 4 045 | 220 | 23 | 0 | 952 | 0.173 s | 0 |
-| `internal/generate_width_table` | 1 | 92 | 6 | 0 | 0 | included in module set | 0.002 s | 0 |
-| module | 14 | 4 137 | 226 | 23 | 0 | 952 | 0.175 s | 0 |
+| `internal/generate_width_table` | 1 | 97 | 6 | 0 | 0 | included in module set | 0.002 s | 0 |
+| module | 14 | 4 142 | 226 | 23 | 0 | 952 | 0.175 s | 0 |
 
 Shuffled run: seed `1789505332128309039` (root), `1789505332135199183` (internal) · result PASS · covered 952 blocks (known non-deterministic loss of 1 block around `image.go:342`) · repeated run: count 3 · result PASS · covered 952 blocks.
 
@@ -268,10 +354,10 @@ The `wasm/` directory is a separate `js/wasm` module (`wasm/main.go`, `wasm/hand
 | `TestKittyCommand_DecodeRGB` | K02 | — | TABLE | Same decode row; format as data | `TestKittyCommand_DecodeRGBA` |
 | `TestFormatKittyResponse` | K03 | — | KEEP | Direct response formatting contract | — |
 | `TestKittyImageDisplay` | K04 | `CellAssignment`, `UVCoordinates`, `ChunkedTransfer`, `ImageDelete` | KEEP | End-to-end Kitty transmit/display | — |
-| `TestKittyImageCellAssignment` | K04 | — | TABLE | Same end-to-end row; cell assignment detail | `TestKittyImageDisplay` |
-| `TestKittyImageUVCoordinates` | K04 | — | TABLE | Same end-to-end row; asserts UV detail | `TestKittyImageDisplay` |
-| `TestKittyChunkedTransfer` | K04 | — | TABLE | Same end-to-end row; chunked path as data | `TestKittyImageDisplay` |
-| `TestKittyImageDelete` | K04 | — | TABLE | Same end-to-end row; delete action as data | `TestKittyImageDisplay` |
+| `TestKittyImageCellAssignment` | K04 | — | RENAME | Named subtest of `TestKittyImageEndToEnd`; asserts placeholder chars and image refs per cell, not a data variation of the display case | `TestKittyImageEndToEnd/cell assignment` |
+| `TestKittyImageUVCoordinates` | K04 | — | RENAME | Named subtest; asserts UV rectangles (its own table inside), a different contract from the display case | `TestKittyImageEndToEnd/uv coordinates` |
+| `TestKittyChunkedTransfer` | K04 | — | RENAME | Named subtest; asserts the staging of an incomplete transfer, a behaviour no other case has | `TestKittyImageEndToEnd/chunked transfer` |
+| `TestKittyImageDelete` | K04 | — | RENAME | Named subtest; asserts the d=a / d=I delete split, a different contract | `TestKittyImageEndToEnd/image delete` |
 | `TestNoopNotification` | N01 | — | MERGE | Same wiring/default row as `TestDefaultNotificationProvider` | `TestDefaultNotificationProvider` |
 | `TestWithNotificationOption` | N01 | — | TABLE | Same wiring row; option path as data | `TestDefaultNotificationProvider` |
 | `TestDefaultNotificationProvider` | N01 | `TestNoopNotification`, `TestWithNotificationOption`, `TestSetNotificationProvider` | KEEP | Direct default-provider contract | — |
@@ -289,7 +375,7 @@ The `wasm/` directory is a separate `js/wasm` module (`wasm/main.go`, `wasm/hand
 | `TestResizeGrowBeforeLeavingAlternateScreenKeepsPrimary` | R01, PR1 | — | TABLE | Same integration row; ordering as data | `TestResizeOnAlternateScreenKeepsPrimary` |
 | `TestResizeOnAlternateScreenWithPrimaryCursorAboveShrink/growWhileAlternate=false` | R01, PR1 | — | TABLE | Same integration row; cursor-above-shrink as data | `TestResizeOnAlternateScreenKeepsPrimary` |
 | `TestResizeOnAlternateScreenWithPrimaryCursorAboveShrink/growWhileAlternate=true` | R01, PR1 | — | TABLE | Same integration row; cursor-above-shrink as data | `TestResizeOnAlternateScreenKeepsPrimary` |
-| `TestResizeOnAlternateScreenPairsLikePrimaryResize` | R01, PR1 | — | TABLE | Same integration row; event-sequence comparison as data | `TestResizeOnAlternateScreenKeepsPrimary` |
+| `TestResizeOnAlternateScreenPairsLikePrimaryResize` | R01, PR1 | — | RENAME | Named subtest; compares the Push/Pop sequences of TWO terminals, which no data field can express | `TestResizeOnAlternateScreenKeepsPrimary/pairs like primary resize` |
 | `TestResizeOnAlternateScreenThenPrimaryOutputKeepsPrimary/lines=19` | R01, PR1 | — | TABLE | Same integration row; output volume as data | `TestResizeOnAlternateScreenKeepsPrimary` |
 | `TestResizeOnAlternateScreenThenPrimaryOutputKeepsPrimary/lines=20` | R01, PR1 | — | TABLE | Same integration row; output volume as data | `TestResizeOnAlternateScreenKeepsPrimary` |
 | `TestResizeOnAlternateScreenThenPrimaryOutputKeepsPrimary/lines=30` | R01, PR1 | — | TABLE | Same integration row; output volume as data | `TestResizeOnAlternateScreenKeepsPrimary` |
@@ -322,8 +408,8 @@ The `wasm/` directory is a separate `js/wasm` module (`wasm/main.go`, `wasm/hand
 | `TestGetLastCommandOutput_WithExitCode` | P04 | — | TABLE | Same row; exit-code case as data | `TestGetLastCommandOutput_Basic` |
 | `TestGetLastCommandOutput_TrailingEmptyLines` | P04 | — | TABLE | Same row; trimming case as data | `TestGetLastCommandOutput_Basic` |
 | `TestSemanticPromptMark_NextPromptRowWithScrollback` | P05 | `PrevPromptRowWithScrollback`, `GetMarkAtWithScrollback` | KEEP | Direct scrollback navigation contract | — |
-| `TestSemanticPromptMark_PrevPromptRowWithScrollback` | P05 | — | TABLE | Same scrollback row; direction as data | `TestSemanticPromptMark_NextPromptRowWithScrollback` |
-| `TestSemanticPromptMark_GetMarkAtWithScrollback` | P05 | — | TABLE | Same scrollback row; get-at as data | `TestSemanticPromptMark_NextPromptRowWithScrollback` |
+| `TestSemanticPromptMark_PrevPromptRowWithScrollback` | P05 | — | RENAME | Named subtest; `PrevPromptRow` over absolute rows, a different function | `TestSemanticPromptMark_ScrollbackNavigation/prev prompt row` |
+| `TestSemanticPromptMark_GetMarkAtWithScrollback` | P05 | — | RENAME | Named subtest; `GetPromptMarkAt` over a scrollback row, a different function | `TestSemanticPromptMark_ScrollbackNavigation/get mark at` |
 | `TestParseSixel_SimplePixel` | S01 | `MultipleColumns`, `NewLine`, `CarriageReturn`, `Repeat`, `ColorRGB`, `ColorHLS`, `Transparent`, `Empty`, `ComplexImage` | KEEP | Direct parser contract | — |
 | `TestParseSixel_MultipleColumns` | S01 | — | TABLE | Same parser row; width as data | `TestParseSixel_SimplePixel` |
 | `TestParseSixel_NewLine` | S01 | — | TABLE | Same parser row; newline as data | `TestParseSixel_SimplePixel` |
@@ -339,7 +425,7 @@ The `wasm/` directory is a separate `js/wasm` module (`wasm/main.go`, `wasm/hand
 | `TestSixelCursorMovement` | S02 | — | TABLE | Same end-to-end row; cursor path as data | `TestSixelImageDisplay` |
 | `TestSixelScrollingAtBottom` | S02 | — | REWRITE | Weak assertions; does not verify scrolled content | `TestSixelEndToEnd` |
 | `TestSnapshot_Text` | SN01 | `TestSnapshot_Cursor`, `TestSnapshot_EmptyTerminal` | KEEP | Direct text snapshot contract | — |
-| `TestSnapshot_Cursor` | SN01 | — | KEEP | Direct cursor snapshot contract | — |
+| `TestSnapshot_Cursor` | SN01 | — | RENAME | Named subtest of `TestSnapshot_Text`; asserts the cursor block, not a line-text variation, so it is not a row of `snapshotTextCases` | `TestSnapshot_Text/cursor` |
 | `TestSnapshot_Styled` | SN02 | `TestSnapshot_StyledSegments` | KEEP | Direct styled-segment contract | — |
 | `TestSnapshot_Full` | SN03 | `TestSnapshot_Attributes` | KEEP | Direct full-cell contract | — |
 | `TestSnapshot_Attributes` | SN03 | — | TABLE | Same full-cell row; bold attribute as data | `TestSnapshot_Full` |
@@ -368,7 +454,7 @@ The `wasm/` directory is a separate `js/wasm` module (`wasm/main.go`, `wasm/hand
 | `TestTerminalString` | T10 | — | KEEP | Direct string-output contract | — |
 | `TestTerminalDirtyTracking` | T11 | — | KEEP | Direct terminal dirty contract | — |
 | `TestTerminalNarrowPictographCursorWrite` | T12 | — | KEEP | Regression test for narrow pictograph spacing | — |
-| `TestTerminalWideCharacterCursorWrite` | T12 | — | TABLE | Same row as `TestTerminalWideCharacter`; cursor-positioned wide char as data | `TestTerminalWideCharacter` |
+| `TestTerminalWideCharacterCursorWrite` | T12 | — | RENAME | Named subtest; the control for `TestTerminalNarrowPictographCursorWrite`, asserting spacer plus cursor-positioned write | `TestTerminalWideCharacter/cursor write after wide char` |
 | `TestTerminalWideCharacter` | T12 | — | KEEP | Direct wide-character contract | — |
 | `TestTerminalResize` | T13 | — | KEEP | Direct resize contract | — |
 | `TestTerminalTitle` | T14 | — | KEEP | Direct title contract | — |
@@ -391,26 +477,26 @@ The `wasm/` directory is a separate `js/wasm` module (`wasm/main.go`, `wasm/hand
 | `TestTerminalAutoResizeNoScrollback` | T29 | — | KEEP | Direct auto-resize scrollback contract | — |
 | `TestTerminalRecording` | T30 | — | KEEP | Direct recording contract | — |
 | `TestTerminalRecordingWithANSI` | T30 | — | TABLE | Same recording row; ANSI as data | `TestTerminalRecording` |
-| `TestTerminalRecordingClear` | T30 | — | TABLE | Same recording row; clear as data | `TestTerminalRecording` |
-| `TestTerminalRecordingReplay` | T30 | — | TABLE | Same recording row; replay as data | `TestTerminalRecording` |
-| `TestTerminalRecordingSetProvider` | T30 | — | TABLE | Same recording row; provider set as data | `TestTerminalRecording` |
+| `TestTerminalRecordingClear` | T30 | — | RENAME | Named subtest; exercises `ClearRecording`, a different API from the capture cases | `TestTerminalRecording/clear` |
+| `TestTerminalRecordingReplay` | T30 | — | RENAME | Named subtest; replays into a second terminal and compares the two, not a capture assertion | `TestTerminalRecording/replay` |
+| `TestTerminalRecordingSetProvider` | T30 | — | RENAME | Named subtest; exercises `SetRecordingProvider` and the Noop default | `TestTerminalRecording/set provider` |
 | `TestActiveCharsetBoundsValidation` | T35 | — | KEEP | Mutation evidence shows it is the only coverage for `SetActiveCharset`/`setActiveCharsetInternal`; keep and improve later if desired | — |
 | `TestResizeInvalidDimensions` | T31 | — | KEEP | Direct resize validation contract | — |
 | `TestResizeCursorBounds` | T31 | — | TABLE | Same bounds row; cursor clamp as data | `TestResizeInvalidDimensions` |
 | `TestWriteResponseRaceCondition` | T36 | — | KEEP | Concurrency smoke test | — |
-| `TestCursorBoundsAfterGrowCols` | T31 | — | TABLE | Same bounds row; `GrowCols` path as data | `TestResizeInvalidDimensions` |
+| `TestCursorBoundsAfterGrowCols` | T31 | — | RENAME | Named subtest; asserts the line GREW as well as the cursor staying in bounds, so it is not a row of `cursorInBoundsCases` | `TestTerminalResizeBounds/bounds after grow cols` |
 | `TestCursorBoundsAfterWrap` | T31 | — | TABLE | Same bounds row; wrap path as data | `TestResizeInvalidDimensions` |
 | `TestInputWithInvalidCursorPosition` | T31 | — | TABLE | Same bounds row; fill path as data | `TestResizeInvalidDimensions` |
-| `TestResizeShrinkWithCursorInBounds` | T32 | — | TABLE | Same scrollback-resize row; cursor-in-bounds as data | `TestResizeGrowPullsFromScrollback` |
-| `TestResizeShrinkWithCursorOutOfBounds` | T32, PR1 | — | TABLE | Same scrollback-resize row; cursor-out-of-bounds as data | `TestResizeGrowPullsFromScrollback` |
-| `TestResizeShrinkScrollbackContent` | T32 | — | TABLE | Same scrollback-resize row; content verification as data | `TestResizeGrowPullsFromScrollback` |
+| `TestResizeShrinkWithCursorInBounds` | T32 | — | RENAME | Named subtest; asserts no scrollback growth, content preserved and cursor unmoved | `TestTerminalResizeScrollback/shrink with cursor in bounds` |
+| `TestResizeShrinkWithCursorOutOfBounds` | T32, PR1 | — | RENAME | Named subtest; asserts scrollback growth, cursor clamp and content near the cursor | `TestTerminalResizeScrollback/shrink with cursor out of bounds` |
+| `TestResizeShrinkScrollbackContent` | T32 | — | RENAME | Named subtest; asserts what reached the scrollback, not what stayed on screen | `TestTerminalResizeScrollback/shrink scrollback content` |
 | `TestResizeGrowPullsFromScrollback` | T32, PR1 | — | KEEP | Direct grow-pull contract | — |
-| `TestResizeGrowNoScrollbackUnchanged` | T32 | — | TABLE | Same scrollback-resize row; no-scrollback as data | `TestResizeGrowPullsFromScrollback` |
+| `TestResizeGrowNoScrollbackUnchanged` | T32 | — | RENAME | Named subtest; asserts the scrollback was NOT consumed | `TestTerminalResizeScrollback/grow no scrollback unchanged` |
 | `TestResizeAlternateScreenNoScrollback` | T33, PR1 | — | KEEP | Direct alternate-screen resize contract | — |
-| `TestResizeCursorPositionAfterShrink` | T32 | — | TABLE | Same scrollback-resize row; saved-cursor as data | `TestResizeGrowPullsFromScrollback` |
+| `TestResizeCursorPositionAfterShrink` | T32 | — | RENAME | Named subtest; asserts the cursor line stayed visible | `TestTerminalResizeScrollback/cursor position after shrink` |
 | `TestViewportRowToAbsolute` | T34 | — | KEEP | Direct conversion contract | — |
-| `TestAbsoluteRowToViewport` | T34 | — | TABLE | Same conversion row; reverse direction as data | `TestViewportRowToAbsolute` |
-| `TestRowConversionRoundTrip` | T34 | — | TABLE | Same conversion row; round-trip as data | `TestViewportRowToAbsolute` |
+| `TestAbsoluteRowToViewport` | T34 | — | RENAME | Named subtest; a different function from `ViewportRowToAbsolute`, with its own in/want table inside | `TestRowCoordinateConversion/absolute to viewport` |
+| `TestRowConversionRoundTrip` | T34 | — | RENAME | Named subtest; a property over both functions, not a case of either | `TestRowCoordinateConversion/round trip` |
 | `TestSetUserVar` | U01 | — | KEEP | Direct user-variable contract | — |
 | `TestGetUserVarNotSet` | U01 | — | TABLE | Same user-var row; unset case as data | `TestSetUserVar` |
 | `TestGetUserVars` | U01 | — | TABLE | Same user-var row; all-vars case as data | `TestSetUserVar` |
@@ -437,13 +523,53 @@ The `wasm/` directory is a separate `js/wasm` module (`wasm/main.go`, `wasm/hand
 | `TestWorkingDirectory_STTerminator` | WD1 | — | TABLE | Same row; ST terminator as data | `TestWorkingDirectory_Basic` |
 | `TestWorkingDirectory_Multiple` | WD1 | — | TABLE | Same row; update case as data | `TestWorkingDirectory_Basic` |
 | `TestWorkingDirectory_NotSet` | WD1 | — | TABLE | Same row; unset case as data | `TestWorkingDirectory_Basic` |
-| `TestWorkingDirectoryPath_Basic` | WD1 | — | TABLE | Same row; path extraction as data | `TestWorkingDirectory_Basic` |
-| `TestWorkingDirectoryPath_WithHostname` | WD1 | — | TABLE | Same row; hostname case as data | `TestWorkingDirectory_Basic` |
-| `TestWorkingDirectoryPath_EmptyHostname` | WD1 | — | TABLE | Same row; empty-hostname case as data | `TestWorkingDirectory_Basic` |
-| `TestWorkingDirectoryPath_NotSet` | WD1 | — | TABLE | Same row; path-not-set case as data | `TestWorkingDirectory_Basic` |
+| `TestWorkingDirectoryPath_Basic` | WD1 | — | TABLE | Same row; path extraction as data | `TestWorkingDirectoryPath/basic` |
+| `TestWorkingDirectoryPath_WithHostname` | WD1 | — | TABLE | Same row; hostname case as data | `TestWorkingDirectoryPath/with hostname` |
+| `TestWorkingDirectoryPath_EmptyHostname` | WD1 | — | TABLE | Same row; empty-hostname case as data | `TestWorkingDirectoryPath/empty hostname` |
+| `TestWorkingDirectoryPath_NotSet` | WD1 | — | TABLE | Same row; path-not-set case as data | `TestWorkingDirectoryPath/not set` |
 | `TestWorkingDirectory_Middleware` | WD1 | — | KEEP | Distinct middleware path | — |
+| `TestWorkingDirectoryPath` | WD1 | — | KEEP | New host created by `5346c22` for the four `WorkingDirectoryPath_*` rows: `Path()` is a different accessor from `WorkingDirectory()`, so they did not fold into `TestWorkingDirectory`. Added in revision 2; the revision-1 name map sent them to the wrong host | — |
+| `TestColorToHex/nil` | SN07 | — | KEEP | Already a table case at baseline; direct `colorToHex` contract | — |
+| `TestColorToHex/black` | SN07 | — | KEEP | Already a table case at baseline | — |
+| `TestColorToHex/white` | SN07 | — | KEEP | Already a table case at baseline | — |
+| `TestColorToHex/red` | SN07 | — | KEEP | Already a table case at baseline | — |
+| `TestColorToHex/indexed` | SN07 | — | KEEP | Already a table case at baseline; the only `IndexedColor` path | — |
+| `TestSnapshot_UnderlineStyles/single` | SN04 | — | TABLE | Same style row; SGR sequence and expected field value as data | `TestSnapshot_Styles/underline single` |
+| `TestSnapshot_UnderlineStyles/single_4:1` | SN04 | — | TABLE | Same style row; sequence as data | `TestSnapshot_Styles/underline single_4:1` |
+| `TestSnapshot_UnderlineStyles/double` | SN04 | — | TABLE | Same style row; sequence as data | `TestSnapshot_Styles/underline double` |
+| `TestSnapshot_UnderlineStyles/curly` | SN04 | — | TABLE | Same style row; sequence as data | `TestSnapshot_Styles/underline curly` |
+| `TestSnapshot_UnderlineStyles/dotted` | SN04 | — | TABLE | Same style row; sequence as data | `TestSnapshot_Styles/underline dotted` |
+| `TestSnapshot_UnderlineStyles/dashed` | SN04 | — | TABLE | Same style row; sequence as data | `TestSnapshot_Styles/underline dashed` |
+| `TestSnapshot_BlinkStyles/slow` | SN04 | — | TABLE | Same style row; blink field as data | `TestSnapshot_Styles/blink slow` |
+| `TestSnapshot_BlinkStyles/fast` | SN04 | — | TABLE | Same style row; blink field as data | `TestSnapshot_Styles/blink fast` |
+| `TestResizeOnAlternateScreenWithPrimaryCursorAboveShrink` | R01, PR1 | — | TABLE | Parent of two baseline subtests, both folded; the func itself is gone | `alternateResizeCases` |
+| `TestResizeOnAlternateScreenThenPrimaryOutputKeepsPrimary` | R01, PR1 | — | TABLE | Parent of three baseline subtests, all folded; the func itself is gone | `alternateResizeCases` |
+| `TestResizeOnAlternateScreenThenHeightIndependentScrollKeepsPrimary` | R01, PR1 | — | TABLE | Parent of two baseline subtests, both folded; the func itself is gone | `alternateResizeCases` |
+| `TestSemanticPromptMark_CommandFinishedWithExitCode` | P01 | — | TABLE | Parent of three baseline subtests, all folded into the mark-type table | `TestSemanticPromptMark_Types` |
 | `(ADD)` | CL1 | — | ADD | `colors.go` resolution functions have no direct test coverage | `TestColorsResolution`, split by concern into `TestDefaultPalette` / `TestResolveDefaultColor` / `TestResolveDefaultColorNamed` by the SPLIT commit (size limit) |
-| `terminal_test.go` | — | — | KEEP | Extracted shared `testScrollback` fixture; file now 986 code lines, under the 1 000-line limit, so SPLIT is no longer required | — |
+| `terminal_test.go` | — | — | SPLIT | Over the 1 000 code-line hard limit after the consolidations; the resize concern moved to `resize_test.go` (`34b34eb`). At this head the two files are 641 and 388 code lines | `resize_test.go` |
+
+### Revision-2 rows (fixtures and table shape)
+
+These rows are not baseline tests; they are the fixture and table-shape work the 02-audit review's
+HIGH 4 (the suite grew) and LOW 3 (closures in tables) findings required. Each has a verdict, an
+evidence line and a target like any other row.
+
+| Row | Subject | Verdict | Evidence (final) | Target |
+|---|---|---|---|---|
+| X01 | twelve copies of the `testScrollback` + `SetMaxLines(100)` + `New(WithSize(r, 80), WithScrollback(storage))` block | EXTRACT | Repeated setup across `resize_test.go` (11) and `terminal_test.go` (1); guideline §2.5 | `newScrollbackTerm(rows, opts...)` in `helpers_test.go` |
+| X02 | four copies of the "write Line0..LineN, last without a newline" loop | EXTRACT | Repeated setup in `resize_test.go` | `writeNumberedLines(term, prefix, n)` |
+| X03 | four copies of the make/fill/base64 RGBA payload block | EXTRACT | Repeated setup in `kitty_test.go` | `kittyRGBAPayload(w, h, fill)` |
+| C1 | `bufferGrowCases` (`setup`/`grow`/`checkDim`/`checkPres` func fields) | REWRITE | Three distinct assertions with three distinct messages had been collapsed into one boolean `checkPres` and one message — the "one reason to fail" loss the 02-audit review found; the case data is cells, not behaviour | seeded/expected `bufferCellWant` cells, one message per cell |
+| C2 | `userVarsCases` (`test func(t, *Terminal)` field) | REWRITE | A slice of subtests at package scope, not variation as data; six of the seven cases are Set calls and expected reads. "get all variables" and "clear all variables" asserted a length and one key where the contract is the whole map | `sets`/`clear`/`wantVars`/`wantAll` data; `maps.Equal` on the whole map; "get all returns a copy" written out, since it mutates the returned map |
+| C3 | `deletePlacementsCases` (`setup`/`delete` func fields) | REWRITE | The closures hold placements and a selector, both of which are data | `places`/`del`/`args` data with the selector switched in the runner |
+| C4 | `parseKittyGraphicsCases` (`check func(t, *KittyCommand)` field) | REWRITE | The closure held the ASSERTION, and each case asserted only the two or three fields it happened to look at; the parser's contract is the whole command it returns (guideline §2.4) | a whole `want KittyCommand` compared with `reflect.DeepEqual`, plus the payload length |
+| C5 | `terminalImageClearingCases`, `sixelEndToEndCases`, `snapshotImagesCases` (`setup`/`act` func fields) | KEEP | Judged and kept: their closures build the SCENARIO (terminal writes, image stores) while every assertion lives once in the shared runner, so no assertion is collapsed and "one reason to fail" holds. Turning a sequence of terminal operations into data would need an interpreter for them — more test code, not less | — |
+
+Deliberate non-fold: the nineteen rows re-verdicted `RENAME` above. Each was checked case by case;
+in every one the cases differ in the API called or the contract asserted, not in input and expected
+output. §2.2 folds variation, not behaviour, and the LOW 3 finding above is what forcing the second
+kind into a table costs.
 
 ## Refactor progress
 
@@ -478,6 +604,14 @@ ruling above):
 | SPLIT | `4c004f3` | `checkImageData` helper under the function limit |
 | FIX | `8c77e78` | repeat-unsafe notification table and unreachable prune case, caught by verify (ruling above) |
 
+Revision-2 commits (2026-09-17), in the guideline's order among themselves:
+
+| Verdict kind | Commit | Summary |
+|---|---|---|
+| EXTRACT | `1c024cb` | rows X01-X03: shared scrollback-terminal, numbered-lines and kitty-payload fixtures |
+| TABLE | `f8679b4` | the twenty rows that were subtest extraction folded into real data tables (R01/PR1 x8, T31 x3, T34 x2, T30 x2, SN01 x2, and the three parents they collapse) |
+| REWRITE | `b2dd063` | rows C1-C4: func-typed table fields replaced by data and whole-contract assertions |
+
 Outstanding: none. Every verdict row is executed. DELETE: none — `TestClipboardProvider` was
 changed to REWRITE based on mutation evidence (committed as `1789aea`);
 `TestActiveCharsetBoundsValidation` changed to KEEP based on mutation evidence.
@@ -491,7 +625,29 @@ never broken).
 
 ## Gates
 
-Workstation checks (final head `8c77e78`):
+> **STALE FOR THE REVISION-2 RANGE — re-run pending.** Everything in this section and in `After`
+> below was measured at `8c77e78`, before the revision-2 test-code commits `1c024cb`, `f8679b4`
+> and `b2dd063`. The range changed, so this evidence no longer describes the head it is filed
+> under, and it is kept here only until the re-run replaces it. `burrowee-ci` has been
+> unreachable since 2026-09-17 (it answers ICMP and accepts TCP on 22, but the ssh banner never
+> completes), so the whole verify phase — after-plain, after-evidence, `--shuffle --repeat 3`,
+> `--repeat 3` — and the three MERGE mutations the 02-audit review requires are **not taken**.
+> The six mutations are prepared, apply cleanly and vet clean against this head; none has been
+> run. **This feature cannot reach `review` until they are.**
+
+Workstation checks at the revision-2 head `b2dd063` (workstation-only; the suite is never run
+here):
+
+- `gofmt -s -l .` reports exactly `providers.go` and `terminal.go` — dev's pre-existing
+  unformatted state (see the excision ruling); every test file this branch touches is formatted.
+- `goimports -l` clean on all touched test files.
+- `GOOS=linux go vet ./...` passes — vet is the test-file compile gate; `go build` does not
+  compile `*_test.go`.
+- Code lines per file at this head are in the `After` section.
+
+### Superseded (measured at `8c77e78`)
+
+Workstation checks (head `8c77e78`):
 - `gofmt -s -l .` reports exactly `providers.go` and `terminal.go` — dev's pre-existing unformatted
   state (see the excision ruling); every file this branch touches is formatted.
 - `/Users/hjc/bin/goimports -w` clean on all touched test files.
@@ -559,8 +715,25 @@ over 50 code lines in any test file (checked over `*_test.go` in both packages).
 | `TestOSC1337SetUserVarWithST`, `InvalidBase64`, `EmptyValue`, `SpecialCharacters`, `TestUserVarsWithPTYWriter` | `TestOSC1337SetUserVar` |
 | `TestUserVarMiddlewareBlocks` | `TestUserVarMiddleware` table case |
 | `TestIsWideRune`, `TestStringWidth` | `TestWidthFunctions` |
-| `TestWorkingDirectory_STTerminator`, `Multiple`, `NotSet`, `Path_Basic`, `WithHostname`, `EmptyHostname`, `Path_NotSet` | `TestWorkingDirectory` |
+| `TestWorkingDirectory_Basic`, `_STTerminator`, `_Multiple`, `_NotSet` | `TestWorkingDirectory` table cases |
+| `TestWorkingDirectoryPath_Basic`, `_WithHostname`, `_EmptyHostname`, `_NotSet` | `TestWorkingDirectoryPath` table cases (a new host, not `TestWorkingDirectory`) |
 | `TestColorsResolution` subtests (SPLIT, size limit) | `TestDefaultPalette/standard colors`, `/color cube`, `/grayscale`; `TestResolveDefaultColor/nil`, `/RGBA passthrough`, `/NRGBA fallback`, `/indexed`, `/indexed out of range`; `TestResolveDefaultColorNamed/named`, `/named dim`, `/named out of range` |
+
+Revision-2 renames (commit `f8679b4`, the folds that finished): the three intermediate grouping
+subtests disappear, because their nested cases become rows of one flat table.
+
+| Before | After |
+|---|---|
+| `TestResizeOnAlternateScreenKeepsPrimary/primary cursor above shrink/growWhileAlternate=false` | `…/primary cursor above shrink, grow after leaving` |
+| `…/primary cursor above shrink/growWhileAlternate=true` | `…/primary cursor above shrink, grow while alternate` |
+| `…/primary output before grow/lines=19` (and `=20`, `=30`) | `…/primary output before grow, lines=19` (and `, lines=20`, `, lines=30`) |
+| `…/height independent scroll/SU 3` | `…/height independent scroll, SU 3` |
+| `…/height independent scroll/region 1;10 scroll` | `…/height independent scroll, region 1;10 scroll` |
+| `TestTerminalResizeBounds/invalid cursor position` | `TestTerminalResizeBounds/bounds after overfilling the grid` |
+
+Gone with no successor name: the three grouping levels
+`TestResizeOnAlternateScreenKeepsPrimary/{primary cursor above shrink, primary output before grow,
+height independent scroll}` — three case events, accounted for in the `After` counts.
 
 Host renames that carry no row of their own above: `TestParseKittyGraphics_Basic` →
 `TestParseKittyGraphics`, `TestKittyCommand_DecodeRGBA` → `TestKittyCommand_DecodeImageData`,
@@ -571,6 +744,9 @@ Host renames that carry no row of their own above: `TestParseKittyGraphics_Basic
 `TestTerminalResizeScrollback`, `TestViewportRowToAbsolute` → `TestRowCoordinateConversion`.
 
 ## After
+
+> **STALE — see the note in `Gates`.** The numbers below are `8c77e78`'s, not this head's.
+> The §7 `After` table the 02-audit review found missing is owed with the re-run.
 
 Verify runs at head `8c77e78` on burrowee-ci (evidence under
 `reviews/2026-09-14-clawee-go-headless-term-coverage/after-*`), all four green:
