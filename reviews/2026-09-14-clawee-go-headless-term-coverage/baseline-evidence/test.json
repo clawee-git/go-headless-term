@@ -1,0 +1,1007 @@
+{"Time":"2026-09-15T13:48:15.132603454-07:00","Action":"start","Package":"github.com/clawee-git/go-headless-term"}
+{"Time":"2026-09-15T13:48:15.134065667-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestNewBuffer"}
+{"Time":"2026-09-15T13:48:15.134094709-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestNewBuffer","Output":"=== RUN   TestNewBuffer\n"}
+{"Time":"2026-09-15T13:48:15.134100167-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestNewBuffer","Output":"--- PASS: TestNewBuffer (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.134103084-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestNewBuffer","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.134105792-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferCell"}
+{"Time":"2026-09-15T13:48:15.134106792-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferCell","Output":"=== RUN   TestBufferCell\n"}
+{"Time":"2026-09-15T13:48:15.134134209-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferCell","Output":"--- PASS: TestBufferCell (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.134140542-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferCell","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.134144459-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferCellOutOfBounds"}
+{"Time":"2026-09-15T13:48:15.134147125-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferCellOutOfBounds","Output":"=== RUN   TestBufferCellOutOfBounds\n"}
+{"Time":"2026-09-15T13:48:15.134287417-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferCellOutOfBounds","Output":"--- PASS: TestBufferCellOutOfBounds (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.134291126-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferCellOutOfBounds","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.134293001-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferClearRow"}
+{"Time":"2026-09-15T13:48:15.134294001-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferClearRow","Output":"=== RUN   TestBufferClearRow\n"}
+{"Time":"2026-09-15T13:48:15.134295376-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferClearRow","Output":"--- PASS: TestBufferClearRow (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.134296334-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferClearRow","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.134297376-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferScrollUp"}
+{"Time":"2026-09-15T13:48:15.134298251-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferScrollUp","Output":"=== RUN   TestBufferScrollUp\n"}
+{"Time":"2026-09-15T13:48:15.134299334-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferScrollUp","Output":"--- PASS: TestBufferScrollUp (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.134300251-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferScrollUp","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.134301209-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferScrollDown"}
+{"Time":"2026-09-15T13:48:15.134302167-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferScrollDown","Output":"=== RUN   TestBufferScrollDown\n"}
+{"Time":"2026-09-15T13:48:15.134304501-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferScrollDown","Output":"--- PASS: TestBufferScrollDown (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.134305418-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferScrollDown","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.134306334-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferScrollback"}
+{"Time":"2026-09-15T13:48:15.134307126-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferScrollback","Output":"=== RUN   TestBufferScrollback\n"}
+{"Time":"2026-09-15T13:48:15.134308793-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferScrollback","Output":"--- PASS: TestBufferScrollback (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.134309793-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferScrollback","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.134311918-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferLineContent"}
+{"Time":"2026-09-15T13:48:15.134312876-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferLineContent","Output":"=== RUN   TestBufferLineContent\n"}
+{"Time":"2026-09-15T13:48:15.134434085-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferLineContent","Output":"--- PASS: TestBufferLineContent (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.134436376-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferLineContent","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.134437543-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferTabStops"}
+{"Time":"2026-09-15T13:48:15.134438585-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferTabStops","Output":"=== RUN   TestBufferTabStops\n"}
+{"Time":"2026-09-15T13:48:15.13443971-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferTabStops","Output":"--- PASS: TestBufferTabStops (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.134441293-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferTabStops","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.13444221-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferResize"}
+{"Time":"2026-09-15T13:48:15.134443043-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferResize","Output":"=== RUN   TestBufferResize\n"}
+{"Time":"2026-09-15T13:48:15.134469793-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferResize","Output":"--- PASS: TestBufferResize (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.134484626-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferResize","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.134492168-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferDirtyTracking"}
+{"Time":"2026-09-15T13:48:15.134494043-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferDirtyTracking","Output":"=== RUN   TestBufferDirtyTracking\n"}
+{"Time":"2026-09-15T13:48:15.134567793-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferDirtyTracking","Output":"--- PASS: TestBufferDirtyTracking (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.135620379-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferDirtyTracking","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.135624879-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferInsertBlanks"}
+{"Time":"2026-09-15T13:48:15.135627463-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferInsertBlanks","Output":"=== RUN   TestBufferInsertBlanks\n"}
+{"Time":"2026-09-15T13:48:15.135629713-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferInsertBlanks","Output":"--- PASS: TestBufferInsertBlanks (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.135631171-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferInsertBlanks","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.135632463-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferDeleteChars"}
+{"Time":"2026-09-15T13:48:15.135633588-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferDeleteChars","Output":"=== RUN   TestBufferDeleteChars\n"}
+{"Time":"2026-09-15T13:48:15.13563538-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferDeleteChars","Output":"--- PASS: TestBufferDeleteChars (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.135636671-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferDeleteChars","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.135637838-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferWrappedLineTracking"}
+{"Time":"2026-09-15T13:48:15.135638796-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferWrappedLineTracking","Output":"=== RUN   TestBufferWrappedLineTracking\n"}
+{"Time":"2026-09-15T13:48:15.135640213-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferWrappedLineTracking","Output":"--- PASS: TestBufferWrappedLineTracking (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.135643005-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferWrappedLineTracking","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.135644546-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferWrappedLineTrackingWithScroll"}
+{"Time":"2026-09-15T13:48:15.13564563-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferWrappedLineTrackingWithScroll","Output":"=== RUN   TestBufferWrappedLineTrackingWithScroll\n"}
+{"Time":"2026-09-15T13:48:15.135647796-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferWrappedLineTrackingWithScroll","Output":"--- PASS: TestBufferWrappedLineTrackingWithScroll (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.135648963-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferWrappedLineTrackingWithScroll","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.135650171-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferGrowRows"}
+{"Time":"2026-09-15T13:48:15.135652546-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferGrowRows","Output":"=== RUN   TestBufferGrowRows\n"}
+{"Time":"2026-09-15T13:48:15.135654088-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferGrowRows","Output":"--- PASS: TestBufferGrowRows (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.135655171-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferGrowRows","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.135656255-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferGrowCols"}
+{"Time":"2026-09-15T13:48:15.135657255-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferGrowCols","Output":"=== RUN   TestBufferGrowCols\n"}
+{"Time":"2026-09-15T13:48:15.135658463-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferGrowCols","Output":"--- PASS: TestBufferGrowCols (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.135659671-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestBufferGrowCols","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.135660796-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestNewCell"}
+{"Time":"2026-09-15T13:48:15.135661755-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestNewCell","Output":"=== RUN   TestNewCell\n"}
+{"Time":"2026-09-15T13:48:15.135663088-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestNewCell","Output":"--- PASS: TestNewCell (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.135664255-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestNewCell","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.135665338-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestCellReset"}
+{"Time":"2026-09-15T13:48:15.135666421-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestCellReset","Output":"=== RUN   TestCellReset\n"}
+{"Time":"2026-09-15T13:48:15.135667755-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestCellReset","Output":"--- PASS: TestCellReset (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.135669463-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestCellReset","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.13567063-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestCellFlags"}
+{"Time":"2026-09-15T13:48:15.135671421-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestCellFlags","Output":"=== RUN   TestCellFlags\n"}
+{"Time":"2026-09-15T13:48:15.135672963-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestCellFlags","Output":"--- PASS: TestCellFlags (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.135673963-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestCellFlags","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.135674838-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestCellDirty"}
+{"Time":"2026-09-15T13:48:15.135675713-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestCellDirty","Output":"=== RUN   TestCellDirty\n"}
+{"Time":"2026-09-15T13:48:15.135676838-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestCellDirty","Output":"--- PASS: TestCellDirty (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.135677755-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestCellDirty","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.135678713-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestCellWide"}
+{"Time":"2026-09-15T13:48:15.135679546-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestCellWide","Output":"=== RUN   TestCellWide\n"}
+{"Time":"2026-09-15T13:48:15.135680588-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestCellWide","Output":"--- PASS: TestCellWide (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.135681546-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestCellWide","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.135682505-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestCellCopy"}
+{"Time":"2026-09-15T13:48:15.135683296-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestCellCopy","Output":"=== RUN   TestCellCopy\n"}
+{"Time":"2026-09-15T13:48:15.135684421-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestCellCopy","Output":"--- PASS: TestCellCopy (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.135685505-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestCellCopy","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.135686505-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_Store"}
+{"Time":"2026-09-15T13:48:15.13568763-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_Store","Output":"=== RUN   TestImageManager_Store\n"}
+{"Time":"2026-09-15T13:48:15.135689088-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_Store","Output":"--- PASS: TestImageManager_Store (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.135689963-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_Store","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.135690921-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_Deduplication"}
+{"Time":"2026-09-15T13:48:15.135691755-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_Deduplication","Output":"=== RUN   TestImageManager_Deduplication\n"}
+{"Time":"2026-09-15T13:48:15.135693005-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_Deduplication","Output":"--- PASS: TestImageManager_Deduplication (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.135693921-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_Deduplication","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.135694838-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_StoreWithID"}
+{"Time":"2026-09-15T13:48:15.135695671-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_StoreWithID","Output":"=== RUN   TestImageManager_StoreWithID\n"}
+{"Time":"2026-09-15T13:48:15.13569688-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_StoreWithID","Output":"--- PASS: TestImageManager_StoreWithID (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.135699213-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_StoreWithID","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.135700171-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_Place"}
+{"Time":"2026-09-15T13:48:15.135701088-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_Place","Output":"=== RUN   TestImageManager_Place\n"}
+{"Time":"2026-09-15T13:48:15.135702171-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_Place","Output":"--- PASS: TestImageManager_Place (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.135703171-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_Place","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.13570413-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_DeleteImage"}
+{"Time":"2026-09-15T13:48:15.135705921-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_DeleteImage","Output":"=== RUN   TestImageManager_DeleteImage\n"}
+{"Time":"2026-09-15T13:48:15.135707005-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_DeleteImage","Output":"--- PASS: TestImageManager_DeleteImage (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.135707921-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_DeleteImage","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.135709296-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_Clear"}
+{"Time":"2026-09-15T13:48:15.135710213-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_Clear","Output":"=== RUN   TestImageManager_Clear\n"}
+{"Time":"2026-09-15T13:48:15.135711463-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_Clear","Output":"--- PASS: TestImageManager_Clear (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.13571238-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_Clear","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.135713296-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_Prune"}
+{"Time":"2026-09-15T13:48:15.13571413-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_Prune","Output":"=== RUN   TestImageManager_Prune\n"}
+{"Time":"2026-09-15T13:48:15.135715421-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_Prune","Output":"--- PASS: TestImageManager_Prune (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.135716296-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_Prune","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.135717213-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_Placements"}
+{"Time":"2026-09-15T13:48:15.135718046-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_Placements","Output":"=== RUN   TestImageManager_Placements\n"}
+{"Time":"2026-09-15T13:48:15.13571913-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_Placements","Output":"--- PASS: TestImageManager_Placements (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.135720088-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_Placements","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.135721921-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_DeletePlacementsByPosition"}
+{"Time":"2026-09-15T13:48:15.135722921-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_DeletePlacementsByPosition","Output":"=== RUN   TestImageManager_DeletePlacementsByPosition\n"}
+{"Time":"2026-09-15T13:48:15.135724171-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_DeletePlacementsByPosition","Output":"--- PASS: TestImageManager_DeletePlacementsByPosition (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.13572513-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_DeletePlacementsByPosition","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.135726046-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_DeletePlacementsInRow"}
+{"Time":"2026-09-15T13:48:15.135727213-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_DeletePlacementsInRow","Output":"=== RUN   TestImageManager_DeletePlacementsInRow\n"}
+{"Time":"2026-09-15T13:48:15.135728338-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_DeletePlacementsInRow","Output":"--- PASS: TestImageManager_DeletePlacementsInRow (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.13572938-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_DeletePlacementsInRow","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.135730421-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestCellImage"}
+{"Time":"2026-09-15T13:48:15.135731213-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestCellImage","Output":"=== RUN   TestCellImage\n"}
+{"Time":"2026-09-15T13:48:15.135732671-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestCellImage","Output":"--- PASS: TestCellImage (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.135733588-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestCellImage","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.135734588-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_DeletePlacementsInRowRange"}
+{"Time":"2026-09-15T13:48:15.135735546-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_DeletePlacementsInRowRange","Output":"=== RUN   TestImageManager_DeletePlacementsInRowRange\n"}
+{"Time":"2026-09-15T13:48:15.135736755-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_DeletePlacementsInRowRange","Output":"--- PASS: TestImageManager_DeletePlacementsInRowRange (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.135737713-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_DeletePlacementsInRowRange","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.13573863-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_DeletePlacementsBelow"}
+{"Time":"2026-09-15T13:48:15.135739463-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_DeletePlacementsBelow","Output":"=== RUN   TestImageManager_DeletePlacementsBelow\n"}
+{"Time":"2026-09-15T13:48:15.135740546-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_DeletePlacementsBelow","Output":"--- PASS: TestImageManager_DeletePlacementsBelow (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.135741463-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_DeletePlacementsBelow","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.135742713-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_DeletePlacementsAbove"}
+{"Time":"2026-09-15T13:48:15.135743713-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_DeletePlacementsAbove","Output":"=== RUN   TestImageManager_DeletePlacementsAbove\n"}
+{"Time":"2026-09-15T13:48:15.135744838-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_DeletePlacementsAbove","Output":"--- PASS: TestImageManager_DeletePlacementsAbove (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.135745797-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestImageManager_DeletePlacementsAbove","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.135746672-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestClearScreenClearsImages"}
+{"Time":"2026-09-15T13:48:15.135747463-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestClearScreenClearsImages","Output":"=== RUN   TestClearScreenClearsImages\n"}
+{"Time":"2026-09-15T13:48:15.135748547-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestClearScreenClearsImages","Output":"--- PASS: TestClearScreenClearsImages (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.135749547-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestClearScreenClearsImages","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.135751005-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestClearScreenBelowClearsImages"}
+{"Time":"2026-09-15T13:48:15.135751797-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestClearScreenBelowClearsImages","Output":"=== RUN   TestClearScreenBelowClearsImages\n"}
+{"Time":"2026-09-15T13:48:15.135752963-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestClearScreenBelowClearsImages","Output":"--- PASS: TestClearScreenBelowClearsImages (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.13575388-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestClearScreenBelowClearsImages","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.135754797-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestResetStateClearsImagesAndCache"}
+{"Time":"2026-09-15T13:48:15.13575563-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResetStateClearsImagesAndCache","Output":"=== RUN   TestResetStateClearsImagesAndCache\n"}
+{"Time":"2026-09-15T13:48:15.135756713-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResetStateClearsImagesAndCache","Output":"--- PASS: TestResetStateClearsImagesAndCache (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.135757588-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestResetStateClearsImagesAndCache","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.135758505-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestAlternateScreenClearsImages"}
+{"Time":"2026-09-15T13:48:15.135759338-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestAlternateScreenClearsImages","Output":"=== RUN   TestAlternateScreenClearsImages\n"}
+{"Time":"2026-09-15T13:48:15.136486007-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestAlternateScreenClearsImages","Output":"--- PASS: TestAlternateScreenClearsImages (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.136521757-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestAlternateScreenClearsImages","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.136540757-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseKittyGraphics_Basic"}
+{"Time":"2026-09-15T13:48:15.136542965-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseKittyGraphics_Basic","Output":"=== RUN   TestParseKittyGraphics_Basic\n"}
+{"Time":"2026-09-15T13:48:15.136583549-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseKittyGraphics_Basic","Output":"--- PASS: TestParseKittyGraphics_Basic (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.136587382-07:00","Action":"start","Package":"github.com/clawee-git/go-headless-term/internal/generate_width_table"}
+{"Time":"2026-09-15T13:48:15.137357759-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseKittyGraphics_Basic","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.137368676-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseKittyGraphics_Query"}
+{"Time":"2026-09-15T13:48:15.137372093-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseKittyGraphics_Query","Output":"=== RUN   TestParseKittyGraphics_Query\n"}
+{"Time":"2026-09-15T13:48:15.137376176-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseKittyGraphics_Query","Output":"--- PASS: TestParseKittyGraphics_Query (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.137379259-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseKittyGraphics_Query","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.137382384-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseKittyGraphics_Delete"}
+{"Time":"2026-09-15T13:48:15.137385009-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseKittyGraphics_Delete","Output":"=== RUN   TestParseKittyGraphics_Delete\n"}
+{"Time":"2026-09-15T13:48:15.137388301-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseKittyGraphics_Delete","Output":"--- PASS: TestParseKittyGraphics_Delete (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.137390843-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseKittyGraphics_Delete","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.137393551-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseKittyGraphics_Chunked"}
+{"Time":"2026-09-15T13:48:15.138026636-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseKittyGraphics_Chunked","Output":"=== RUN   TestParseKittyGraphics_Chunked\n"}
+{"Time":"2026-09-15T13:48:15.138039345-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseKittyGraphics_Chunked","Output":"--- PASS: TestParseKittyGraphics_Chunked (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.138040761-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseKittyGraphics_Chunked","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.138042178-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseKittyGraphics_WithZIndex"}
+{"Time":"2026-09-15T13:48:15.13804347-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseKittyGraphics_WithZIndex","Output":"=== RUN   TestParseKittyGraphics_WithZIndex\n"}
+{"Time":"2026-09-15T13:48:15.138044886-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseKittyGraphics_WithZIndex","Output":"--- PASS: TestParseKittyGraphics_WithZIndex (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.138045928-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseKittyGraphics_WithZIndex","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.13804697-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseKittyGraphics_Placement"}
+{"Time":"2026-09-15T13:48:15.138048011-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseKittyGraphics_Placement","Output":"=== RUN   TestParseKittyGraphics_Placement\n"}
+{"Time":"2026-09-15T13:48:15.138049261-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseKittyGraphics_Placement","Output":"--- PASS: TestParseKittyGraphics_Placement (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.138050303-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseKittyGraphics_Placement","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.138051345-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseKittyGraphics_DoNotMoveCursor"}
+{"Time":"2026-09-15T13:48:15.138053178-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseKittyGraphics_DoNotMoveCursor","Output":"=== RUN   TestParseKittyGraphics_DoNotMoveCursor\n"}
+{"Time":"2026-09-15T13:48:15.138055345-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseKittyGraphics_DoNotMoveCursor","Output":"--- PASS: TestParseKittyGraphics_DoNotMoveCursor (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.138056636-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseKittyGraphics_DoNotMoveCursor","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.138057845-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestKittyCommand_DecodeRGBA"}
+{"Time":"2026-09-15T13:48:15.138059011-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestKittyCommand_DecodeRGBA","Output":"=== RUN   TestKittyCommand_DecodeRGBA\n"}
+{"Time":"2026-09-15T13:48:15.138060928-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestKittyCommand_DecodeRGBA","Output":"--- PASS: TestKittyCommand_DecodeRGBA (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.138064261-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestKittyCommand_DecodeRGBA","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.138065345-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestKittyCommand_DecodeRGB"}
+{"Time":"2026-09-15T13:48:15.13806622-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestKittyCommand_DecodeRGB","Output":"=== RUN   TestKittyCommand_DecodeRGB\n"}
+{"Time":"2026-09-15T13:48:15.138067553-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestKittyCommand_DecodeRGB","Output":"--- PASS: TestKittyCommand_DecodeRGB (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.138068678-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestKittyCommand_DecodeRGB","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.138069803-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestFormatKittyResponse"}
+{"Time":"2026-09-15T13:48:15.138070678-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestFormatKittyResponse","Output":"=== RUN   TestFormatKittyResponse\n"}
+{"Time":"2026-09-15T13:48:15.138071886-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestFormatKittyResponse","Output":"--- PASS: TestFormatKittyResponse (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.138072845-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestFormatKittyResponse","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.138073803-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestKittyImageDisplay"}
+{"Time":"2026-09-15T13:48:15.138074886-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestKittyImageDisplay","Output":"=== RUN   TestKittyImageDisplay\n"}
+{"Time":"2026-09-15T13:48:15.138077761-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestKittyImageDisplay","Output":"--- PASS: TestKittyImageDisplay (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.13807872-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestKittyImageDisplay","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.13807972-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestKittyImageCellAssignment"}
+{"Time":"2026-09-15T13:48:15.138080595-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestKittyImageCellAssignment","Output":"=== RUN   TestKittyImageCellAssignment\n"}
+{"Time":"2026-09-15T13:48:15.138081845-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestKittyImageCellAssignment","Output":"--- PASS: TestKittyImageCellAssignment (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.138082803-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestKittyImageCellAssignment","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.138083803-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestKittyImageUVCoordinates"}
+{"Time":"2026-09-15T13:48:15.138084636-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestKittyImageUVCoordinates","Output":"=== RUN   TestKittyImageUVCoordinates\n"}
+{"Time":"2026-09-15T13:48:15.13808722-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestKittyImageUVCoordinates","Output":"--- PASS: TestKittyImageUVCoordinates (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.13808822-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestKittyImageUVCoordinates","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.13808922-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestKittyChunkedTransfer"}
+{"Time":"2026-09-15T13:48:15.138090095-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestKittyChunkedTransfer","Output":"=== RUN   TestKittyChunkedTransfer\n"}
+{"Time":"2026-09-15T13:48:15.138091386-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestKittyChunkedTransfer","Output":"--- PASS: TestKittyChunkedTransfer (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.138092303-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestKittyChunkedTransfer","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.138093553-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestKittyImageDelete"}
+{"Time":"2026-09-15T13:48:15.138094595-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestKittyImageDelete","Output":"=== RUN   TestKittyImageDelete\n"}
+{"Time":"2026-09-15T13:48:15.138096803-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestKittyImageDelete","Output":"--- PASS: TestKittyImageDelete (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.138097886-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestKittyImageDelete","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.138099095-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestNoopNotification"}
+{"Time":"2026-09-15T13:48:15.138100095-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestNoopNotification","Output":"=== RUN   TestNoopNotification\n"}
+{"Time":"2026-09-15T13:48:15.138101553-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestNoopNotification","Output":"--- PASS: TestNoopNotification (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.138102678-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestNoopNotification","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.138103803-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestWithNotificationOption"}
+{"Time":"2026-09-15T13:48:15.138104845-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestWithNotificationOption","Output":"=== RUN   TestWithNotificationOption\n"}
+{"Time":"2026-09-15T13:48:15.13810772-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestWithNotificationOption","Output":"--- PASS: TestWithNotificationOption (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.138109136-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestWithNotificationOption","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.138110178-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestDefaultNotificationProvider"}
+{"Time":"2026-09-15T13:48:15.138111136-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestDefaultNotificationProvider","Output":"=== RUN   TestDefaultNotificationProvider\n"}
+{"Time":"2026-09-15T13:48:15.138113761-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestDefaultNotificationProvider","Output":"--- PASS: TestDefaultNotificationProvider (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.138114845-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestDefaultNotificationProvider","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.138115803-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSetNotificationProvider"}
+{"Time":"2026-09-15T13:48:15.138116636-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSetNotificationProvider","Output":"=== RUN   TestSetNotificationProvider\n"}
+{"Time":"2026-09-15T13:48:15.138117761-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSetNotificationProvider","Output":"--- PASS: TestSetNotificationProvider (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.13811872-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSetNotificationProvider","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.138119761-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestDesktopNotificationHandler"}
+{"Time":"2026-09-15T13:48:15.138120636-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestDesktopNotificationHandler","Output":"=== RUN   TestDesktopNotificationHandler\n"}
+{"Time":"2026-09-15T13:48:15.138124386-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term/internal/generate_width_table","Test":"TestParseProperty"}
+{"Time":"2026-09-15T13:48:15.138132053-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term/internal/generate_width_table","Test":"TestParseProperty","Output":"=== RUN   TestParseProperty\n"}
+{"Time":"2026-09-15T13:48:15.13813397-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term/internal/generate_width_table","Test":"TestParseProperty","Output":"--- PASS: TestParseProperty (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.138135136-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term/internal/generate_width_table","Test":"TestParseProperty","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.13813622-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term/internal/generate_width_table","Test":"TestParsePropertyRejectsMalformedLines"}
+{"Time":"2026-09-15T13:48:15.138137178-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term/internal/generate_width_table","Test":"TestParsePropertyRejectsMalformedLines","Output":"=== RUN   TestParsePropertyRejectsMalformedLines\n"}
+{"Time":"2026-09-15T13:48:15.138138386-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term/internal/generate_width_table","Test":"TestParsePropertyRejectsMalformedLines","Output":"--- PASS: TestParsePropertyRejectsMalformedLines (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.138140595-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term/internal/generate_width_table","Test":"TestParsePropertyRejectsMalformedLines","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.138141761-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term/internal/generate_width_table","Test":"TestCheckVersion"}
+{"Time":"2026-09-15T13:48:15.138142678-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term/internal/generate_width_table","Test":"TestCheckVersion","Output":"=== RUN   TestCheckVersion\n"}
+{"Time":"2026-09-15T13:48:15.138145511-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term/internal/generate_width_table","Test":"TestCheckVersion","Output":"--- PASS: TestCheckVersion (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.138146553-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term/internal/generate_width_table","Test":"TestCheckVersion","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.138147553-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term/internal/generate_width_table","Test":"TestMergeSpans"}
+{"Time":"2026-09-15T13:48:15.13814847-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term/internal/generate_width_table","Test":"TestMergeSpans","Output":"=== RUN   TestMergeSpans\n"}
+{"Time":"2026-09-15T13:48:15.13814997-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term/internal/generate_width_table","Test":"TestMergeSpans","Output":"--- PASS: TestMergeSpans (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.138151512-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term/internal/generate_width_table","Test":"TestMergeSpans","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.138152553-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term/internal/generate_width_table","Test":"TestSubtractSpans"}
+{"Time":"2026-09-15T13:48:15.138153553-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term/internal/generate_width_table","Test":"TestSubtractSpans","Output":"=== RUN   TestSubtractSpans\n"}
+{"Time":"2026-09-15T13:48:15.138154762-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term/internal/generate_width_table","Test":"TestSubtractSpans","Output":"--- PASS: TestSubtractSpans (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.138155803-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term/internal/generate_width_table","Test":"TestSubtractSpans","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.138156887-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term/internal/generate_width_table","Test":"TestRenderCompiles"}
+{"Time":"2026-09-15T13:48:15.138157803-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term/internal/generate_width_table","Test":"TestRenderCompiles","Output":"=== RUN   TestRenderCompiles\n"}
+{"Time":"2026-09-15T13:48:15.138309137-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term/internal/generate_width_table","Test":"TestRenderCompiles","Output":"--- PASS: TestRenderCompiles (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.138314554-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term/internal/generate_width_table","Test":"TestRenderCompiles","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.138318262-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term/internal/generate_width_table","Output":"PASS\n"}
+{"Time":"2026-09-15T13:48:15.139670432-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term/internal/generate_width_table","Output":"coverage: 3.4% of statements in ./...\n"}
+{"Time":"2026-09-15T13:48:15.140504726-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestDesktopNotificationHandler","Output":"--- PASS: TestDesktopNotificationHandler (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.14052606-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestDesktopNotificationHandler","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.140538976-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestDesktopNotificationWithNilProvider"}
+{"Time":"2026-09-15T13:48:15.140543935-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestDesktopNotificationWithNilProvider","Output":"=== RUN   TestDesktopNotificationWithNilProvider\n"}
+{"Time":"2026-09-15T13:48:15.140648727-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestDesktopNotificationWithNilProvider","Output":"--- PASS: TestDesktopNotificationWithNilProvider (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.140660977-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestDesktopNotificationWithNilProvider","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.140669852-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestDesktopNotificationQueryResponse"}
+{"Time":"2026-09-15T13:48:15.14067181-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestDesktopNotificationQueryResponse","Output":"=== RUN   TestDesktopNotificationQueryResponse\n"}
+{"Time":"2026-09-15T13:48:15.140788311-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestDesktopNotificationQueryResponse","Output":"--- PASS: TestDesktopNotificationQueryResponse (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.140797436-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestDesktopNotificationQueryResponse","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.140806186-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestDesktopNotificationMiddleware"}
+{"Time":"2026-09-15T13:48:15.140807769-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestDesktopNotificationMiddleware","Output":"=== RUN   TestDesktopNotificationMiddleware\n"}
+{"Time":"2026-09-15T13:48:15.140904727-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestDesktopNotificationMiddleware","Output":"--- PASS: TestDesktopNotificationMiddleware (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.140922686-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term/internal/generate_width_table","Output":"ok  \tgithub.com/clawee-git/go-headless-term/internal/generate_width_table\t0.004s\tcoverage: 3.4% of statements in ./...\n"}
+{"Time":"2026-09-15T13:48:15.140927978-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term/internal/generate_width_table","Elapsed":0.004}
+{"Time":"2026-09-15T13:48:15.140932686-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestDesktopNotificationMiddleware","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.140934728-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestDesktopNotificationMiddlewareBlocks"}
+{"Time":"2026-09-15T13:48:15.140935811-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestDesktopNotificationMiddlewareBlocks","Output":"=== RUN   TestDesktopNotificationMiddlewareBlocks\n"}
+{"Time":"2026-09-15T13:48:15.141021144-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestDesktopNotificationMiddlewareBlocks","Output":"--- PASS: TestDesktopNotificationMiddlewareBlocks (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.14103252-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestDesktopNotificationMiddlewareBlocks","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.141040311-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestNotificationPayloadFields"}
+{"Time":"2026-09-15T13:48:15.14104177-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestNotificationPayloadFields","Output":"=== RUN   TestNotificationPayloadFields\n"}
+{"Time":"2026-09-15T13:48:15.141129895-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestNotificationPayloadFields","Output":"--- PASS: TestNotificationPayloadFields (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.141140061-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestNotificationPayloadFields","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.14114727-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestMiddlewareMergeDesktopNotification"}
+{"Time":"2026-09-15T13:48:15.141148603-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestMiddlewareMergeDesktopNotification","Output":"=== RUN   TestMiddlewareMergeDesktopNotification\n"}
+{"Time":"2026-09-15T13:48:15.141250645-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestMiddlewareMergeDesktopNotification","Output":"--- PASS: TestMiddlewareMergeDesktopNotification (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.141261395-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestMiddlewareMergeDesktopNotification","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.141267437-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestNotificationProviderThreadSafety"}
+{"Time":"2026-09-15T13:48:15.141268895-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestNotificationProviderThreadSafety","Output":"=== RUN   TestNotificationProviderThreadSafety\n"}
+{"Time":"2026-09-15T13:48:15.141372187-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestNotificationProviderThreadSafety","Output":"--- PASS: TestNotificationProviderThreadSafety (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.141387812-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestNotificationProviderThreadSafety","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.141399354-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestNotificationEmptyPayload"}
+{"Time":"2026-09-15T13:48:15.141400562-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestNotificationEmptyPayload","Output":"=== RUN   TestNotificationEmptyPayload\n"}
+{"Time":"2026-09-15T13:48:15.142075689-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestNotificationEmptyPayload","Output":"--- PASS: TestNotificationEmptyPayload (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.142112981-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestNotificationEmptyPayload","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.142130439-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenKeepsPrimary"}
+{"Time":"2026-09-15T13:48:15.142132148-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenKeepsPrimary","Output":"=== RUN   TestResizeOnAlternateScreenKeepsPrimary\n"}
+{"Time":"2026-09-15T13:48:15.142642357-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenKeepsPrimary","Output":"--- PASS: TestResizeOnAlternateScreenKeepsPrimary (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.142664524-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenKeepsPrimary","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.142678649-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeGrowBeforeLeavingAlternateScreenKeepsPrimary"}
+{"Time":"2026-09-15T13:48:15.143158942-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeGrowBeforeLeavingAlternateScreenKeepsPrimary","Output":"=== RUN   TestResizeGrowBeforeLeavingAlternateScreenKeepsPrimary\n"}
+{"Time":"2026-09-15T13:48:15.14344986-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeGrowBeforeLeavingAlternateScreenKeepsPrimary","Output":"--- PASS: TestResizeGrowBeforeLeavingAlternateScreenKeepsPrimary (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.143462026-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeGrowBeforeLeavingAlternateScreenKeepsPrimary","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.143471526-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenWithPrimaryCursorAboveShrink"}
+{"Time":"2026-09-15T13:48:15.143472901-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenWithPrimaryCursorAboveShrink","Output":"=== RUN   TestResizeOnAlternateScreenWithPrimaryCursorAboveShrink\n"}
+{"Time":"2026-09-15T13:48:15.143484818-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenWithPrimaryCursorAboveShrink/growWhileAlternate=false"}
+{"Time":"2026-09-15T13:48:15.143486818-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenWithPrimaryCursorAboveShrink/growWhileAlternate=false","Output":"=== RUN   TestResizeOnAlternateScreenWithPrimaryCursorAboveShrink/growWhileAlternate=false\n"}
+{"Time":"2026-09-15T13:48:15.143999903-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenWithPrimaryCursorAboveShrink/growWhileAlternate=false","Output":"--- PASS: TestResizeOnAlternateScreenWithPrimaryCursorAboveShrink/growWhileAlternate=false (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.144021903-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenWithPrimaryCursorAboveShrink/growWhileAlternate=false","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.144031403-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenWithPrimaryCursorAboveShrink/growWhileAlternate=true"}
+{"Time":"2026-09-15T13:48:15.144032861-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenWithPrimaryCursorAboveShrink/growWhileAlternate=true","Output":"=== RUN   TestResizeOnAlternateScreenWithPrimaryCursorAboveShrink/growWhileAlternate=true\n"}
+{"Time":"2026-09-15T13:48:15.144970697-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenWithPrimaryCursorAboveShrink/growWhileAlternate=true","Output":"--- PASS: TestResizeOnAlternateScreenWithPrimaryCursorAboveShrink/growWhileAlternate=true (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.144992114-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenWithPrimaryCursorAboveShrink/growWhileAlternate=true","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.145000614-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenWithPrimaryCursorAboveShrink","Output":"--- PASS: TestResizeOnAlternateScreenWithPrimaryCursorAboveShrink (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.145010697-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenWithPrimaryCursorAboveShrink","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.145026906-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenPairsLikePrimaryResize"}
+{"Time":"2026-09-15T13:48:15.145028614-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenPairsLikePrimaryResize","Output":"=== RUN   TestResizeOnAlternateScreenPairsLikePrimaryResize\n"}
+{"Time":"2026-09-15T13:48:15.155186017-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenPairsLikePrimaryResize","Output":"--- PASS: TestResizeOnAlternateScreenPairsLikePrimaryResize (0.01s)\n"}
+{"Time":"2026-09-15T13:48:15.155845436-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenPairsLikePrimaryResize","Elapsed":0.01}
+{"Time":"2026-09-15T13:48:15.155856519-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenThenPrimaryOutputKeepsPrimary"}
+{"Time":"2026-09-15T13:48:15.155858352-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenThenPrimaryOutputKeepsPrimary","Output":"=== RUN   TestResizeOnAlternateScreenThenPrimaryOutputKeepsPrimary\n"}
+{"Time":"2026-09-15T13:48:15.155863061-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenThenPrimaryOutputKeepsPrimary/lines=19"}
+{"Time":"2026-09-15T13:48:15.155864394-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenThenPrimaryOutputKeepsPrimary/lines=19","Output":"=== RUN   TestResizeOnAlternateScreenThenPrimaryOutputKeepsPrimary/lines=19\n"}
+{"Time":"2026-09-15T13:48:15.155866602-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenThenPrimaryOutputKeepsPrimary/lines=19","Output":"--- PASS: TestResizeOnAlternateScreenThenPrimaryOutputKeepsPrimary/lines=19 (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.155868227-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenThenPrimaryOutputKeepsPrimary/lines=19","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.155870394-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenThenPrimaryOutputKeepsPrimary/lines=20"}
+{"Time":"2026-09-15T13:48:15.155871477-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenThenPrimaryOutputKeepsPrimary/lines=20","Output":"=== RUN   TestResizeOnAlternateScreenThenPrimaryOutputKeepsPrimary/lines=20\n"}
+{"Time":"2026-09-15T13:48:15.157080147-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenThenPrimaryOutputKeepsPrimary/lines=20","Output":"--- PASS: TestResizeOnAlternateScreenThenPrimaryOutputKeepsPrimary/lines=20 (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.157086522-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenThenPrimaryOutputKeepsPrimary/lines=20","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.157088147-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenThenPrimaryOutputKeepsPrimary/lines=30"}
+{"Time":"2026-09-15T13:48:15.157089272-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenThenPrimaryOutputKeepsPrimary/lines=30","Output":"=== RUN   TestResizeOnAlternateScreenThenPrimaryOutputKeepsPrimary/lines=30\n"}
+{"Time":"2026-09-15T13:48:15.160675407-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenThenPrimaryOutputKeepsPrimary/lines=30","Output":"--- PASS: TestResizeOnAlternateScreenThenPrimaryOutputKeepsPrimary/lines=30 (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.160703366-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenThenPrimaryOutputKeepsPrimary/lines=30","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.160716199-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenThenPrimaryOutputKeepsPrimary","Output":"--- PASS: TestResizeOnAlternateScreenThenPrimaryOutputKeepsPrimary (0.01s)\n"}
+{"Time":"2026-09-15T13:48:15.160735324-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenThenPrimaryOutputKeepsPrimary","Elapsed":0.01}
+{"Time":"2026-09-15T13:48:15.160749574-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeColumnsOnAlternateScreenClampsSavedCursor"}
+{"Time":"2026-09-15T13:48:15.160751908-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeColumnsOnAlternateScreenClampsSavedCursor","Output":"=== RUN   TestResizeColumnsOnAlternateScreenClampsSavedCursor\n"}
+{"Time":"2026-09-15T13:48:15.160927366-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeColumnsOnAlternateScreenClampsSavedCursor","Output":"--- PASS: TestResizeColumnsOnAlternateScreenClampsSavedCursor (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.160947241-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeColumnsOnAlternateScreenClampsSavedCursor","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.161109909-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenThenHeightIndependentScrollKeepsPrimary"}
+{"Time":"2026-09-15T13:48:15.161112492-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenThenHeightIndependentScrollKeepsPrimary","Output":"=== RUN   TestResizeOnAlternateScreenThenHeightIndependentScrollKeepsPrimary\n"}
+{"Time":"2026-09-15T13:48:15.1611137-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenThenHeightIndependentScrollKeepsPrimary/SU_3"}
+{"Time":"2026-09-15T13:48:15.161114659-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenThenHeightIndependentScrollKeepsPrimary/SU_3","Output":"=== RUN   TestResizeOnAlternateScreenThenHeightIndependentScrollKeepsPrimary/SU_3\n"}
+{"Time":"2026-09-15T13:48:15.161895911-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenThenHeightIndependentScrollKeepsPrimary/SU_3","Output":"--- PASS: TestResizeOnAlternateScreenThenHeightIndependentScrollKeepsPrimary/SU_3 (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.161920994-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenThenHeightIndependentScrollKeepsPrimary/SU_3","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.161934911-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenThenHeightIndependentScrollKeepsPrimary/region_1;10_scroll"}
+{"Time":"2026-09-15T13:48:15.161936328-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenThenHeightIndependentScrollKeepsPrimary/region_1;10_scroll","Output":"=== RUN   TestResizeOnAlternateScreenThenHeightIndependentScrollKeepsPrimary/region_1;10_scroll\n"}
+{"Time":"2026-09-15T13:48:15.163028331-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenThenHeightIndependentScrollKeepsPrimary/region_1;10_scroll","Output":"--- PASS: TestResizeOnAlternateScreenThenHeightIndependentScrollKeepsPrimary/region_1;10_scroll (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.163032497-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenThenHeightIndependentScrollKeepsPrimary/region_1;10_scroll","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.163034372-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenThenHeightIndependentScrollKeepsPrimary","Output":"--- PASS: TestResizeOnAlternateScreenThenHeightIndependentScrollKeepsPrimary (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.163035831-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeOnAlternateScreenThenHeightIndependentScrollKeepsPrimary","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.163036914-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_PromptStart"}
+{"Time":"2026-09-15T13:48:15.163038081-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_PromptStart","Output":"=== RUN   TestSemanticPromptMark_PromptStart\n"}
+{"Time":"2026-09-15T13:48:15.163039664-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_PromptStart","Output":"--- PASS: TestSemanticPromptMark_PromptStart (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.163040997-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_PromptStart","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.163042081-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_CommandStart"}
+{"Time":"2026-09-15T13:48:15.163042914-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_CommandStart","Output":"=== RUN   TestSemanticPromptMark_CommandStart\n"}
+{"Time":"2026-09-15T13:48:15.163044206-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_CommandStart","Output":"--- PASS: TestSemanticPromptMark_CommandStart (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.163045122-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_CommandStart","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.163045997-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_CommandExecuted"}
+{"Time":"2026-09-15T13:48:15.163047039-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_CommandExecuted","Output":"=== RUN   TestSemanticPromptMark_CommandExecuted\n"}
+{"Time":"2026-09-15T13:48:15.163048122-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_CommandExecuted","Output":"--- PASS: TestSemanticPromptMark_CommandExecuted (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.163048997-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_CommandExecuted","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.163049914-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_CommandFinished"}
+{"Time":"2026-09-15T13:48:15.163050747-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_CommandFinished","Output":"=== RUN   TestSemanticPromptMark_CommandFinished\n"}
+{"Time":"2026-09-15T13:48:15.163051747-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_CommandFinished","Output":"--- PASS: TestSemanticPromptMark_CommandFinished (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.163052664-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_CommandFinished","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.163053747-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_CommandFinishedWithExitCode"}
+{"Time":"2026-09-15T13:48:15.163054581-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_CommandFinishedWithExitCode","Output":"=== RUN   TestSemanticPromptMark_CommandFinishedWithExitCode\n"}
+{"Time":"2026-09-15T13:48:15.163055622-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_CommandFinishedWithExitCode/exit_code_0"}
+{"Time":"2026-09-15T13:48:15.163056581-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_CommandFinishedWithExitCode/exit_code_0","Output":"=== RUN   TestSemanticPromptMark_CommandFinishedWithExitCode/exit_code_0\n"}
+{"Time":"2026-09-15T13:48:15.169144431-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_CommandFinishedWithExitCode/exit_code_0","Output":"--- PASS: TestSemanticPromptMark_CommandFinishedWithExitCode/exit_code_0 (0.01s)\n"}
+{"Time":"2026-09-15T13:48:15.169167514-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_CommandFinishedWithExitCode/exit_code_0","Elapsed":0.01}
+{"Time":"2026-09-15T13:48:15.169497974-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_CommandFinishedWithExitCode/exit_code_1"}
+{"Time":"2026-09-15T13:48:15.169503432-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_CommandFinishedWithExitCode/exit_code_1","Output":"=== RUN   TestSemanticPromptMark_CommandFinishedWithExitCode/exit_code_1\n"}
+{"Time":"2026-09-15T13:48:15.169606932-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_CommandFinishedWithExitCode/exit_code_1","Output":"--- PASS: TestSemanticPromptMark_CommandFinishedWithExitCode/exit_code_1 (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.169617807-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_CommandFinishedWithExitCode/exit_code_1","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.169625557-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_CommandFinishedWithExitCode/exit_code_127"}
+{"Time":"2026-09-15T13:48:15.169627016-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_CommandFinishedWithExitCode/exit_code_127","Output":"=== RUN   TestSemanticPromptMark_CommandFinishedWithExitCode/exit_code_127\n"}
+{"Time":"2026-09-15T13:48:15.169709766-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_CommandFinishedWithExitCode/exit_code_127","Output":"--- PASS: TestSemanticPromptMark_CommandFinishedWithExitCode/exit_code_127 (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.169720058-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_CommandFinishedWithExitCode/exit_code_127","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.169726308-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_CommandFinishedWithExitCode","Output":"--- PASS: TestSemanticPromptMark_CommandFinishedWithExitCode (0.01s)\n"}
+{"Time":"2026-09-15T13:48:15.169731641-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_CommandFinishedWithExitCode","Elapsed":0.01}
+{"Time":"2026-09-15T13:48:15.169737808-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_FullSequence"}
+{"Time":"2026-09-15T13:48:15.169738808-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_FullSequence","Output":"=== RUN   TestSemanticPromptMark_FullSequence\n"}
+{"Time":"2026-09-15T13:48:15.169824474-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_FullSequence","Output":"--- PASS: TestSemanticPromptMark_FullSequence (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.169834641-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_FullSequence","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.169841225-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_RowTracking"}
+{"Time":"2026-09-15T13:48:15.169842516-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_RowTracking","Output":"=== RUN   TestSemanticPromptMark_RowTracking\n"}
+{"Time":"2026-09-15T13:48:15.169923766-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_RowTracking","Output":"--- PASS: TestSemanticPromptMark_RowTracking (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.169933641-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_RowTracking","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.169940141-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_NextPromptRow"}
+{"Time":"2026-09-15T13:48:15.169941391-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_NextPromptRow","Output":"=== RUN   TestSemanticPromptMark_NextPromptRow\n"}
+{"Time":"2026-09-15T13:48:15.170026683-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_NextPromptRow","Output":"--- PASS: TestSemanticPromptMark_NextPromptRow (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.170036475-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_NextPromptRow","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.170042975-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_PrevPromptRow"}
+{"Time":"2026-09-15T13:48:15.170044225-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_PrevPromptRow","Output":"=== RUN   TestSemanticPromptMark_PrevPromptRow\n"}
+{"Time":"2026-09-15T13:48:15.170130309-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_PrevPromptRow","Output":"--- PASS: TestSemanticPromptMark_PrevPromptRow (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.1701401-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_PrevPromptRow","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.170146559-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_FilterByType"}
+{"Time":"2026-09-15T13:48:15.170147725-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_FilterByType","Output":"=== RUN   TestSemanticPromptMark_FilterByType\n"}
+{"Time":"2026-09-15T13:48:15.170232267-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_FilterByType","Output":"--- PASS: TestSemanticPromptMark_FilterByType (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.170242017-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_FilterByType","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.170248684-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_ClearMarks"}
+{"Time":"2026-09-15T13:48:15.170249892-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_ClearMarks","Output":"=== RUN   TestSemanticPromptMark_ClearMarks\n"}
+{"Time":"2026-09-15T13:48:15.187887066-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_ClearMarks","Output":"--- PASS: TestSemanticPromptMark_ClearMarks (0.02s)\n"}
+{"Time":"2026-09-15T13:48:15.187962067-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_ClearMarks","Elapsed":0.02}
+{"Time":"2026-09-15T13:48:15.187974442-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_GetMarkAt"}
+{"Time":"2026-09-15T13:48:15.187976733-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_GetMarkAt","Output":"=== RUN   TestSemanticPromptMark_GetMarkAt\n"}
+{"Time":"2026-09-15T13:48:15.188297317-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_GetMarkAt","Output":"--- PASS: TestSemanticPromptMark_GetMarkAt (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.188331609-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_GetMarkAt","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.188345901-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_Handler"}
+{"Time":"2026-09-15T13:48:15.188347401-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_Handler","Output":"=== RUN   TestSemanticPromptMark_Handler\n"}
+{"Time":"2026-09-15T13:48:15.18845861-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_Handler","Output":"--- PASS: TestSemanticPromptMark_Handler (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.188477151-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_Handler","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.188910527-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_ST_Terminator"}
+{"Time":"2026-09-15T13:48:15.188912611-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_ST_Terminator","Output":"=== RUN   TestSemanticPromptMark_ST_Terminator\n"}
+{"Time":"2026-09-15T13:48:15.188914236-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_ST_Terminator","Output":"--- PASS: TestSemanticPromptMark_ST_Terminator (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.188916194-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_ST_Terminator","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.188918277-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_Middleware"}
+{"Time":"2026-09-15T13:48:15.188919403-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_Middleware","Output":"=== RUN   TestSemanticPromptMark_Middleware\n"}
+{"Time":"2026-09-15T13:48:15.188920903-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_Middleware","Output":"--- PASS: TestSemanticPromptMark_Middleware (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.188922069-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_Middleware","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.188923319-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetLastCommandOutput_Basic"}
+{"Time":"2026-09-15T13:48:15.188924569-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetLastCommandOutput_Basic","Output":"=== RUN   TestGetLastCommandOutput_Basic\n"}
+{"Time":"2026-09-15T13:48:15.188925986-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetLastCommandOutput_Basic","Output":"--- PASS: TestGetLastCommandOutput_Basic (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.188927111-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetLastCommandOutput_Basic","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.188928486-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetLastCommandOutput_MultiLine"}
+{"Time":"2026-09-15T13:48:15.188929569-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetLastCommandOutput_MultiLine","Output":"=== RUN   TestGetLastCommandOutput_MultiLine\n"}
+{"Time":"2026-09-15T13:48:15.188931028-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetLastCommandOutput_MultiLine","Output":"--- PASS: TestGetLastCommandOutput_MultiLine (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.188932361-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetLastCommandOutput_MultiLine","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.188933653-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetLastCommandOutput_NoOutput"}
+{"Time":"2026-09-15T13:48:15.188934653-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetLastCommandOutput_NoOutput","Output":"=== RUN   TestGetLastCommandOutput_NoOutput\n"}
+{"Time":"2026-09-15T13:48:15.188936111-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetLastCommandOutput_NoOutput","Output":"--- PASS: TestGetLastCommandOutput_NoOutput (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.188937278-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetLastCommandOutput_NoOutput","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.188938444-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetLastCommandOutput_NoMarks"}
+{"Time":"2026-09-15T13:48:15.188939278-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetLastCommandOutput_NoMarks","Output":"=== RUN   TestGetLastCommandOutput_NoMarks\n"}
+{"Time":"2026-09-15T13:48:15.202780941-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetLastCommandOutput_NoMarks","Output":"--- PASS: TestGetLastCommandOutput_NoMarks (0.01s)\n"}
+{"Time":"2026-09-15T13:48:15.202815024-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetLastCommandOutput_NoMarks","Elapsed":0.01}
+{"Time":"2026-09-15T13:48:15.202831983-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetLastCommandOutput_OnlyExecutedNoFinished"}
+{"Time":"2026-09-15T13:48:15.202839149-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetLastCommandOutput_OnlyExecutedNoFinished","Output":"=== RUN   TestGetLastCommandOutput_OnlyExecutedNoFinished\n"}
+{"Time":"2026-09-15T13:48:15.203788194-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetLastCommandOutput_OnlyExecutedNoFinished","Output":"--- PASS: TestGetLastCommandOutput_OnlyExecutedNoFinished (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.203791235-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetLastCommandOutput_OnlyExecutedNoFinished","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.203792902-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetLastCommandOutput_MultipleCommands"}
+{"Time":"2026-09-15T13:48:15.203794069-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetLastCommandOutput_MultipleCommands","Output":"=== RUN   TestGetLastCommandOutput_MultipleCommands\n"}
+{"Time":"2026-09-15T13:48:15.203795735-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetLastCommandOutput_MultipleCommands","Output":"--- PASS: TestGetLastCommandOutput_MultipleCommands (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.203796819-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetLastCommandOutput_MultipleCommands","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.203798402-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetLastCommandOutput_WithExitCode"}
+{"Time":"2026-09-15T13:48:15.203799402-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetLastCommandOutput_WithExitCode","Output":"=== RUN   TestGetLastCommandOutput_WithExitCode\n"}
+{"Time":"2026-09-15T13:48:15.20380086-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetLastCommandOutput_WithExitCode","Output":"--- PASS: TestGetLastCommandOutput_WithExitCode (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.203801944-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetLastCommandOutput_WithExitCode","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.203803027-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetLastCommandOutput_TrailingEmptyLines"}
+{"Time":"2026-09-15T13:48:15.203803986-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetLastCommandOutput_TrailingEmptyLines","Output":"=== RUN   TestGetLastCommandOutput_TrailingEmptyLines\n"}
+{"Time":"2026-09-15T13:48:15.203805277-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetLastCommandOutput_TrailingEmptyLines","Output":"--- PASS: TestGetLastCommandOutput_TrailingEmptyLines (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.203806319-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetLastCommandOutput_TrailingEmptyLines","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.203807486-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_NextPromptRowWithScrollback"}
+{"Time":"2026-09-15T13:48:15.203808402-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_NextPromptRowWithScrollback","Output":"=== RUN   TestSemanticPromptMark_NextPromptRowWithScrollback\n"}
+{"Time":"2026-09-15T13:48:15.203809694-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_NextPromptRowWithScrollback","Output":"--- PASS: TestSemanticPromptMark_NextPromptRowWithScrollback (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.203811152-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_NextPromptRowWithScrollback","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.203812236-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_PrevPromptRowWithScrollback"}
+{"Time":"2026-09-15T13:48:15.203813152-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_PrevPromptRowWithScrollback","Output":"=== RUN   TestSemanticPromptMark_PrevPromptRowWithScrollback\n"}
+{"Time":"2026-09-15T13:48:15.203815069-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_PrevPromptRowWithScrollback","Output":"--- PASS: TestSemanticPromptMark_PrevPromptRowWithScrollback (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.203816152-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_PrevPromptRowWithScrollback","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.203817361-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_GetMarkAtWithScrollback"}
+{"Time":"2026-09-15T13:48:15.203818277-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_GetMarkAtWithScrollback","Output":"=== RUN   TestSemanticPromptMark_GetMarkAtWithScrollback\n"}
+{"Time":"2026-09-15T13:48:15.203819611-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_GetMarkAtWithScrollback","Output":"--- PASS: TestSemanticPromptMark_GetMarkAtWithScrollback (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.203820611-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSemanticPromptMark_GetMarkAtWithScrollback","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.203821736-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_SimplePixel"}
+{"Time":"2026-09-15T13:48:15.203822777-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_SimplePixel","Output":"=== RUN   TestParseSixel_SimplePixel\n"}
+{"Time":"2026-09-15T13:48:15.203824277-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_SimplePixel","Output":"--- PASS: TestParseSixel_SimplePixel (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.203825361-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_SimplePixel","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.203826361-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_MultipleColumns"}
+{"Time":"2026-09-15T13:48:15.203827236-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_MultipleColumns","Output":"=== RUN   TestParseSixel_MultipleColumns\n"}
+{"Time":"2026-09-15T13:48:15.203828444-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_MultipleColumns","Output":"--- PASS: TestParseSixel_MultipleColumns (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.203829444-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_MultipleColumns","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.203830986-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_NewLine"}
+{"Time":"2026-09-15T13:48:15.203832069-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_NewLine","Output":"=== RUN   TestParseSixel_NewLine\n"}
+{"Time":"2026-09-15T13:48:15.203833444-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_NewLine","Output":"--- PASS: TestParseSixel_NewLine (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.203834361-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_NewLine","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.203835361-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_CarriageReturn"}
+{"Time":"2026-09-15T13:48:15.203836236-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_CarriageReturn","Output":"=== RUN   TestParseSixel_CarriageReturn\n"}
+{"Time":"2026-09-15T13:48:15.203841486-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_CarriageReturn","Output":"--- PASS: TestParseSixel_CarriageReturn (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.203843194-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_CarriageReturn","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.203844236-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_Repeat"}
+{"Time":"2026-09-15T13:48:15.203845111-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_Repeat","Output":"=== RUN   TestParseSixel_Repeat\n"}
+{"Time":"2026-09-15T13:48:15.203846319-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_Repeat","Output":"--- PASS: TestParseSixel_Repeat (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.203847277-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_Repeat","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.203848277-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_ColorRGB"}
+{"Time":"2026-09-15T13:48:15.203849277-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_ColorRGB","Output":"=== RUN   TestParseSixel_ColorRGB\n"}
+{"Time":"2026-09-15T13:48:15.203850402-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_ColorRGB","Output":"--- PASS: TestParseSixel_ColorRGB (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.203851736-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_ColorRGB","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.203852819-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_ColorHLS"}
+{"Time":"2026-09-15T13:48:15.203853652-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_ColorHLS","Output":"=== RUN   TestParseSixel_ColorHLS\n"}
+{"Time":"2026-09-15T13:48:15.203854736-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_ColorHLS","Output":"--- PASS: TestParseSixel_ColorHLS (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.203855694-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_ColorHLS","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.203856694-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_Transparent"}
+{"Time":"2026-09-15T13:48:15.203857569-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_Transparent","Output":"=== RUN   TestParseSixel_Transparent\n"}
+{"Time":"2026-09-15T13:48:15.203858736-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_Transparent","Output":"--- PASS: TestParseSixel_Transparent (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.203859694-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_Transparent","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.203860694-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_Empty"}
+{"Time":"2026-09-15T13:48:15.203861569-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_Empty","Output":"=== RUN   TestParseSixel_Empty\n"}
+{"Time":"2026-09-15T13:48:15.203862736-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_Empty","Output":"--- PASS: TestParseSixel_Empty (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.203864111-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_Empty","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.203865111-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_ComplexImage"}
+{"Time":"2026-09-15T13:48:15.203865986-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_ComplexImage","Output":"=== RUN   TestParseSixel_ComplexImage\n"}
+{"Time":"2026-09-15T13:48:15.203867361-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_ComplexImage","Output":"--- PASS: TestParseSixel_ComplexImage (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.203868319-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestParseSixel_ComplexImage","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.203869277-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSixelImageDisplay"}
+{"Time":"2026-09-15T13:48:15.203870152-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSixelImageDisplay","Output":"=== RUN   TestSixelImageDisplay\n"}
+{"Time":"2026-09-15T13:48:15.203871319-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSixelImageDisplay","Output":"--- PASS: TestSixelImageDisplay (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.203872236-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSixelImageDisplay","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.203873236-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSixelImageCellAssignment"}
+{"Time":"2026-09-15T13:48:15.203874152-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSixelImageCellAssignment","Output":"=== RUN   TestSixelImageCellAssignment\n"}
+{"Time":"2026-09-15T13:48:15.203911944-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSixelImageCellAssignment","Output":"--- PASS: TestSixelImageCellAssignment (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.203926444-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSixelImageCellAssignment","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.203936944-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSixelCursorMovement"}
+{"Time":"2026-09-15T13:48:15.203941403-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSixelCursorMovement","Output":"=== RUN   TestSixelCursorMovement\n"}
+{"Time":"2026-09-15T13:48:15.20420607-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSixelCursorMovement","Output":"--- PASS: TestSixelCursorMovement (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.204215237-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSixelCursorMovement","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.204224445-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSixelScrollingAtBottom"}
+{"Time":"2026-09-15T13:48:15.20422757-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSixelScrollingAtBottom","Output":"=== RUN   TestSixelScrollingAtBottom\n"}
+{"Time":"2026-09-15T13:48:15.204412362-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSixelScrollingAtBottom","Output":"--- PASS: TestSixelScrollingAtBottom (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.204432946-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSixelScrollingAtBottom","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.204449154-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_Text"}
+{"Time":"2026-09-15T13:48:15.204452696-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_Text","Output":"=== RUN   TestSnapshot_Text\n"}
+{"Time":"2026-09-15T13:48:15.204469196-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_Text","Output":"--- PASS: TestSnapshot_Text (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.204477112-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_Text","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.204485154-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_Cursor"}
+{"Time":"2026-09-15T13:48:15.204488154-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_Cursor","Output":"=== RUN   TestSnapshot_Cursor\n"}
+{"Time":"2026-09-15T13:48:15.204504987-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_Cursor","Output":"--- PASS: TestSnapshot_Cursor (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.204517404-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_Cursor","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.204527071-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_Styled"}
+{"Time":"2026-09-15T13:48:15.204530154-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_Styled","Output":"=== RUN   TestSnapshot_Styled\n"}
+{"Time":"2026-09-15T13:48:15.204572779-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_Styled","Output":"--- PASS: TestSnapshot_Styled (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.204584446-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_Styled","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.204592863-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_Full"}
+{"Time":"2026-09-15T13:48:15.204595738-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_Full","Output":"=== RUN   TestSnapshot_Full\n"}
+{"Time":"2026-09-15T13:48:15.204624821-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_Full","Output":"--- PASS: TestSnapshot_Full (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.204636071-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_Full","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.204644446-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_Attributes"}
+{"Time":"2026-09-15T13:48:15.204648155-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_Attributes","Output":"=== RUN   TestSnapshot_Attributes\n"}
+{"Time":"2026-09-15T13:48:15.204682613-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_Attributes","Output":"--- PASS: TestSnapshot_Attributes (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.204693988-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_Attributes","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.204702613-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_UnderlineStyles"}
+{"Time":"2026-09-15T13:48:15.204705613-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_UnderlineStyles","Output":"=== RUN   TestSnapshot_UnderlineStyles\n"}
+{"Time":"2026-09-15T13:48:15.204717613-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_UnderlineStyles/single"}
+{"Time":"2026-09-15T13:48:15.20472078-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_UnderlineStyles/single","Output":"=== RUN   TestSnapshot_UnderlineStyles/single\n"}
+{"Time":"2026-09-15T13:48:15.204756655-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_UnderlineStyles/single","Output":"--- PASS: TestSnapshot_UnderlineStyles/single (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.204768572-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_UnderlineStyles/single","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.20477753-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_UnderlineStyles/single_4:1"}
+{"Time":"2026-09-15T13:48:15.204781322-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_UnderlineStyles/single_4:1","Output":"=== RUN   TestSnapshot_UnderlineStyles/single_4:1\n"}
+{"Time":"2026-09-15T13:48:15.204818988-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_UnderlineStyles/single_4:1","Output":"--- PASS: TestSnapshot_UnderlineStyles/single_4:1 (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.20483078-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_UnderlineStyles/single_4:1","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.204839655-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_UnderlineStyles/double"}
+{"Time":"2026-09-15T13:48:15.20484253-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_UnderlineStyles/double","Output":"=== RUN   TestSnapshot_UnderlineStyles/double\n"}
+{"Time":"2026-09-15T13:48:15.204879655-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_UnderlineStyles/double","Output":"--- PASS: TestSnapshot_UnderlineStyles/double (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.20489103-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_UnderlineStyles/double","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.204899864-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_UnderlineStyles/curly"}
+{"Time":"2026-09-15T13:48:15.204902822-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_UnderlineStyles/curly","Output":"=== RUN   TestSnapshot_UnderlineStyles/curly\n"}
+{"Time":"2026-09-15T13:48:15.204937572-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_UnderlineStyles/curly","Output":"--- PASS: TestSnapshot_UnderlineStyles/curly (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.204949072-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_UnderlineStyles/curly","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.20495828-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_UnderlineStyles/dotted"}
+{"Time":"2026-09-15T13:48:15.204961239-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_UnderlineStyles/dotted","Output":"=== RUN   TestSnapshot_UnderlineStyles/dotted\n"}
+{"Time":"2026-09-15T13:48:15.205002572-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_UnderlineStyles/dotted","Output":"--- PASS: TestSnapshot_UnderlineStyles/dotted (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.205013822-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_UnderlineStyles/dotted","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.205028364-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_UnderlineStyles/dashed"}
+{"Time":"2026-09-15T13:48:15.205031281-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_UnderlineStyles/dashed","Output":"=== RUN   TestSnapshot_UnderlineStyles/dashed\n"}
+{"Time":"2026-09-15T13:48:15.205064906-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_UnderlineStyles/dashed","Output":"--- PASS: TestSnapshot_UnderlineStyles/dashed (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.205077864-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_UnderlineStyles/dashed","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.205085656-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_UnderlineStyles","Output":"--- PASS: TestSnapshot_UnderlineStyles (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.205093322-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_UnderlineStyles","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.205101239-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_BlinkStyles"}
+{"Time":"2026-09-15T13:48:15.205104239-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_BlinkStyles","Output":"=== RUN   TestSnapshot_BlinkStyles\n"}
+{"Time":"2026-09-15T13:48:15.205114989-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_BlinkStyles/slow"}
+{"Time":"2026-09-15T13:48:15.205118072-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_BlinkStyles/slow","Output":"=== RUN   TestSnapshot_BlinkStyles/slow\n"}
+{"Time":"2026-09-15T13:48:15.205152114-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_BlinkStyles/slow","Output":"--- PASS: TestSnapshot_BlinkStyles/slow (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.205163323-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_BlinkStyles/slow","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.205172281-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_BlinkStyles/fast"}
+{"Time":"2026-09-15T13:48:15.205175364-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_BlinkStyles/fast","Output":"=== RUN   TestSnapshot_BlinkStyles/fast\n"}
+{"Time":"2026-09-15T13:48:15.205209489-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_BlinkStyles/fast","Output":"--- PASS: TestSnapshot_BlinkStyles/fast (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.205220656-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_BlinkStyles/fast","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.205228823-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_BlinkStyles","Output":"--- PASS: TestSnapshot_BlinkStyles (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.205236531-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_BlinkStyles","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.205244448-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_UnderlineColor"}
+{"Time":"2026-09-15T13:48:15.205247406-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_UnderlineColor","Output":"=== RUN   TestSnapshot_UnderlineColor\n"}
+{"Time":"2026-09-15T13:48:15.205287323-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_UnderlineColor","Output":"    snapshot_test.go:216: UnderlineColor = \"#ff0000\"\n"}
+{"Time":"2026-09-15T13:48:15.20529974-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_UnderlineColor","Output":"--- PASS: TestSnapshot_UnderlineColor (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.20530774-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_UnderlineColor","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.205315906-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_Hyperlink"}
+{"Time":"2026-09-15T13:48:15.205319865-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_Hyperlink","Output":"=== RUN   TestSnapshot_Hyperlink\n"}
+{"Time":"2026-09-15T13:48:15.205377073-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_Hyperlink","Output":"--- PASS: TestSnapshot_Hyperlink (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.205391323-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_Hyperlink","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.205399323-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_WideChar"}
+{"Time":"2026-09-15T13:48:15.205402657-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_WideChar","Output":"=== RUN   TestSnapshot_WideChar\n"}
+{"Time":"2026-09-15T13:48:15.205427657-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_WideChar","Output":"--- PASS: TestSnapshot_WideChar (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.205445782-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_WideChar","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.205454073-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestColorToHex"}
+{"Time":"2026-09-15T13:48:15.20545699-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestColorToHex","Output":"=== RUN   TestColorToHex\n"}
+{"Time":"2026-09-15T13:48:15.20546824-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestColorToHex/nil"}
+{"Time":"2026-09-15T13:48:15.205471407-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestColorToHex/nil","Output":"=== RUN   TestColorToHex/nil\n"}
+{"Time":"2026-09-15T13:48:15.205482365-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestColorToHex/nil","Output":"--- PASS: TestColorToHex/nil (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.205490365-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestColorToHex/nil","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.205498157-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestColorToHex/black"}
+{"Time":"2026-09-15T13:48:15.205503824-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestColorToHex/black","Output":"=== RUN   TestColorToHex/black\n"}
+{"Time":"2026-09-15T13:48:15.205517949-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestColorToHex/black","Output":"--- PASS: TestColorToHex/black (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.20552824-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestColorToHex/black","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.20553574-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestColorToHex/white"}
+{"Time":"2026-09-15T13:48:15.205538615-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestColorToHex/white","Output":"=== RUN   TestColorToHex/white\n"}
+{"Time":"2026-09-15T13:48:15.205549199-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestColorToHex/white","Output":"--- PASS: TestColorToHex/white (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.205560907-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestColorToHex/white","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.205569032-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestColorToHex/red"}
+{"Time":"2026-09-15T13:48:15.205575074-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestColorToHex/red","Output":"=== RUN   TestColorToHex/red\n"}
+{"Time":"2026-09-15T13:48:15.205585449-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestColorToHex/red","Output":"--- PASS: TestColorToHex/red (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.20559424-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestColorToHex/red","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.20560274-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestColorToHex/indexed"}
+{"Time":"2026-09-15T13:48:15.205608907-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestColorToHex/indexed","Output":"=== RUN   TestColorToHex/indexed\n"}
+{"Time":"2026-09-15T13:48:15.205619532-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestColorToHex/indexed","Output":"--- PASS: TestColorToHex/indexed (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.205627449-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestColorToHex/indexed","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.205634532-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestColorToHex","Output":"--- PASS: TestColorToHex (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.205645782-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestColorToHex","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.205655032-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestCursorStyleToString"}
+{"Time":"2026-09-15T13:48:15.205658491-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestCursorStyleToString","Output":"=== RUN   TestCursorStyleToString\n"}
+{"Time":"2026-09-15T13:48:15.205671032-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestCursorStyleToString","Output":"--- PASS: TestCursorStyleToString (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.205679991-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestCursorStyleToString","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.205687449-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_EmptyTerminal"}
+{"Time":"2026-09-15T13:48:15.205690532-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_EmptyTerminal","Output":"=== RUN   TestSnapshot_EmptyTerminal\n"}
+{"Time":"2026-09-15T13:48:15.205705032-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_EmptyTerminal","Output":"--- PASS: TestSnapshot_EmptyTerminal (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.205715907-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_EmptyTerminal","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.205724408-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_StyledSegments"}
+{"Time":"2026-09-15T13:48:15.205729574-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_StyledSegments","Output":"=== RUN   TestSnapshot_StyledSegments\n"}
+{"Time":"2026-09-15T13:48:15.205781741-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_StyledSegments","Output":"--- PASS: TestSnapshot_StyledSegments (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.205792991-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_StyledSegments","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.205802324-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_Images"}
+{"Time":"2026-09-15T13:48:15.205805741-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_Images","Output":"=== RUN   TestSnapshot_Images\n"}
+{"Time":"2026-09-15T13:48:15.205828366-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_Images","Output":"--- PASS: TestSnapshot_Images (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.205839449-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_Images","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.205848741-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_NoImages"}
+{"Time":"2026-09-15T13:48:15.205851658-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_NoImages","Output":"=== RUN   TestSnapshot_NoImages\n"}
+{"Time":"2026-09-15T13:48:15.205866741-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_NoImages","Output":"--- PASS: TestSnapshot_NoImages (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.205874491-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSnapshot_NoImages","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.205881991-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetImageData"}
+{"Time":"2026-09-15T13:48:15.205887908-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetImageData","Output":"=== RUN   TestGetImageData\n"}
+{"Time":"2026-09-15T13:48:15.205910241-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetImageData","Output":"--- PASS: TestGetImageData (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.205921158-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetImageData","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.205929825-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetImageData_NotFound"}
+{"Time":"2026-09-15T13:48:15.205932658-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetImageData_NotFound","Output":"=== RUN   TestGetImageData_NotFound\n"}
+{"Time":"2026-09-15T13:48:15.20595195-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetImageData_NotFound","Output":"--- PASS: TestGetImageData_NotFound (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.205963492-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetImageData_NotFound","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.205973075-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestNewTerminal"}
+{"Time":"2026-09-15T13:48:15.205976575-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestNewTerminal","Output":"=== RUN   TestNewTerminal\n"}
+{"Time":"2026-09-15T13:48:15.206076242-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestNewTerminal","Output":"--- PASS: TestNewTerminal (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.206087784-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestNewTerminal","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.206096159-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalWithSize"}
+{"Time":"2026-09-15T13:48:15.206098992-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalWithSize","Output":"=== RUN   TestTerminalWithSize\n"}
+{"Time":"2026-09-15T13:48:15.206861411-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalWithSize","Output":"--- PASS: TestTerminalWithSize (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.206879119-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalWithSize","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.206886411-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalWrite"}
+{"Time":"2026-09-15T13:48:15.206892327-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalWrite","Output":"=== RUN   TestTerminalWrite\n"}
+{"Time":"2026-09-15T13:48:15.207095078-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalWrite","Output":"--- PASS: TestTerminalWrite (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.20711137-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalWrite","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.207125995-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalCursorPosition"}
+{"Time":"2026-09-15T13:48:15.207128203-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalCursorPosition","Output":"=== RUN   TestTerminalCursorPosition\n"}
+{"Time":"2026-09-15T13:48:15.207336787-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalCursorPosition","Output":"--- PASS: TestTerminalCursorPosition (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.20736087-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalCursorPosition","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.207373787-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalNewline"}
+{"Time":"2026-09-15T13:48:15.20737537-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalNewline","Output":"=== RUN   TestTerminalNewline\n"}
+{"Time":"2026-09-15T13:48:15.207635079-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalNewline","Output":"--- PASS: TestTerminalNewline (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.207696455-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalNewline","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.207698205-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalClearScreen"}
+{"Time":"2026-09-15T13:48:15.207699205-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalClearScreen","Output":"=== RUN   TestTerminalClearScreen\n"}
+{"Time":"2026-09-15T13:48:15.217425982-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalClearScreen","Output":"--- PASS: TestTerminalClearScreen (0.01s)\n"}
+{"Time":"2026-09-15T13:48:15.217441232-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalClearScreen","Elapsed":0.01}
+{"Time":"2026-09-15T13:48:15.217449315-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalScrollback"}
+{"Time":"2026-09-15T13:48:15.217450898-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalScrollback","Output":"=== RUN   TestTerminalScrollback\n"}
+{"Time":"2026-09-15T13:48:15.217499899-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalScrollback","Output":"--- PASS: TestTerminalScrollback (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.217509149-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalScrollback","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.217516024-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalSelection"}
+{"Time":"2026-09-15T13:48:15.217518232-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalSelection","Output":"=== RUN   TestTerminalSelection\n"}
+{"Time":"2026-09-15T13:48:15.217609399-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalSelection","Output":"--- PASS: TestTerminalSelection (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.217618691-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalSelection","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.217625566-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalSearch"}
+{"Time":"2026-09-15T13:48:15.217626691-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalSearch","Output":"=== RUN   TestTerminalSearch\n"}
+{"Time":"2026-09-15T13:48:15.217723482-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalSearch","Output":"--- PASS: TestTerminalSearch (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.217732941-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalSearch","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.217741191-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalString"}
+{"Time":"2026-09-15T13:48:15.217742649-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalString","Output":"=== RUN   TestTerminalString\n"}
+{"Time":"2026-09-15T13:48:15.217835274-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalString","Output":"--- PASS: TestTerminalString (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.217844608-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalString","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.217851108-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalDirtyTracking"}
+{"Time":"2026-09-15T13:48:15.217852233-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalDirtyTracking","Output":"=== RUN   TestTerminalDirtyTracking\n"}
+{"Time":"2026-09-15T13:48:15.21797165-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalDirtyTracking","Output":"--- PASS: TestTerminalDirtyTracking (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.218023358-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalDirtyTracking","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.218031108-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalNarrowPictographCursorWrite"}
+{"Time":"2026-09-15T13:48:15.218032233-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalNarrowPictographCursorWrite","Output":"=== RUN   TestTerminalNarrowPictographCursorWrite\n"}
+{"Time":"2026-09-15T13:48:15.223783291-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalNarrowPictographCursorWrite","Output":"--- PASS: TestTerminalNarrowPictographCursorWrite (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.223788916-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalNarrowPictographCursorWrite","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.223790833-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalWideCharacterCursorWrite"}
+{"Time":"2026-09-15T13:48:15.223792083-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalWideCharacterCursorWrite","Output":"=== RUN   TestTerminalWideCharacterCursorWrite\n"}
+{"Time":"2026-09-15T13:48:15.227229884-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalWideCharacterCursorWrite","Output":"--- PASS: TestTerminalWideCharacterCursorWrite (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.227240759-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalWideCharacterCursorWrite","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.227248301-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalWideCharacter"}
+{"Time":"2026-09-15T13:48:15.227249551-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalWideCharacter","Output":"=== RUN   TestTerminalWideCharacter\n"}
+{"Time":"2026-09-15T13:48:15.227341801-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalWideCharacter","Output":"--- PASS: TestTerminalWideCharacter (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.227353343-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalWideCharacter","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.227360051-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalResize"}
+{"Time":"2026-09-15T13:48:15.227361259-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalResize","Output":"=== RUN   TestTerminalResize\n"}
+{"Time":"2026-09-15T13:48:15.227465635-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalResize","Output":"--- PASS: TestTerminalResize (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.22747476-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalResize","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.227480676-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalTitle"}
+{"Time":"2026-09-15T13:48:15.227481885-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalTitle","Output":"=== RUN   TestTerminalTitle\n"}
+{"Time":"2026-09-15T13:48:15.228006303-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalTitle","Output":"--- PASS: TestTerminalTitle (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.228009386-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalTitle","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.228010969-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalColors"}
+{"Time":"2026-09-15T13:48:15.228012136-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalColors","Output":"=== RUN   TestTerminalColors\n"}
+{"Time":"2026-09-15T13:48:15.228014094-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalColors","Output":"--- PASS: TestTerminalColors (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.228237178-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalColors","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.22823847-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalBold"}
+{"Time":"2026-09-15T13:48:15.228239553-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalBold","Output":"=== RUN   TestTerminalBold\n"}
+{"Time":"2026-09-15T13:48:15.228241053-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalBold","Output":"--- PASS: TestTerminalBold (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.228242637-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalBold","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.228243803-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalAlternateScreen"}
+{"Time":"2026-09-15T13:48:15.22824472-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalAlternateScreen","Output":"=== RUN   TestTerminalAlternateScreen\n"}
+{"Time":"2026-09-15T13:48:15.229010931-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalAlternateScreen","Output":"--- PASS: TestTerminalAlternateScreen (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.229018472-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalAlternateScreen","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.229020097-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestCustomScrollbackProvider"}
+{"Time":"2026-09-15T13:48:15.229021306-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestCustomScrollbackProvider","Output":"=== RUN   TestCustomScrollbackProvider\n"}
+{"Time":"2026-09-15T13:48:15.229022847-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestCustomScrollbackProvider","Output":"--- PASS: TestCustomScrollbackProvider (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.229023889-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestCustomScrollbackProvider","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.229025014-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestMiddlewareInput"}
+{"Time":"2026-09-15T13:48:15.229026097-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestMiddlewareInput","Output":"=== RUN   TestMiddlewareInput\n"}
+{"Time":"2026-09-15T13:48:15.229027472-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestMiddlewareInput","Output":"--- PASS: TestMiddlewareInput (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.229028597-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestMiddlewareInput","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.229029681-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestMiddlewareBell"}
+{"Time":"2026-09-15T13:48:15.229030639-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestMiddlewareBell","Output":"=== RUN   TestMiddlewareBell\n"}
+{"Time":"2026-09-15T13:48:15.229032639-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestMiddlewareBell","Output":"--- PASS: TestMiddlewareBell (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.229033639-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestMiddlewareBell","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.229034597-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestMiddlewareSetTitle"}
+{"Time":"2026-09-15T13:48:15.229035806-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestMiddlewareSetTitle","Output":"=== RUN   TestMiddlewareSetTitle\n"}
+{"Time":"2026-09-15T13:48:15.229036972-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestMiddlewareSetTitle","Output":"--- PASS: TestMiddlewareSetTitle (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.229037972-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestMiddlewareSetTitle","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.229038972-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestMiddlewareClearScreen"}
+{"Time":"2026-09-15T13:48:15.229039847-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestMiddlewareClearScreen","Output":"=== RUN   TestMiddlewareClearScreen\n"}
+{"Time":"2026-09-15T13:48:15.229041056-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestMiddlewareClearScreen","Output":"--- PASS: TestMiddlewareClearScreen (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.229042181-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestMiddlewareClearScreen","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.229043597-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestClipboardProvider"}
+{"Time":"2026-09-15T13:48:15.229044722-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestClipboardProvider","Output":"=== RUN   TestClipboardProvider\n"}
+{"Time":"2026-09-15T13:48:15.229046389-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestClipboardProvider","Output":"--- PASS: TestClipboardProvider (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.229048222-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestClipboardProvider","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.229049431-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestResponseWriter"}
+{"Time":"2026-09-15T13:48:15.229050472-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResponseWriter","Output":"=== RUN   TestResponseWriter\n"}
+{"Time":"2026-09-15T13:48:15.229416723-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResponseWriter","Output":"--- PASS: TestResponseWriter (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.22944539-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestResponseWriter","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.229456473-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestMiddlewareSkipsCall"}
+{"Time":"2026-09-15T13:48:15.229459848-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestMiddlewareSkipsCall","Output":"=== RUN   TestMiddlewareSkipsCall\n"}
+{"Time":"2026-09-15T13:48:15.229649391-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestMiddlewareSkipsCall","Output":"--- PASS: TestMiddlewareSkipsCall (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.229669349-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestMiddlewareSkipsCall","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.229680182-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestMiddlewareMerge"}
+{"Time":"2026-09-15T13:48:15.229683391-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestMiddlewareMerge","Output":"=== RUN   TestMiddlewareMerge\n"}
+{"Time":"2026-09-15T13:48:15.229785808-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestMiddlewareMerge","Output":"--- PASS: TestMiddlewareMerge (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.229801099-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestMiddlewareMerge","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.229811016-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalWrappedLineTracking"}
+{"Time":"2026-09-15T13:48:15.229814224-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalWrappedLineTracking","Output":"=== RUN   TestTerminalWrappedLineTracking\n"}
+{"Time":"2026-09-15T13:48:15.229830433-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalWrappedLineTracking","Output":"--- PASS: TestTerminalWrappedLineTracking (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.229842974-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalWrappedLineTracking","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.229858391-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalWrappedLineClearedOnNewline"}
+{"Time":"2026-09-15T13:48:15.229861766-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalWrappedLineClearedOnNewline","Output":"=== RUN   TestTerminalWrappedLineClearedOnNewline\n"}
+{"Time":"2026-09-15T13:48:15.229879225-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalWrappedLineClearedOnNewline","Output":"--- PASS: TestTerminalWrappedLineClearedOnNewline (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.229891016-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalWrappedLineClearedOnNewline","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.229900516-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalAutoResizeY"}
+{"Time":"2026-09-15T13:48:15.229903641-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalAutoResizeY","Output":"=== RUN   TestTerminalAutoResizeY\n"}
+{"Time":"2026-09-15T13:48:15.229938975-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalAutoResizeY","Output":"--- PASS: TestTerminalAutoResizeY (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.22995335-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalAutoResizeY","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.229961808-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalAutoResizeX"}
+{"Time":"2026-09-15T13:48:15.229964808-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalAutoResizeX","Output":"=== RUN   TestTerminalAutoResizeX\n"}
+{"Time":"2026-09-15T13:48:15.22999785-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalAutoResizeX","Output":"--- PASS: TestTerminalAutoResizeX (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.2300206-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalAutoResizeX","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.230029058-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalAutoResizeNoScrollback"}
+{"Time":"2026-09-15T13:48:15.230032142-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalAutoResizeNoScrollback","Output":"=== RUN   TestTerminalAutoResizeNoScrollback\n"}
+{"Time":"2026-09-15T13:48:15.230078183-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalAutoResizeNoScrollback","Output":"--- PASS: TestTerminalAutoResizeNoScrollback (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.230092725-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalAutoResizeNoScrollback","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.230101392-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalRecording"}
+{"Time":"2026-09-15T13:48:15.230104642-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalRecording","Output":"=== RUN   TestTerminalRecording\n"}
+{"Time":"2026-09-15T13:48:15.230206725-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalRecording","Output":"--- PASS: TestTerminalRecording (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.230220767-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalRecording","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.230229392-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalRecordingWithANSI"}
+{"Time":"2026-09-15T13:48:15.230232351-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalRecordingWithANSI","Output":"=== RUN   TestTerminalRecordingWithANSI\n"}
+{"Time":"2026-09-15T13:48:15.230324142-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalRecordingWithANSI","Output":"--- PASS: TestTerminalRecordingWithANSI (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.230338268-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalRecordingWithANSI","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.230346893-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalRecordingClear"}
+{"Time":"2026-09-15T13:48:15.230349851-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalRecordingClear","Output":"=== RUN   TestTerminalRecordingClear\n"}
+{"Time":"2026-09-15T13:48:15.230442101-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalRecordingClear","Output":"--- PASS: TestTerminalRecordingClear (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.230455601-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalRecordingClear","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.230464018-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalRecordingReplay"}
+{"Time":"2026-09-15T13:48:15.230466935-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalRecordingReplay","Output":"=== RUN   TestTerminalRecordingReplay\n"}
+{"Time":"2026-09-15T13:48:15.231283145-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalRecordingReplay","Output":"--- PASS: TestTerminalRecordingReplay (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.231286853-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalRecordingReplay","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.23128827-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalRecordingSetProvider"}
+{"Time":"2026-09-15T13:48:15.231289395-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalRecordingSetProvider","Output":"=== RUN   TestTerminalRecordingSetProvider\n"}
+{"Time":"2026-09-15T13:48:15.23129077-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalRecordingSetProvider","Output":"--- PASS: TestTerminalRecordingSetProvider (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.231291854-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestTerminalRecordingSetProvider","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.231292854-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestActiveCharsetBoundsValidation"}
+{"Time":"2026-09-15T13:48:15.231293979-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestActiveCharsetBoundsValidation","Output":"=== RUN   TestActiveCharsetBoundsValidation\n"}
+{"Time":"2026-09-15T13:48:15.231295187-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestActiveCharsetBoundsValidation","Output":"--- PASS: TestActiveCharsetBoundsValidation (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.23129627-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestActiveCharsetBoundsValidation","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.231297437-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeInvalidDimensions"}
+{"Time":"2026-09-15T13:48:15.231298354-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeInvalidDimensions","Output":"=== RUN   TestResizeInvalidDimensions\n"}
+{"Time":"2026-09-15T13:48:15.231299562-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeInvalidDimensions","Output":"--- PASS: TestResizeInvalidDimensions (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.231300604-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeInvalidDimensions","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.231301645-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeCursorBounds"}
+{"Time":"2026-09-15T13:48:15.231302895-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeCursorBounds","Output":"=== RUN   TestResizeCursorBounds\n"}
+{"Time":"2026-09-15T13:48:15.241722674-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeCursorBounds","Output":"--- PASS: TestResizeCursorBounds (0.01s)\n"}
+{"Time":"2026-09-15T13:48:15.2420268-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeCursorBounds","Elapsed":0.01}
+{"Time":"2026-09-15T13:48:15.242039967-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestWriteResponseRaceCondition"}
+{"Time":"2026-09-15T13:48:15.242042633-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestWriteResponseRaceCondition","Output":"=== RUN   TestWriteResponseRaceCondition\n"}
+{"Time":"2026-09-15T13:48:15.242237967-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestWriteResponseRaceCondition","Output":"--- PASS: TestWriteResponseRaceCondition (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.242288092-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestWriteResponseRaceCondition","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.242303717-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestCursorBoundsAfterGrowCols"}
+{"Time":"2026-09-15T13:48:15.242305384-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestCursorBoundsAfterGrowCols","Output":"=== RUN   TestCursorBoundsAfterGrowCols\n"}
+{"Time":"2026-09-15T13:48:15.242336301-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestCursorBoundsAfterGrowCols","Output":"--- PASS: TestCursorBoundsAfterGrowCols (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.242419134-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestCursorBoundsAfterGrowCols","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.242421134-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestCursorBoundsAfterWrap"}
+{"Time":"2026-09-15T13:48:15.242422384-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestCursorBoundsAfterWrap","Output":"=== RUN   TestCursorBoundsAfterWrap\n"}
+{"Time":"2026-09-15T13:48:15.242424051-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestCursorBoundsAfterWrap","Output":"--- PASS: TestCursorBoundsAfterWrap (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.242425176-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestCursorBoundsAfterWrap","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.242426843-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestInputWithInvalidCursorPosition"}
+{"Time":"2026-09-15T13:48:15.242427884-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestInputWithInvalidCursorPosition","Output":"=== RUN   TestInputWithInvalidCursorPosition\n"}
+{"Time":"2026-09-15T13:48:15.242429509-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestInputWithInvalidCursorPosition","Output":"--- PASS: TestInputWithInvalidCursorPosition (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.242430801-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestInputWithInvalidCursorPosition","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.242432009-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeShrinkWithCursorInBounds"}
+{"Time":"2026-09-15T13:48:15.242433051-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeShrinkWithCursorInBounds","Output":"=== RUN   TestResizeShrinkWithCursorInBounds\n"}
+{"Time":"2026-09-15T13:48:15.242530468-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeShrinkWithCursorInBounds","Output":"--- PASS: TestResizeShrinkWithCursorInBounds (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.242552718-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeShrinkWithCursorInBounds","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.242609718-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeShrinkWithCursorOutOfBounds"}
+{"Time":"2026-09-15T13:48:15.242611427-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeShrinkWithCursorOutOfBounds","Output":"=== RUN   TestResizeShrinkWithCursorOutOfBounds\n"}
+{"Time":"2026-09-15T13:48:15.24265526-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeShrinkWithCursorOutOfBounds","Output":"--- PASS: TestResizeShrinkWithCursorOutOfBounds (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.242679177-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeShrinkWithCursorOutOfBounds","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.242693177-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeShrinkScrollbackContent"}
+{"Time":"2026-09-15T13:48:15.24273551-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeShrinkScrollbackContent","Output":"=== RUN   TestResizeShrinkScrollbackContent\n"}
+{"Time":"2026-09-15T13:48:15.242788802-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeShrinkScrollbackContent","Output":"--- PASS: TestResizeShrinkScrollbackContent (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.242867052-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeShrinkScrollbackContent","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.242869094-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeGrowPullsFromScrollback"}
+{"Time":"2026-09-15T13:48:15.242870386-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeGrowPullsFromScrollback","Output":"=== RUN   TestResizeGrowPullsFromScrollback\n"}
+{"Time":"2026-09-15T13:48:15.242960219-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeGrowPullsFromScrollback","Output":"--- PASS: TestResizeGrowPullsFromScrollback (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.242982136-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeGrowPullsFromScrollback","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.243000428-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeGrowNoScrollbackUnchanged"}
+{"Time":"2026-09-15T13:48:15.243008553-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeGrowNoScrollbackUnchanged","Output":"=== RUN   TestResizeGrowNoScrollbackUnchanged\n"}
+{"Time":"2026-09-15T13:48:15.243101595-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeGrowNoScrollbackUnchanged","Output":"--- PASS: TestResizeGrowNoScrollbackUnchanged (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.243123136-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeGrowNoScrollbackUnchanged","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.24318072-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeAlternateScreenNoScrollback"}
+{"Time":"2026-09-15T13:48:15.243182387-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeAlternateScreenNoScrollback","Output":"=== RUN   TestResizeAlternateScreenNoScrollback\n"}
+{"Time":"2026-09-15T13:48:15.243239637-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeAlternateScreenNoScrollback","Output":"--- PASS: TestResizeAlternateScreenNoScrollback (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.243265928-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeAlternateScreenNoScrollback","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.243279762-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeCursorPositionAfterShrink"}
+{"Time":"2026-09-15T13:48:15.243287512-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeCursorPositionAfterShrink","Output":"=== RUN   TestResizeCursorPositionAfterShrink\n"}
+{"Time":"2026-09-15T13:48:15.243765596-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeCursorPositionAfterShrink","Output":"--- PASS: TestResizeCursorPositionAfterShrink (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.243787513-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestResizeCursorPositionAfterShrink","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.243802055-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestViewportRowToAbsolute"}
+{"Time":"2026-09-15T13:48:15.243803513-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestViewportRowToAbsolute","Output":"=== RUN   TestViewportRowToAbsolute\n"}
+{"Time":"2026-09-15T13:48:15.244076347-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestViewportRowToAbsolute","Output":"--- PASS: TestViewportRowToAbsolute (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.244100972-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestViewportRowToAbsolute","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.244109472-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestAbsoluteRowToViewport"}
+{"Time":"2026-09-15T13:48:15.244117431-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestAbsoluteRowToViewport","Output":"=== RUN   TestAbsoluteRowToViewport\n"}
+{"Time":"2026-09-15T13:48:15.244118972-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestAbsoluteRowToViewport","Output":"--- PASS: TestAbsoluteRowToViewport (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.244120222-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestAbsoluteRowToViewport","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.244121556-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestRowConversionRoundTrip"}
+{"Time":"2026-09-15T13:48:15.244122722-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestRowConversionRoundTrip","Output":"=== RUN   TestRowConversionRoundTrip\n"}
+{"Time":"2026-09-15T13:48:15.244124847-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestRowConversionRoundTrip","Output":"--- PASS: TestRowConversionRoundTrip (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.244126056-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestRowConversionRoundTrip","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.244128014-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestSetUserVar"}
+{"Time":"2026-09-15T13:48:15.244129097-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSetUserVar","Output":"=== RUN   TestSetUserVar\n"}
+{"Time":"2026-09-15T13:48:15.244189931-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestSetUserVar","Output":"--- PASS: TestSetUserVar (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.244203264-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestSetUserVar","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.244207306-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetUserVarNotSet"}
+{"Time":"2026-09-15T13:48:15.244216389-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetUserVarNotSet","Output":"=== RUN   TestGetUserVarNotSet\n"}
+{"Time":"2026-09-15T13:48:15.244249473-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetUserVarNotSet","Output":"--- PASS: TestGetUserVarNotSet (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.244632307-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetUserVarNotSet","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.244637641-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetUserVars"}
+{"Time":"2026-09-15T13:48:15.244639016-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetUserVars","Output":"=== RUN   TestGetUserVars\n"}
+{"Time":"2026-09-15T13:48:15.244640766-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetUserVars","Output":"--- PASS: TestGetUserVars (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.244642224-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetUserVars","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.244643474-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetUserVarsReturnsACopy"}
+{"Time":"2026-09-15T13:48:15.244644516-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetUserVarsReturnsACopy","Output":"=== RUN   TestGetUserVarsReturnsACopy\n"}
+{"Time":"2026-09-15T13:48:15.244645932-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetUserVarsReturnsACopy","Output":"--- PASS: TestGetUserVarsReturnsACopy (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.244647307-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestGetUserVarsReturnsACopy","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.244648682-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestClearUserVars"}
+{"Time":"2026-09-15T13:48:15.244649682-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestClearUserVars","Output":"=== RUN   TestClearUserVars\n"}
+{"Time":"2026-09-15T13:48:15.244651057-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestClearUserVars","Output":"--- PASS: TestClearUserVars (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.244652141-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestClearUserVars","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.244653349-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestUserVarOverwrite"}
+{"Time":"2026-09-15T13:48:15.244654391-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestUserVarOverwrite","Output":"=== RUN   TestUserVarOverwrite\n"}
+{"Time":"2026-09-15T13:48:15.244818016-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestUserVarOverwrite","Output":"--- PASS: TestUserVarOverwrite (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.244835516-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestUserVarOverwrite","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.244845183-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestUserVarEmptyValue"}
+{"Time":"2026-09-15T13:48:15.244847641-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestUserVarEmptyValue","Output":"=== RUN   TestUserVarEmptyValue\n"}
+{"Time":"2026-09-15T13:48:15.244947808-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestUserVarEmptyValue","Output":"--- PASS: TestUserVarEmptyValue (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.244961058-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestUserVarEmptyValue","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.24496835-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestUserVarMiddleware"}
+{"Time":"2026-09-15T13:48:15.24496985-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestUserVarMiddleware","Output":"=== RUN   TestUserVarMiddleware\n"}
+{"Time":"2026-09-15T13:48:15.245079142-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestUserVarMiddleware","Output":"--- PASS: TestUserVarMiddleware (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.245092142-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestUserVarMiddleware","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.245099434-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestUserVarMiddlewareBlocks"}
+{"Time":"2026-09-15T13:48:15.245100642-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestUserVarMiddlewareBlocks","Output":"=== RUN   TestUserVarMiddlewareBlocks\n"}
+{"Time":"2026-09-15T13:48:15.245198517-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestUserVarMiddlewareBlocks","Output":"--- PASS: TestUserVarMiddlewareBlocks (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.2452116-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestUserVarMiddlewareBlocks","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.245220059-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestUserVarThreadSafety"}
+{"Time":"2026-09-15T13:48:15.245221809-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestUserVarThreadSafety","Output":"=== RUN   TestUserVarThreadSafety\n"}
+{"Time":"2026-09-15T13:48:15.245489601-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestUserVarThreadSafety","Output":"--- PASS: TestUserVarThreadSafety (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.24550581-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestUserVarThreadSafety","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.245517185-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestOSC1337SetUserVar"}
+{"Time":"2026-09-15T13:48:15.245519435-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestOSC1337SetUserVar","Output":"=== RUN   TestOSC1337SetUserVar\n"}
+{"Time":"2026-09-15T13:48:15.245643477-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestOSC1337SetUserVar","Output":"--- PASS: TestOSC1337SetUserVar (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.245659018-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestOSC1337SetUserVar","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.24566756-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestOSC1337SetUserVarWithST"}
+{"Time":"2026-09-15T13:48:15.245669143-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestOSC1337SetUserVarWithST","Output":"=== RUN   TestOSC1337SetUserVarWithST\n"}
+{"Time":"2026-09-15T13:48:15.245801144-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestOSC1337SetUserVarWithST","Output":"--- PASS: TestOSC1337SetUserVarWithST (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.245815727-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestOSC1337SetUserVarWithST","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.245824227-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestOSC1337InvalidBase64"}
+{"Time":"2026-09-15T13:48:15.245825894-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestOSC1337InvalidBase64","Output":"=== RUN   TestOSC1337InvalidBase64\n"}
+{"Time":"2026-09-15T13:48:15.246396562-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestOSC1337InvalidBase64","Output":"--- PASS: TestOSC1337InvalidBase64 (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.246402729-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestOSC1337InvalidBase64","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.24640452-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestOSC1337EmptyValue"}
+{"Time":"2026-09-15T13:48:15.246405937-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestOSC1337EmptyValue","Output":"=== RUN   TestOSC1337EmptyValue\n"}
+{"Time":"2026-09-15T13:48:15.246481687-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestOSC1337EmptyValue","Output":"--- PASS: TestOSC1337EmptyValue (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.246494146-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestOSC1337EmptyValue","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.246502979-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestOSC1337SpecialCharacters"}
+{"Time":"2026-09-15T13:48:15.246504562-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestOSC1337SpecialCharacters","Output":"=== RUN   TestOSC1337SpecialCharacters\n"}
+{"Time":"2026-09-15T13:48:15.246622729-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestOSC1337SpecialCharacters","Output":"--- PASS: TestOSC1337SpecialCharacters (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.246635146-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestOSC1337SpecialCharacters","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.246642188-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestUserVarsWithPTYWriter"}
+{"Time":"2026-09-15T13:48:15.246643563-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestUserVarsWithPTYWriter","Output":"=== RUN   TestUserVarsWithPTYWriter\n"}
+{"Time":"2026-09-15T13:48:15.246740896-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestUserVarsWithPTYWriter","Output":"--- PASS: TestUserVarsWithPTYWriter (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.246758021-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestUserVarsWithPTYWriter","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.246765188-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestMiddlewareMergeSetUserVar"}
+{"Time":"2026-09-15T13:48:15.24676673-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestMiddlewareMergeSetUserVar","Output":"=== RUN   TestMiddlewareMergeSetUserVar\n"}
+{"Time":"2026-09-15T13:48:15.246862313-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestMiddlewareMergeSetUserVar","Output":"--- PASS: TestMiddlewareMergeSetUserVar (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.246874355-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestMiddlewareMergeSetUserVar","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.246881605-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestRuneWidth"}
+{"Time":"2026-09-15T13:48:15.246882938-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestRuneWidth","Output":"=== RUN   TestRuneWidth\n"}
+{"Time":"2026-09-15T13:48:15.246893355-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestRuneWidth","Output":"--- PASS: TestRuneWidth (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.246899022-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestRuneWidth","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.246905647-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestIsWideRune"}
+{"Time":"2026-09-15T13:48:15.246907064-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestIsWideRune","Output":"=== RUN   TestIsWideRune\n"}
+{"Time":"2026-09-15T13:48:15.246916105-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestIsWideRune","Output":"--- PASS: TestIsWideRune (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.246922439-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestIsWideRune","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.246933564-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestStringWidth"}
+{"Time":"2026-09-15T13:48:15.246934855-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestStringWidth","Output":"=== RUN   TestStringWidth\n"}
+{"Time":"2026-09-15T13:48:15.246946022-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestStringWidth","Output":"--- PASS: TestStringWidth (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.246951855-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestStringWidth","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.246957814-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestWidthFunctionsAgree"}
+{"Time":"2026-09-15T13:48:15.246958897-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestWidthFunctionsAgree","Output":"=== RUN   TestWidthFunctionsAgree\n"}
+{"Time":"2026-09-15T13:48:15.308873944-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestWidthFunctionsAgree","Output":"--- PASS: TestWidthFunctionsAgree (0.06s)\n"}
+{"Time":"2026-09-15T13:48:15.308887986-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestWidthFunctionsAgree","Elapsed":0.06}
+{"Time":"2026-09-15T13:48:15.308901194-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestWidthTableMatchesGenerateDirective"}
+{"Time":"2026-09-15T13:48:15.308903402-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestWidthTableMatchesGenerateDirective","Output":"=== RUN   TestWidthTableMatchesGenerateDirective\n"}
+{"Time":"2026-09-15T13:48:15.308952653-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestWidthTableMatchesGenerateDirective","Output":"--- PASS: TestWidthTableMatchesGenerateDirective (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.308964069-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestWidthTableMatchesGenerateDirective","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.308971111-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestWorkingDirectory_Basic"}
+{"Time":"2026-09-15T13:48:15.308972861-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestWorkingDirectory_Basic","Output":"=== RUN   TestWorkingDirectory_Basic\n"}
+{"Time":"2026-09-15T13:48:15.309069903-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestWorkingDirectory_Basic","Output":"--- PASS: TestWorkingDirectory_Basic (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.309080986-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestWorkingDirectory_Basic","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.309087736-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestWorkingDirectory_STTerminator"}
+{"Time":"2026-09-15T13:48:15.309088861-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestWorkingDirectory_STTerminator","Output":"=== RUN   TestWorkingDirectory_STTerminator\n"}
+{"Time":"2026-09-15T13:48:15.309338112-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestWorkingDirectory_STTerminator","Output":"--- PASS: TestWorkingDirectory_STTerminator (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.309353987-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestWorkingDirectory_STTerminator","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.309363862-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestWorkingDirectory_Multiple"}
+{"Time":"2026-09-15T13:48:15.309365987-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestWorkingDirectory_Multiple","Output":"=== RUN   TestWorkingDirectory_Multiple\n"}
+{"Time":"2026-09-15T13:48:15.309735655-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestWorkingDirectory_Multiple","Output":"--- PASS: TestWorkingDirectory_Multiple (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.309738155-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestWorkingDirectory_Multiple","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.309739405-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestWorkingDirectory_NotSet"}
+{"Time":"2026-09-15T13:48:15.309740488-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestWorkingDirectory_NotSet","Output":"=== RUN   TestWorkingDirectory_NotSet\n"}
+{"Time":"2026-09-15T13:48:15.310128239-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestWorkingDirectory_NotSet","Output":"--- PASS: TestWorkingDirectory_NotSet (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.310130031-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestWorkingDirectory_NotSet","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.310131031-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestWorkingDirectoryPath_Basic"}
+{"Time":"2026-09-15T13:48:15.310131822-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestWorkingDirectoryPath_Basic","Output":"=== RUN   TestWorkingDirectoryPath_Basic\n"}
+{"Time":"2026-09-15T13:48:15.310132864-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestWorkingDirectoryPath_Basic","Output":"--- PASS: TestWorkingDirectoryPath_Basic (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.310133739-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestWorkingDirectoryPath_Basic","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.310134656-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestWorkingDirectoryPath_WithHostname"}
+{"Time":"2026-09-15T13:48:15.310135614-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestWorkingDirectoryPath_WithHostname","Output":"=== RUN   TestWorkingDirectoryPath_WithHostname\n"}
+{"Time":"2026-09-15T13:48:15.310136614-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestWorkingDirectoryPath_WithHostname","Output":"--- PASS: TestWorkingDirectoryPath_WithHostname (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.310137656-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestWorkingDirectoryPath_WithHostname","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.310138531-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestWorkingDirectoryPath_EmptyHostname"}
+{"Time":"2026-09-15T13:48:15.310139531-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestWorkingDirectoryPath_EmptyHostname","Output":"=== RUN   TestWorkingDirectoryPath_EmptyHostname\n"}
+{"Time":"2026-09-15T13:48:15.310140572-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestWorkingDirectoryPath_EmptyHostname","Output":"--- PASS: TestWorkingDirectoryPath_EmptyHostname (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.310141406-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestWorkingDirectoryPath_EmptyHostname","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.310142281-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestWorkingDirectoryPath_NotSet"}
+{"Time":"2026-09-15T13:48:15.310142989-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestWorkingDirectoryPath_NotSet","Output":"=== RUN   TestWorkingDirectoryPath_NotSet\n"}
+{"Time":"2026-09-15T13:48:15.310143989-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestWorkingDirectoryPath_NotSet","Output":"--- PASS: TestWorkingDirectoryPath_NotSet (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.310144781-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestWorkingDirectoryPath_NotSet","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.310145614-07:00","Action":"run","Package":"github.com/clawee-git/go-headless-term","Test":"TestWorkingDirectory_Middleware"}
+{"Time":"2026-09-15T13:48:15.310146322-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestWorkingDirectory_Middleware","Output":"=== RUN   TestWorkingDirectory_Middleware\n"}
+{"Time":"2026-09-15T13:48:15.31049474-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Test":"TestWorkingDirectory_Middleware","Output":"--- PASS: TestWorkingDirectory_Middleware (0.00s)\n"}
+{"Time":"2026-09-15T13:48:15.310524865-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Test":"TestWorkingDirectory_Middleware","Elapsed":0}
+{"Time":"2026-09-15T13:48:15.310540199-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Output":"PASS\n"}
+{"Time":"2026-09-15T13:48:15.311340576-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Output":"coverage: 56.5% of statements in ./...\n"}
+{"Time":"2026-09-15T13:48:15.312824622-07:00","Action":"output","Package":"github.com/clawee-git/go-headless-term","Output":"ok  \tgithub.com/clawee-git/go-headless-term\t0.180s\tcoverage: 56.5% of statements in ./...\n"}
+{"Time":"2026-09-15T13:48:15.312853497-07:00","Action":"pass","Package":"github.com/clawee-git/go-headless-term","Elapsed":0.18}

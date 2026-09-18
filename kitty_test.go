@@ -2,166 +2,163 @@ package headlessterm
 
 import (
 	"encoding/base64"
+	"reflect"
 	"testing"
 )
 
-func TestParseKittyGraphics_Basic(t *testing.T) {
-	// Simple transmit and display command
-	data := []byte("Ga=T,f=32,s=2,v=2;AAAAAAAAAAAAAAAAAAAAAAA=")
-	cmd, err := ParseKittyGraphics(data)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if cmd.Action != KittyActionTransmitDisplay {
-		t.Errorf("expected action T, got %c", cmd.Action)
-	}
-	if cmd.Format != KittyFormatRGBA {
-		t.Errorf("expected format 32, got %d", cmd.Format)
-	}
-	if cmd.Width != 2 {
-		t.Errorf("expected width 2, got %d", cmd.Width)
-	}
-	if cmd.Height != 2 {
-		t.Errorf("expected height 2, got %d", cmd.Height)
+// parseKittyGraphicsCases: the parser's contract is the whole command it
+// returns, so each case states the whole expected KittyCommand. The parser
+// defaults Action to transmit-and-display, Transmission to direct and Format to
+// RGBA, so every case carries those unless its control data overrides them.
+var parseKittyGraphicsCases = []struct {
+	name           string
+	data           string
+	want           KittyCommand // Payload compared separately, by length
+	wantPayloadLen int
+}{
+	{
+		name: "basic transmit and display",
+		data: "Ga=T,f=32,s=2,v=2;AAAAAAAAAAAAAAAAAAAAAAA=",
+		want: KittyCommand{
+			Action:       KittyActionTransmitDisplay,
+			Transmission: KittyTransmitDirect,
+			Format:       KittyFormatRGBA,
+			Width:        2,
+			Height:       2,
+		},
+		wantPayloadLen: 17,
+	},
+	{
+		name: "query",
+		data: "Ga=q,i=1;",
+		want: KittyCommand{
+			Action:       KittyActionQuery,
+			Transmission: KittyTransmitDirect,
+			Format:       KittyFormatRGBA,
+			ImageID:      1,
+		},
+	},
+	{
+		name: "delete",
+		data: "Ga=d,d=a;",
+		want: KittyCommand{
+			Action:       KittyActionDelete,
+			Transmission: KittyTransmitDirect,
+			Format:       KittyFormatRGBA,
+			Delete:       KittyDeleteAll,
+		},
+	},
+	{
+		name: "chunked",
+		data: "Ga=T,m=1;AAAA",
+		want: KittyCommand{
+			Action:       KittyActionTransmitDisplay,
+			Transmission: KittyTransmitDirect,
+			Format:       KittyFormatRGBA,
+			More:         true,
+		},
+		wantPayloadLen: 3,
+	},
+	{
+		name: "with z-index",
+		data: "Ga=p,i=1,z=-1;",
+		want: KittyCommand{
+			Action:       KittyActionDisplay,
+			Transmission: KittyTransmitDirect,
+			Format:       KittyFormatRGBA,
+			ImageID:      1,
+			ZIndex:       -1,
+		},
+	},
+	{
+		name: "placement",
+		data: "Ga=p,i=1,c=10,r=5,X=2,Y=3;",
+		want: KittyCommand{
+			Action:       KittyActionDisplay,
+			Transmission: KittyTransmitDirect,
+			Format:       KittyFormatRGBA,
+			ImageID:      1,
+			Cols:         10,
+			Rows:         5,
+			CellOffsetX:  2,
+			CellOffsetY:  3,
+		},
+	},
+	{
+		name: "do not move cursor",
+		data: "Ga=T,C=1;",
+		want: KittyCommand{
+			Action:          KittyActionTransmitDisplay,
+			Transmission:    KittyTransmitDirect,
+			Format:          KittyFormatRGBA,
+			DoNotMoveCursor: true,
+		},
+	},
+}
+
+func TestParseKittyGraphics(t *testing.T) {
+	for _, c := range parseKittyGraphicsCases {
+		t.Run(c.name, func(t *testing.T) {
+			cmd, err := ParseKittyGraphics([]byte(c.data))
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			if got := len(cmd.Payload); got != c.wantPayloadLen {
+				t.Errorf("len(Payload) = %d, want %d", got, c.wantPayloadLen)
+			}
+
+			got := *cmd
+			got.Payload = nil
+			if !reflect.DeepEqual(got, c.want) {
+				t.Errorf("command = %+v, want %+v", got, c.want)
+			}
+		})
 	}
 }
 
-func TestParseKittyGraphics_Query(t *testing.T) {
-	data := []byte("Ga=q,i=1;")
-	cmd, err := ParseKittyGraphics(data)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if cmd.Action != KittyActionQuery {
-		t.Errorf("expected action q, got %c", cmd.Action)
-	}
-	if cmd.ImageID != 1 {
-		t.Errorf("expected image ID 1, got %d", cmd.ImageID)
-	}
+var kittyDecodeImageDataCases = []struct {
+	name      string
+	format    KittyFormat
+	pixelByte int // bytes per pixel in the payload
+	fill      byte
+	wantLen   int
+	wantAlpha byte // checked when > 0
+}{
+	{name: "rgba", format: KittyFormatRGBA, pixelByte: 4, fill: 255, wantLen: 16},
+	{name: "rgb", format: KittyFormatRGB, pixelByte: 3, fill: 128, wantLen: 16, wantAlpha: 255},
 }
 
-func TestParseKittyGraphics_Delete(t *testing.T) {
-	data := []byte("Ga=d,d=a;")
-	cmd, err := ParseKittyGraphics(data)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if cmd.Action != KittyActionDelete {
-		t.Errorf("expected action d, got %c", cmd.Action)
-	}
-	if cmd.Delete != KittyDeleteAll {
-		t.Errorf("expected delete all, got %c", cmd.Delete)
-	}
-}
+func TestKittyCommand_DecodeImageData(t *testing.T) {
+	for _, c := range kittyDecodeImageDataCases {
+		t.Run(c.name, func(t *testing.T) {
+			// 2x2 image in the case's format
+			payload := make([]byte, 2*2*c.pixelByte)
+			for i := range payload {
+				payload[i] = c.fill
+			}
 
-func TestParseKittyGraphics_Chunked(t *testing.T) {
-	data := []byte("Ga=T,m=1;AAAA")
-	cmd, err := ParseKittyGraphics(data)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if !cmd.More {
-		t.Error("expected more=true")
-	}
-}
+			cmd := &KittyCommand{
+				Format:  c.format,
+				Width:   2,
+				Height:  2,
+				Payload: payload,
+			}
 
-func TestParseKittyGraphics_WithZIndex(t *testing.T) {
-	data := []byte("Ga=p,i=1,z=-1;")
-	cmd, err := ParseKittyGraphics(data)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if cmd.ZIndex != -1 {
-		t.Errorf("expected z-index -1, got %d", cmd.ZIndex)
-	}
-}
-
-func TestParseKittyGraphics_Placement(t *testing.T) {
-	data := []byte("Ga=p,i=1,c=10,r=5,X=2,Y=3;")
-	cmd, err := ParseKittyGraphics(data)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if cmd.Cols != 10 {
-		t.Errorf("expected cols 10, got %d", cmd.Cols)
-	}
-	if cmd.Rows != 5 {
-		t.Errorf("expected rows 5, got %d", cmd.Rows)
-	}
-	if cmd.CellOffsetX != 2 {
-		t.Errorf("expected offsetX 2, got %d", cmd.CellOffsetX)
-	}
-	if cmd.CellOffsetY != 3 {
-		t.Errorf("expected offsetY 3, got %d", cmd.CellOffsetY)
-	}
-}
-
-func TestParseKittyGraphics_DoNotMoveCursor(t *testing.T) {
-	data := []byte("Ga=T,C=1;")
-	cmd, err := ParseKittyGraphics(data)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if !cmd.DoNotMoveCursor {
-		t.Error("expected DoNotMoveCursor=true")
-	}
-}
-
-func TestKittyCommand_DecodeRGBA(t *testing.T) {
-	// 2x2 RGBA image (16 bytes)
-	rgba := make([]byte, 16)
-	for i := range rgba {
-		rgba[i] = 255
-	}
-	payload := base64.StdEncoding.EncodeToString(rgba)
-
-	cmd := &KittyCommand{
-		Format:  KittyFormatRGBA,
-		Width:   2,
-		Height:  2,
-		Payload: rgba,
-	}
-
-	data, w, h, err := cmd.DecodeImageData()
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if w != 2 || h != 2 {
-		t.Errorf("expected 2x2, got %dx%d", w, h)
-	}
-	if len(data) != 16 {
-		t.Errorf("expected 16 bytes, got %d", len(data))
-	}
-	_ = payload // just to use the variable
-}
-
-func TestKittyCommand_DecodeRGB(t *testing.T) {
-	// 2x2 RGB image (12 bytes) -> converted to RGBA (16 bytes)
-	rgb := make([]byte, 12)
-	for i := range rgb {
-		rgb[i] = 128
-	}
-
-	cmd := &KittyCommand{
-		Format:  KittyFormatRGB,
-		Width:   2,
-		Height:  2,
-		Payload: rgb,
-	}
-
-	data, w, h, err := cmd.DecodeImageData()
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if w != 2 || h != 2 {
-		t.Errorf("expected 2x2, got %dx%d", w, h)
-	}
-	if len(data) != 16 {
-		t.Errorf("expected 16 bytes RGBA, got %d", len(data))
-	}
-	// Check alpha is 255
-	if data[3] != 255 {
-		t.Errorf("expected alpha 255, got %d", data[3])
+			data, w, h, err := cmd.DecodeImageData()
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if w != 2 || h != 2 {
+				t.Errorf("expected 2x2, got %dx%d", w, h)
+			}
+			if len(data) != c.wantLen {
+				t.Errorf("expected %d bytes, got %d", c.wantLen, len(data))
+			}
+			if c.wantAlpha > 0 && data[3] != c.wantAlpha {
+				t.Errorf("expected alpha %d, got %d", c.wantAlpha, data[3])
+			}
+		})
 	}
 }
 
@@ -179,17 +176,19 @@ func TestFormatKittyResponse(t *testing.T) {
 	}
 }
 
-// TestKittyImageDisplay tests end-to-end image display via terminal
-func TestKittyImageDisplay(t *testing.T) {
-	// Create terminal with known cell size
+func TestKittyImageEndToEnd(t *testing.T) {
+	t.Run("display", kittyImageDisplayCase)
+	t.Run("cell assignment", kittyImageCellAssignmentCase)
+	t.Run("uv coordinates", kittyImageUVCoordinatesCase)
+	t.Run("chunked transfer", kittyChunkedTransferCase)
+	t.Run("image delete", kittyImageDeleteCase)
+}
+
+func kittyImageDisplayCase(t *testing.T) {
 	term := New(WithSize(24, 80))
 
-	// Create a 2x2 RGBA image (16 bytes) with all white pixels
-	rgba := make([]byte, 16)
-	for i := range rgba {
-		rgba[i] = 255
-	}
-	payload := base64.StdEncoding.EncodeToString(rgba)
+	// A 2x2 all-white RGBA image
+	payload := kittyRGBAPayload(2, 2, 255)
 
 	// Send Kitty graphics command via APC sequence
 	// a=T (transmit and display), f=32 (RGBA), s=2 (width), v=2 (height)
@@ -207,20 +206,14 @@ func TestKittyImageDisplay(t *testing.T) {
 	}
 }
 
-// TestKittyImageCellAssignment tests that cells get image references
-func TestKittyImageCellAssignment(t *testing.T) {
+func kittyImageCellAssignmentCase(t *testing.T) {
 	term := New(WithSize(24, 80))
 
 	// Set cell size for calculations (20x20 pixels per cell)
 	term.SetSizeProvider(&testSizeProvider{cellW: 20, cellH: 20})
 
-	// Create a 40x40 RGBA image (should cover 2x2 cells)
-	width, height := 40, 40
-	rgba := make([]byte, width*height*4)
-	for i := range rgba {
-		rgba[i] = 128
-	}
-	payload := base64.StdEncoding.EncodeToString(rgba)
+	// A 40x40 RGBA image covers 2x2 cells at 20x20 pixels per cell
+	payload := kittyRGBAPayload(40, 40, 128)
 
 	// Position cursor at row 5, col 10
 	term.WriteString("\x1b[6;11H") // 1-based positioning
@@ -246,17 +239,14 @@ func TestKittyImageCellAssignment(t *testing.T) {
 	}
 }
 
-// TestKittyImageUVCoordinates tests that UV coordinates are calculated correctly
-func TestKittyImageUVCoordinates(t *testing.T) {
+func kittyImageUVCoordinatesCase(t *testing.T) {
 	term := New(WithSize(24, 80))
 
 	// Set cell size (10x10 pixels per cell)
 	term.SetSizeProvider(&testSizeProvider{cellW: 10, cellH: 10})
 
-	// Create a 20x20 RGBA image (should cover 2x2 cells exactly)
-	width, height := 20, 20
-	rgba := make([]byte, width*height*4)
-	payload := base64.StdEncoding.EncodeToString(rgba)
+	// A 20x20 RGBA image covers 2x2 cells exactly at 10x10 pixels per cell
+	payload := kittyRGBAPayload(20, 20, 0)
 
 	// Position cursor at origin
 	term.WriteString("\x1b[1;1H")
@@ -292,8 +282,7 @@ func TestKittyImageUVCoordinates(t *testing.T) {
 	}
 }
 
-// TestKittyChunkedTransfer tests multi-chunk image transmission
-func TestKittyChunkedTransfer(t *testing.T) {
+func kittyChunkedTransferCase(t *testing.T) {
 	term := New(WithSize(24, 80))
 	term.SetSizeProvider(&testSizeProvider{cellW: 10, cellH: 10})
 
@@ -329,14 +318,12 @@ func TestKittyChunkedTransfer(t *testing.T) {
 	}
 }
 
-// TestKittyImageDelete tests image deletion
-func TestKittyImageDelete(t *testing.T) {
+func kittyImageDeleteCase(t *testing.T) {
 	term := New(WithSize(24, 80))
 	term.SetSizeProvider(&testSizeProvider{cellW: 10, cellH: 10})
 
 	// Create and display an image
-	rgba := make([]byte, 100*4)
-	payload := base64.StdEncoding.EncodeToString(rgba)
+	payload := kittyRGBAPayload(10, 10, 0)
 	apc := "\x1b_Ga=T,f=32,s=10,v=10,i=42;" + payload + "\x1b\\"
 	term.WriteString(apc)
 
@@ -385,4 +372,14 @@ func floatClose(a, b float32) bool {
 		diff = -diff
 	}
 	return diff < 0.01
+}
+
+// kittyRGBAPayload is the base64 transmission payload of a w x h RGBA image
+// whose every byte is fill.
+func kittyRGBAPayload(w, h int, fill byte) string {
+	rgba := make([]byte, w*h*4)
+	for i := range rgba {
+		rgba[i] = fill
+	}
+	return base64.StdEncoding.EncodeToString(rgba)
 }
