@@ -181,12 +181,8 @@ func TestKittyImageEndToEnd(t *testing.T) {
 func kittyImageDisplayCase(t *testing.T) {
 	term := New(WithSize(24, 80))
 
-	// Create a 2x2 RGBA image (16 bytes) with all white pixels
-	rgba := make([]byte, 16)
-	for i := range rgba {
-		rgba[i] = 255
-	}
-	payload := base64.StdEncoding.EncodeToString(rgba)
+	// A 2x2 all-white RGBA image
+	payload := kittyRGBAPayload(2, 2, 255)
 
 	// Send Kitty graphics command via APC sequence
 	// a=T (transmit and display), f=32 (RGBA), s=2 (width), v=2 (height)
@@ -210,13 +206,8 @@ func kittyImageCellAssignmentCase(t *testing.T) {
 	// Set cell size for calculations (20x20 pixels per cell)
 	term.SetSizeProvider(&testSizeProvider{cellW: 20, cellH: 20})
 
-	// Create a 40x40 RGBA image (should cover 2x2 cells)
-	width, height := 40, 40
-	rgba := make([]byte, width*height*4)
-	for i := range rgba {
-		rgba[i] = 128
-	}
-	payload := base64.StdEncoding.EncodeToString(rgba)
+	// A 40x40 RGBA image covers 2x2 cells at 20x20 pixels per cell
+	payload := kittyRGBAPayload(40, 40, 128)
 
 	// Position cursor at row 5, col 10
 	term.WriteString("\x1b[6;11H") // 1-based positioning
@@ -248,10 +239,8 @@ func kittyImageUVCoordinatesCase(t *testing.T) {
 	// Set cell size (10x10 pixels per cell)
 	term.SetSizeProvider(&testSizeProvider{cellW: 10, cellH: 10})
 
-	// Create a 20x20 RGBA image (should cover 2x2 cells exactly)
-	width, height := 20, 20
-	rgba := make([]byte, width*height*4)
-	payload := base64.StdEncoding.EncodeToString(rgba)
+	// A 20x20 RGBA image covers 2x2 cells exactly at 10x10 pixels per cell
+	payload := kittyRGBAPayload(20, 20, 0)
 
 	// Position cursor at origin
 	term.WriteString("\x1b[1;1H")
@@ -328,8 +317,7 @@ func kittyImageDeleteCase(t *testing.T) {
 	term.SetSizeProvider(&testSizeProvider{cellW: 10, cellH: 10})
 
 	// Create and display an image
-	rgba := make([]byte, 100*4)
-	payload := base64.StdEncoding.EncodeToString(rgba)
+	payload := kittyRGBAPayload(10, 10, 0)
 	apc := "\x1b_Ga=T,f=32,s=10,v=10,i=42;" + payload + "\x1b\\"
 	term.WriteString(apc)
 
@@ -378,4 +366,14 @@ func floatClose(a, b float32) bool {
 		diff = -diff
 	}
 	return diff < 0.01
+}
+
+// kittyRGBAPayload is the base64 transmission payload of a w x h RGBA image
+// whose every byte is fill.
+func kittyRGBAPayload(w, h int, fill byte) string {
+	rgba := make([]byte, w*h*4)
+	for i := range rgba {
+		rgba[i] = fill
+	}
+	return base64.StdEncoding.EncodeToString(rgba)
 }

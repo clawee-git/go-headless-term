@@ -39,3 +39,25 @@ func (s *testScrollback) Pop() []Cell {
 	s.lines = s.lines[:len(s.lines)-1]
 	return line
 }
+
+// newScrollbackTerm builds a terminal of rows x 80 backed by a fresh
+// testScrollback holding up to 100 lines: the fixture every resize-and-scrollback
+// test starts from.
+func newScrollbackTerm(rows int, opts ...Option) (*Terminal, *testScrollback) {
+	storage := &testScrollback{lines: make([][]Cell, 0)}
+	storage.SetMaxLines(100)
+	all := append([]Option{WithSize(rows, 80)}, opts...)
+	all = append(all, WithScrollback(storage))
+	return New(all...), storage
+}
+
+// writeNumberedLines writes prefix0 .. prefix<n-1>, one per line, leaving the
+// cursor on the last line (no trailing newline).
+func writeNumberedLines(term *Terminal, prefix string, n int) {
+	for i := 0; i < n; i++ {
+		if i > 0 {
+			term.WriteString("\r\n")
+		}
+		term.WriteString(prefix + string(rune('0'+i)))
+	}
+}

@@ -74,10 +74,7 @@ func TestTerminalAutoResizeX(t *testing.T) {
 }
 
 func TestTerminalAutoResizeNoScrollback(t *testing.T) {
-	storage := &testScrollback{lines: make([][]Cell, 0)}
-	storage.SetMaxLines(100)
-
-	term := New(WithSize(3, 80), WithAutoResize(), WithScrollback(storage))
+	term, storage := newScrollbackTerm(3, WithAutoResize())
 
 	// Write many lines (use \r\n for proper line breaks)
 	for i := 0; i < 10; i++ {
@@ -239,10 +236,7 @@ func TestTerminalResizeScrollback(t *testing.T) {
 
 // resizeShrinkCursorInBoundsCase tests resize when cursor stays within new bounds
 func resizeShrinkCursorInBoundsCase(t *testing.T) {
-	storage := &testScrollback{lines: make([][]Cell, 0)}
-	storage.SetMaxLines(100)
-
-	term := New(WithSize(10, 80), WithScrollback(storage))
+	term, storage := newScrollbackTerm(10)
 
 	// Write content on first few lines
 	term.WriteString("Line0\r\n")
@@ -282,16 +276,10 @@ func resizeShrinkCursorInBoundsCase(t *testing.T) {
 
 // resizeShrinkCursorOutOfBoundsCase tests resize when cursor would be outside new bounds
 func resizeShrinkCursorOutOfBoundsCase(t *testing.T) {
-	storage := &testScrollback{lines: make([][]Cell, 0)}
-	storage.SetMaxLines(100)
-
-	term := New(WithSize(10, 80), WithScrollback(storage))
+	term, storage := newScrollbackTerm(10)
 
 	// Write content filling more lines
-	for i := 0; i < 8; i++ {
-		term.WriteString("Line" + string(rune('0'+i)) + "\r\n")
-	}
-	term.WriteString("Line8") // Cursor ends on row 8
+	writeNumberedLines(term, "Line", 9) // cursor ends on row 8
 
 	row, _ := term.CursorPos()
 	if row != 8 {
@@ -331,19 +319,10 @@ func resizeShrinkCursorOutOfBoundsCase(t *testing.T) {
 
 // resizeShrinkScrollbackContentCase tests that scrolled lines go to scrollback correctly
 func resizeShrinkScrollbackContentCase(t *testing.T) {
-	storage := &testScrollback{lines: make([][]Cell, 0)}
-	storage.SetMaxLines(100)
-
-	term := New(WithSize(10, 80), WithScrollback(storage))
+	term, storage := newScrollbackTerm(10)
 
 	// Write content on all lines
-	for i := 0; i < 10; i++ {
-		if i < 9 {
-			term.WriteString("Line" + string(rune('0'+i)) + "\r\n")
-		} else {
-			term.WriteString("Line9")
-		}
-	}
+	writeNumberedLines(term, "Line", 10)
 
 	// Cursor on row 9
 	row, _ := term.CursorPos()
@@ -383,19 +362,10 @@ func resizeShrinkScrollbackContentCase(t *testing.T) {
 
 // resizeGrowPullsFromScrollbackCase tests that growing terminal pulls lines from scrollback
 func resizeGrowPullsFromScrollbackCase(t *testing.T) {
-	storage := &testScrollback{lines: make([][]Cell, 0)}
-	storage.SetMaxLines(100)
-
-	term := New(WithSize(10, 80), WithScrollback(storage))
+	term, storage := newScrollbackTerm(10)
 
 	// Write content that fills the terminal
-	for i := 0; i < 10; i++ {
-		if i < 9 {
-			term.WriteString("Line" + string(rune('0'+i)) + "\r\n")
-		} else {
-			term.WriteString("Line9")
-		}
-	}
+	writeNumberedLines(term, "Line", 10)
 
 	// Shrink terminal - this pushes lines to scrollback
 	term.Resize(5, 80)
@@ -428,10 +398,7 @@ func resizeGrowPullsFromScrollbackCase(t *testing.T) {
 
 // resizeGrowNoScrollbackUnchangedCase tests that growing terminal without scrollback doesn't change content
 func resizeGrowNoScrollbackUnchangedCase(t *testing.T) {
-	storage := &testScrollback{lines: make([][]Cell, 0)}
-	storage.SetMaxLines(100)
-
-	term := New(WithSize(5, 80), WithScrollback(storage))
+	term, storage := newScrollbackTerm(5)
 
 	// Write some content (not enough to need scrollback)
 	term.WriteString("Line0\r\n")
@@ -464,19 +431,13 @@ func resizeGrowNoScrollbackUnchangedCase(t *testing.T) {
 
 // TestResizeAlternateScreenNoScrollback tests that alternate screen doesn't use scrollback on resize
 func TestResizeAlternateScreenNoScrollback(t *testing.T) {
-	storage := &testScrollback{lines: make([][]Cell, 0)}
-	storage.SetMaxLines(100)
-
-	term := New(WithSize(10, 80), WithScrollback(storage))
+	term, storage := newScrollbackTerm(10)
 
 	// Switch to alternate screen
 	term.WriteString("\x1b[?1049h")
 
 	// Write content
-	for i := 0; i < 8; i++ {
-		term.WriteString("Alt" + string(rune('0'+i)) + "\r\n")
-	}
-	term.WriteString("Alt8")
+	writeNumberedLines(term, "Alt", 9)
 
 	initialScrollbackLen := storage.Len()
 
@@ -492,10 +453,7 @@ func TestResizeAlternateScreenNoScrollback(t *testing.T) {
 
 // resizeCursorPositionAfterShrinkCase tests cursor position is correctly adjusted
 func resizeCursorPositionAfterShrinkCase(t *testing.T) {
-	storage := &testScrollback{lines: make([][]Cell, 0)}
-	storage.SetMaxLines(100)
-
-	term := New(WithSize(20, 80), WithScrollback(storage))
+	term, _ := newScrollbackTerm(20)
 
 	// Move cursor to row 15
 	for i := 0; i < 15; i++ {
@@ -539,10 +497,7 @@ func TestRowCoordinateConversion(t *testing.T) {
 }
 
 func viewportRowToAbsoluteCase(t *testing.T) {
-	storage := &testScrollback{lines: make([][]Cell, 0)}
-	storage.SetMaxLines(100)
-
-	term := New(WithSize(5, 80), WithScrollback(storage))
+	term, _ := newScrollbackTerm(5)
 
 	// Without scrollback, viewport row equals absolute row
 	if got := term.ViewportRowToAbsolute(0); got != 0 {
@@ -574,10 +529,7 @@ func viewportRowToAbsoluteCase(t *testing.T) {
 }
 
 func absoluteRowToViewportCase(t *testing.T) {
-	storage := &testScrollback{lines: make([][]Cell, 0)}
-	storage.SetMaxLines(100)
-
-	term := New(WithSize(5, 80), WithScrollback(storage))
+	term, _ := newScrollbackTerm(5)
 
 	// Without scrollback, absolute row equals viewport row
 	if got := term.AbsoluteRowToViewport(0); got != 0 {
@@ -627,10 +579,7 @@ func absoluteRowToViewportCase(t *testing.T) {
 }
 
 func rowConversionRoundTripCase(t *testing.T) {
-	storage := &testScrollback{lines: make([][]Cell, 0)}
-	storage.SetMaxLines(100)
-
-	term := New(WithSize(5, 80), WithScrollback(storage))
+	term, _ := newScrollbackTerm(5)
 
 	// Create some scrollback
 	for i := 0; i < 10; i++ {

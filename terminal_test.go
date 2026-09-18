@@ -78,10 +78,7 @@ func TestTerminalClearScreen(t *testing.T) {
 
 func TestTerminalScrollback(t *testing.T) {
 	t.Run("default storage", func(t *testing.T) {
-		storage := &testScrollback{lines: make([][]Cell, 0)}
-		storage.SetMaxLines(100)
-
-		term := New(WithSize(5, 80), WithScrollback(storage))
+		term, _ := newScrollbackTerm(5)
 
 		// Write more lines than the terminal can display
 		for i := 0; i < 10; i++ {
