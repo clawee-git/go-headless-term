@@ -1,6 +1,6 @@
 # Test-suite review — go-headless-term
 
-Module: `github.com/clawee-git/go-headless-term` · baseline commit `a2b682e` · after commit `b2dd063` (revision-2 test-code head; the report and evidence commit follows it) · suite command: `ci/run-tests.sh [options] [pkg...]` · target: `burrowee-ci` · runtime = plain uninstrumented run · covered = set mode profile
+Module: `github.com/clawee-git/go-headless-term` · baseline commit `a2b682e` · after commit `b2dd063` (test-code head; the report and evidence commits follow it) · verified at `32e1182` · suite command: `ci/run-tests.sh [options] [pkg...]` · target: `burrowee-ci` · runtime = plain uninstrumented run · covered = set mode profile
 
 **Revision 2 (2026-09-17)** — this report was reviewed at `a2b682e..c412993`
 (`../reviews/2026-09-17-clawee-go-headless-term-test-suite-review-02-review.md` in the
@@ -10,6 +10,15 @@ table added with the honest line delta, the two false statements corrected, seve
 verdict rows added, and every row that was recorded `TABLE` but executed as a named subtest
 func either folded into a real data table or re-verdicted `RENAME`. Revision-2 commits are
 `1c024cb`, `f8679b4`, `b2dd063` and this one.
+
+**Revision 3 (2026-09-17)** — `burrowee-ci` came back, and the verify phase revision 2 could not
+run was run: one control evidence run, **six** mutation runs (the three MERGE rows, two forms
+each — drop-the-case for coverage, break-the-code for behaviour) and the three verify runs
+(plain, `--shuffle --repeat 3`, `--repeat 3`), all at head `32e1182`. Every §5 gate is recomputed
+against those runs and quoted in `Gates`; the `After` table is filled from them; both "STALE —
+re-run pending" markers are gone. `TestMiddlewareMergeSetUserVar` (M3) had never been mutated by
+anyone and is now measured: it behaves exactly as M1 does, for the same production reason. No
+gate failed and no verdict moved.
 
 ## Rulings (finishing session, 2026-09-15)
 
@@ -106,8 +115,8 @@ The window is **not repaired here**. Repairing it means folding `8faf70b`'s type
 commits and requires a force-push of the project branch. History is append-only for this session,
 so the deviation is documented instead and the decision to rewrite is left to the operator.
 
-What is done instead: **all three MERGE mutations are taken at this head** and recorded under the
-current test names in the Gates block below. What that proves and what it does not:
+What is done instead: **all three MERGE mutations are taken at this head, in both forms** (six
+runs), and recorded under the current test names in the Gates block below. What that proves and what it does not:
 
 - it **proves** that at the head of this range each merge preserves the behaviour its row claims —
   the folded case is the unique catcher of the mutation, or (for `TestMiddlewareMergeDesktopNotification`)
@@ -367,7 +376,7 @@ The `wasm/` directory is a separate `js/wasm` module (`wasm/main.go`, `wasm/hand
 | `TestKittyImageUVCoordinates` | K04 | — | RENAME | Named subtest; asserts UV rectangles (its own table inside), a different contract from the display case | `TestKittyImageEndToEnd/uv coordinates` |
 | `TestKittyChunkedTransfer` | K04 | — | RENAME | Named subtest; asserts the staging of an incomplete transfer, a behaviour no other case has | `TestKittyImageEndToEnd/chunked transfer` |
 | `TestKittyImageDelete` | K04 | — | RENAME | Named subtest; asserts the d=a / d=I delete split, a different contract | `TestKittyImageEndToEnd/image delete` |
-| `TestNoopNotification` | N01 | — | MERGE | Same wiring/default row as `TestDefaultNotificationProvider` | `TestDefaultNotificationProvider` |
+| `TestNoopNotification` | N01 | — | MERGE | **M2 at head (both forms).** (b) dropping the folded `default is NoopNotification` subtest loses `providers.go:316.69,316.82` (`NoopNotification.Notify`) — the folded case is its unique home. (a) `providers.go:316` `return ""` → `return "mutated"` reddens exactly `TestNotificationProviderWiring/default_is_NoopNotification`, and nothing else. Gates block, M2 | `TestNotificationProviderWiring/default is NoopNotification` |
 | `TestWithNotificationOption` | N01 | — | TABLE | Same wiring row; option path as data | `TestDefaultNotificationProvider` |
 | `TestDefaultNotificationProvider` | N01 | `TestNoopNotification`, `TestWithNotificationOption`, `TestSetNotificationProvider` | KEEP | Direct default-provider contract | — |
 | `TestSetNotificationProvider` | N01 | — | TABLE | Same wiring row; runtime set as data | `TestDefaultNotificationProvider` |
@@ -377,7 +386,7 @@ The `wasm/` directory is a separate `js/wasm` module (`wasm/main.go`, `wasm/hand
 | `TestDesktopNotificationMiddleware` | N03 | `TestDesktopNotificationMiddlewareBlocks` | KEEP | Direct middleware contract | — |
 | `TestDesktopNotificationMiddlewareBlocks` | N03 | — | TABLE | Same middleware row; blocking as data | `TestDesktopNotificationMiddleware` |
 | `TestNotificationPayloadFields` | N02 | — | TABLE | Same handler row; full field list as data | `TestDesktopNotificationHandler` |
-| `TestMiddlewareMergeDesktopNotification` | T25 | — | MERGE | Same `Middleware.Merge` row; handler as data | `TestMiddlewareMerge` |
+| `TestMiddlewareMergeDesktopNotification` | T25 | — | MERGE | **M1 at head (both forms).** (b) dropping `middlewareMergeDesktopNotificationCase` loses **no** middleware block (only the known `image.go:342` flake) — the case is not a unique coverage home. (a) neutering `middleware.go:434` `m.DesktopNotification = other.DesktopNotification` reddens `TestMiddlewareMerge/desktop_notification` **and** `TestDesktopNotificationMiddleware/{intercepts_and_modifies,blocks}`: the merged case catches the break, but it is not the only catcher. Gates block, M1 | `TestMiddlewareMerge/desktop notification` |
 | `TestNotificationProviderThreadSafety` | N03 | — | KEEP | Concurrency smoke test | — |
 | `TestNotificationEmptyPayload` | N02 | — | TABLE | Same handler row; empty payload as data | `TestDesktopNotificationHandler` |
 | `TestResizeOnAlternateScreenKeepsPrimary` | R01, PR1 | — | KEEP | Complex integration contract for alternate-screen resize | — |
@@ -522,7 +531,7 @@ The `wasm/` directory is a separate `js/wasm` module (`wasm/main.go`, `wasm/hand
 | `TestOSC1337EmptyValue` | U02 | — | TABLE | Same OSC row; empty value as data | `TestOSC1337SetUserVar` |
 | `TestOSC1337SpecialCharacters` | U02 | — | TABLE | Same OSC row; special chars as data | `TestOSC1337SetUserVar` |
 | `TestUserVarsWithPTYWriter` | U02 | — | TABLE | Same OSC row; no-response check as data | `TestOSC1337SetUserVar` |
-| `TestMiddlewareMergeSetUserVar` | T25 | — | MERGE | Same `Middleware.Merge` row; handler as data | `TestMiddlewareMerge` |
+| `TestMiddlewareMergeSetUserVar` | T25 | — | MERGE | **M3 at head (both forms) — taken for the first time by anyone.** (b) dropping `middlewareMergeSetUserVarCase` loses **no** middleware block (only the `image.go:342` flake). (a) neutering `middleware.go:437` `m.SetUserVar = other.SetUserVar` reddens `TestMiddlewareMerge/set_user_var` **and** `TestUserVarMiddleware/{intercepts,blocks}`: the case catches the break, but it is not the only catcher. Gates block, M3 | `TestMiddlewareMerge/set user var` |
 | `TestRuneWidth` | W1 | — | KEEP | Direct width function contract | — |
 | `TestIsWideRune` | W1 | — | TABLE | Same width row; `isWide` wrapper as data | `TestRuneWidth` |
 | `TestStringWidth` | W1 | — | TABLE | Same width row; string sum as data | `TestRuneWidth` |
@@ -632,56 +641,173 @@ The earlier block — the `burrowee-ci` Clawee CI lock at `/tmp/ci-lock/clawee` 
 lock free, resumed, and re-checked it before each run (locks held by another session are reported,
 never broken).
 
+The second block — `burrowee-ci` unreachable from 2026-09-17 (ICMP and TCP/22 answered, the ssh
+banner never completed), which stopped the whole verify phase — was cleared by the machine being
+restarted at 23:19 local. It was confirmed back before any run: `ps -eo etime` on PID 1 read
+`16:05` (the VM's own age; `uptime` there reports the shared host kernel and reads `up 4 days`),
+`/tmp/ci-env.sh` was present, `ci-lock status clawee: free`, no `go test` process of any brand was
+running, and the load average was falling through 0.53 / 2.36 / 16.61. No run in this session ever
+had to wait for another suite.
+
 ## Gates
 
-> **STALE FOR THE REVISION-2 RANGE — re-run pending.** Everything in this section and in `After`
-> below was measured at `8c77e78`, before the revision-2 test-code commits `1c024cb`, `f8679b4`
-> and `b2dd063`. The range changed, so this evidence no longer describes the head it is filed
-> under, and it is kept here only until the re-run replaces it. `burrowee-ci` has been
-> unreachable since 2026-09-17 (it answers ICMP and accepts TCP on 22, but the ssh banner never
-> completes), so the whole verify phase — after-plain, after-evidence, `--shuffle --repeat 3`,
-> `--repeat 3` — and the three MERGE mutations the 02-audit review requires are **not taken**.
-> The six mutations are prepared, apply cleanly and vet clean against this head; none has been
-> run. **This feature cannot reach `review` until they are.**
+All four verify runs and all six mutation runs were taken at head `32e1182` on `burrowee-ci`
+through `ci/run-tests.sh`, on 2026-09-17 (2026-09-18 UTC), after the machine came back. Evidence
+under `reviews/2026-09-14-clawee-go-headless-term-coverage/`; the `after-*` directories now hold
+this head's runs, replacing the `8c77e78` ones they carried before (those stay reachable in git
+history).
 
-Workstation checks at the revision-2 head `b2dd063` (workstation-only; the suite is never run
-here):
+**Machine note, recorded because the brief for this session assumed otherwise.** `burrowee-ci`
+migrated the Clawee lock to the flock tool `ci-lock run clawee` (`/tmp/ci-lock/clawee.lock` +
+`clawee.who`). The two schemes **interoperate by design** — `ci-lock` waits on a live old
+directory lock and leaves a `by=ci-lock` marker at `/tmp/ci-lock/clawee` so an old runner waits
+for it in turn (`/usr/local/bin/ci-lock`, "WHY the old directory locks are still read"). Taking
+`ci-lock run clawee` by hand *around* this runner therefore does not protect it, it blocks it:
+the attempt exited `3` with `by=ci-lock user=jc pid=68596`. The hand-held lock was released and
+every run below took the runner's own lock, which is real mutual exclusion against `ci-lock`
+runs. Nothing about `ci/run-tests.sh` was changed (that is feature 01's surface).
 
-- `gofmt -s -l .` reports exactly `providers.go` and `terminal.go` — dev's pre-existing
-  unformatted state (see the excision ruling); every test file this branch touches is formatted.
-- `goimports -l` clean on all touched test files.
-- `GOOS=linux go vet ./...` passes — vet is the test-file compile gate; `go build` does not
-  compile `*_test.go`.
-- Code lines per file at this head are in the `After` section.
+Workstation checks at head `32e1182` (workstation-only; the suite is never run here):
 
-### Superseded (measured at `8c77e78`)
+    $ go version
+    go version go1.26.6 darwin/arm64
+    $ gofmt -s -l .
+    providers.go
+    terminal.go
+    $ goimports -l *_test.go
+    (empty)
+    $ GOOS=linux GOWORK=off go vet ./...   → rc 0
 
-Workstation checks (head `8c77e78`):
-- `gofmt -s -l .` reports exactly `providers.go` and `terminal.go` — dev's pre-existing unformatted
-  state (see the excision ruling); every file this branch touches is formatted.
-- `/Users/hjc/bin/goimports -w` clean on all touched test files.
-- `GOOS=linux go build ./...` passes, and `GOOS=linux go vet ./...` passes — vet is the test-file
-  compile gate; `go build` does not compile `*_test.go` (an unused import survived a build-only
-  check during the split and was caught by vet).
+`gofmt` reports exactly `providers.go` and `terminal.go` — dev's pre-existing unformatted state
+(excision ruling); every test file this branch touches is formatted. `vet` is the test-file
+compile gate; `go build` does not compile `*_test.go`.
 
-No production-code change:
+**No production-code change over the whole range**
 
-    $ git diff --stat a2b682e..8c77e78 -- ':!*_test.go' ':!**/testdata/**' ':!reviews/**'
+    $ git diff --stat a2b682e..32e1182 -- ':!*_test.go' ':!**/testdata/**' ':!reviews/**'
     (empty)
 
-Mutation evidence (taken before the REWRITE/KEEP verdict changes):
-- Removing `TestClipboardProvider` loses the only coverage of `WithClipboard`/`ClipboardProvider`
-  (`terminal.go:266.48,267.27`, `267.27,269.3`, `659.58,663.2`); verdict changed to REWRITE.
-- Removing `TestActiveCharsetBoundsValidation` loses the only coverage of
+**Coverage — PASS.** After ⊇ baseline, as a set.
+
+    $ LC_ALL=C comm -23 reviews/2026-09-14-clawee-go-headless-term-coverage/baseline-covered.txt \
+        reviews/2026-09-14-clawee-go-headless-term-coverage/after-evidence/covered.txt
+    (empty)                                    # 0 lines; baseline 952, after 971
+    $ LC_ALL=C comm -13 … | sed 's/:.*//' | sort | uniq -c
+      15 github.com/clawee-git/go-headless-term/colors.go
+       4 github.com/clawee-git/go-headless-term/image.go
+
+The same gate against the other two evidence runs is empty too: `after-shuffle` 971 blocks,
+`after-repeat` 970 — the one block `after-repeat` lacks is `image.go:342.53,344.5`, the known
+non-deterministic block, which is not in the baseline set and so costs the gate nothing.
+`after-evidence/covered.txt` and `after-repeat/covered.txt` are byte-identical to the `8c77e78`
+runs they replace: the revision-2 commits `1c024cb`, `f8679b4` and `b2dd063` moved no coverage.
+
+**Deletion evidence — PASS for all three MERGE rows, taken at head, both forms each.** Form (b)
+removes the folded case and compares covered sets against the control (`after-evidence`); form (a)
+breaks the production line the row claims to protect and reads the failing names. Form (a) mutates
+production files **in a scratch copy only** (`git archive HEAD | tar -x`); the worktree was never
+touched and every file was compared back afterwards. No mutation is committed.
+
+*M1 — `TestMiddlewareMergeDesktopNotification` → `TestMiddlewareMerge/desktop notification`.*
+
+    (b) drop middlewareMergeDesktopNotificationCase + its t.Run     rc 0, 190 cases, 970 blocks
+    $ LC_ALL=C comm -23 after-evidence/covered.txt mutate-merge-desktop-drop-case/covered.txt
+    github.com/clawee-git/go-headless-term/image.go:342.53,344.5    ← the known flake, only
+
+    (a) middleware.go:434 `m.DesktopNotification = other.DesktopNotification` neutered   rc 1
+    === fail … TestDesktopNotificationMiddleware/intercepts_and_modifies
+    === fail … TestDesktopNotificationMiddleware/blocks
+    === fail … TestDesktopNotificationMiddleware
+    === fail … TestMiddlewareMerge/desktop_notification
+    === fail … TestMiddlewareMerge
+
+**Zero middleware blocks lost** — reproducing the 02-audit review's row 1 at this head and
+confirming the corrected ruling: `middleware.go:433.38,435.3` is reached by
+`TestDesktopNotificationMiddleware` through `WithMiddleware` → `terminal.go:287 Merge`, so the
+folded case never was its coverage home. Form (a) shows the case does **fail** when the merge is
+broken, so the behavioural assertion the MERGE preserved is real — but it is not the unique
+catcher, and the row is recorded that way rather than claimed stronger.
+
+*M2 — `TestNoopNotification` → `TestNotificationProviderWiring/default is NoopNotification`.*
+
+    (b) drop the "default is NoopNotification" subtest                rc 0, 190 cases, 969 blocks
+    $ LC_ALL=C comm -23 after-evidence/covered.txt mutate-noop-notify-drop-case/covered.txt
+    github.com/clawee-git/go-headless-term/image.go:342.53,344.5     ← the flake
+    github.com/clawee-git/go-headless-term/providers.go:316.69,316.82 ← NoopNotification.Notify
+
+    (a) providers.go:316 `return ""` → `return "mutated"`                               rc 1
+    === fail … TestNotificationProviderWiring/default_is_NoopNotification
+    === fail … TestNotificationProviderWiring
+
+**Row confirmed both ways, and it is the strongest of the three**: the folded case is the unique
+coverage home of `providers.go:316.69,316.82` *and* the unique catcher of the mutation.
+
+*M3 — `TestMiddlewareMergeSetUserVar` → `TestMiddlewareMerge/set user var`. Taken here for the
+first time: neither the audit nor the 02-audit review ever ran this row.*
+
+    (b) drop middlewareMergeSetUserVarCase + its t.Run              rc 0, 190 cases, 970 blocks
+    $ LC_ALL=C comm -23 after-evidence/covered.txt mutate-merge-setuservar-drop-case/covered.txt
+    github.com/clawee-git/go-headless-term/image.go:342.53,344.5    ← the known flake, only
+
+    (a) middleware.go:437 `m.SetUserVar = other.SetUserVar` neutered                    rc 1
+    === fail … TestMiddlewareMerge/set_user_var
+    === fail … TestMiddlewareMerge
+    === fail … TestUserVarMiddleware/intercepts
+    === fail … TestUserVarMiddleware/blocks
+    === fail … TestUserVarMiddleware
+
+**Same shape as M1, and now measured rather than assumed.** `middleware.go:436.30,438.3` is
+reached by `TestUserVarMiddleware` through `WithMiddleware` → `Merge`, so dropping the folded case
+loses no block; breaking the field copy reddens the folded case **and** `TestUserVarMiddleware`.
+The MERGE is behaviourally sound and preserved a real assertion; it is not the unique catcher.
+
+**What the three rows jointly show.** Every middleware-merge row in this suite is reachable two
+ways, because `WithMiddleware` itself calls `Merge`. That is a property of the production API, not
+a defect in the folds, and it is why coverage alone could never have judged M1 or M3 — exactly the
+case §5's mutation requirement exists for. No row's claim is wrong; two of the three are weaker
+than "unique catcher" and are now written that way. No row goes back to `ADD` or `REWRITE`.
+
+Earlier mutation evidence, still valid (taken before the REWRITE/KEEP verdict changes, unaffected
+by the excision — the ruling above):
+
+- removing `TestClipboardProvider` loses the only coverage of `WithClipboard`/`ClipboardProvider`
+  (`terminal.go:266.48,267.27`, `267.27,269.3`, `659.58,663.2`); verdict changed to REWRITE;
+- removing `TestActiveCharsetBoundsValidation` loses the only coverage of
   `SetActiveCharset`/`setActiveCharsetInternal` (`handler.go:1289-1303`, four blocks, plus the
   known non-deterministic `image.go:342` block); verdict changed to KEEP.
 
-Covered-set gate, failure-name diff, skip counts and per-package counts: quoted below after the
-verify runs.
+**Failure-name set, diffed both ways — PASS.** Parsed from the `-json` streams' `"Action":"fail"`
+events (`test.json` in each evidence directory):
 
-Size limits (hard: 1000 code lines per file, 50 per function; comments and blanks excluded,
-table literals counted): largest touched file `terminal_test.go` at 645 code lines; no function
-over 50 code lines in any test file (checked over `*_test.go` in both packages).
+    baseline-evidence-retake: fail=0 skip=0
+    after-evidence:           fail=0 skip=0
+    after-shuffle:            fail=0 skip=0
+    after-repeat:             fail=0 skip=0
+    failure-name diff baseline vs after-evidence: added=[] vanished=[]
+    failure-name diff baseline vs after-shuffle:  added=[] vanished=[]
+    failure-name diff baseline vs after-repeat:   added=[] vanished=[]
+
+Nothing added, nothing silently vanished; both sets are empty at both ends.
+
+**Skips and counts — PASS.** `"Action":"skip"` events = 0 in every stream, baseline and after
+alike; no new skips. Counts from the runner's own per-package summary, evidence run at head:
+
+    === github.com/clawee-git/go-headless-term: tests 112 (pass 112, fail 0, skip 0) · cases 191 (pass 191, fail 0, skip 0)
+    === github.com/clawee-git/go-headless-term/internal/generate_width_table: tests 6 (pass 6, fail 0, skip 0) · cases 0 (pass 0, fail 0, skip 0)
+    === module: tests 118 (pass 118, fail 0, skip 0) · cases 191 (pass 191, fail 0, skip 0)
+
+226 → 118 tests and 23 → 191 cases. Every drop is a fold accounted for in the name map. The case
+count is **191, not the 194 measured at `8c77e78`**: `f8679b4` flattened three grouping subtests
+(`TestResizeOnAlternateScreenKeepsPrimary/{primary cursor above shrink, primary output before
+grow, height independent scroll}`) into rows of one table, so three case events disappear with no
+successor name — recorded in the name map.
+
+**Size — PASS.** Hard limits 1000 code lines per file and 50 per function (comments and blanks
+excluded, table literals counted). Largest test file `terminal_test.go` **641**; next
+`semantic_prompt_test.go` 435, `resize_test.go` 388. Largest test function `TestSnapshot_Styles`
+**49**; nothing at or over 50. Measured over all 16 root `*_test.go` plus
+`internal/generate_width_table/main_test.go`.
+
 ## Name map
 
 | Before | After |
@@ -754,46 +880,49 @@ Host renames that carry no row of their own above: `TestParseKittyGraphics_Basic
 
 ## After
 
-> **STALE — see the note in `Gates`.** The numbers below are `8c77e78`'s, not this head's.
-> The §7 `After` table the 02-audit review found missing is owed with the re-run.
+Verify runs at head `32e1182` on `burrowee-ci`, all four green (evidence under
+`reviews/2026-09-14-clawee-go-headless-term-coverage/after-*`):
 
-Verify runs at head `8c77e78` on burrowee-ci (evidence under
-`reviews/2026-09-14-clawee-go-headless-term-coverage/after-*`), all four green:
+- plain `ci/run-tests.sh` — **the runtime of record**: `ok github.com/clawee-git/go-headless-term
+  0.138s` · `ok .../internal/generate_width_table 0.002s` (rc 0)
+- evidence (`--artifacts after-evidence`): rc 0, `covered 971 blocks`
+- `--shuffle --repeat 3 --artifacts after-shuffle`: rc 0, seeds `1789713719586658617` (root) /
+  `1789713719623347600` (internal), 354 tests / 573 cases, `covered 971 blocks`
+- `--repeat 3 --artifacts after-repeat`: rc 0, 354 tests / 573 cases, `covered 970 blocks` (the
+  known `image.go:342` flake)
 
-- plain `ci/run-tests.sh`: `ok github.com/clawee-git/go-headless-term 0.158s` ·
-  `ok .../internal/generate_width_table 0.002s` (rc=0)
-- evidence (`--artifacts after-evidence`): rc=0, `covered 971 blocks`
-- `--shuffle --repeat 3` (seeds 1789538420429992250 / 1789538420430244373): rc=0
-- `--repeat 3`: rc=0
+| package | files | test code lines | tests | cases | skips | covered blocks | runtime | failing |
+|---|---|---|---|---|---|---|---|---|
+| `headlessterm` | 16 | 4 273 | 112 | 191 | 0 | 971 (⊇ baseline 952) | 0.138 s | 0 |
+| `internal/generate_width_table` | 1 | 97 | 6 | 0 | 0 | included in module set | 0.002 s | 0 |
+| module | 17 | 4 370 | 118 | 191 | 0 | 971 (⊇ baseline 952) | 0.140 s | 0 |
 
-Per-package counts (evidence run, `-count=1`):
+Against the baseline table: files 14 → 17, test code lines **4 142 → 4 370 (+228, +5.5 %)**,
+tests 226 → 118, cases 23 → 191, skips 0 → 0, covered blocks 952 → 971, runtime 0.175 s →
+0.140 s, failing 0 → 0. Code lines counted as `architecture.md` §3 counts them: comments, block
+comments and blank lines stripped, string, rune and raw literals preserved.
 
-    === github.com/clawee-git/go-headless-term: tests 112 (pass 112, fail 0, skip 0) · cases 194 (pass 194, fail 0, skip 0)
-    === github.com/clawee-git/go-headless-term/internal/generate_width_table: tests 6 (pass 6, fail 0, skip 0) · cases 0 (pass 0, fail 0, skip 0)
-    === module: tests 118 (pass 118, fail 0, skip 0) · cases 194 (pass 194, fail 0, skip 0)
+**The suite is bigger, and that is the honest result.** The stated goal of this process is the
+same coverage from less test code, and the root package grew by **228 code lines (4 045 →
+4 273)**. Revision 2 recovered 110 of the 338 lines the 02-audit review measured at `c412993`
+(4 383), by finishing sixteen folds into real data tables, extracting three shared fixtures and
+replacing four `func`-typed table fields with data — but it did not get back to baseline and does
+not claim to. Where the growth is, and what was bought with it:
 
-Before → after: 226 tests (220 root + 6 internal) / 23 cases → 118 tests (112 root + 6
-internal) / 194 cases. Test count halves because 130+ single-purpose tests folded into
-table subtests and named case funcs (the name map above); case count rises from 23 to 194
-because each folded variation is now its own counted subtest. Nothing was deleted without a
-fold — the two verdicts changed off DELETE (`TestClipboardProvider` → REWRITE,
-`TestActiveCharsetBoundsValidation` → KEEP) are the only rows whose behavior did not move.
+| | lines | what it bought |
+|---|---|---|
+| `colors_test.go` (ADD) | +148 | an inventory row that had **no test at all** — 15 of the 19 gained covered blocks are its |
+| `helpers_test.go` (EXTRACT) | +48 | shared fixtures that removed copy-paste setup from four files |
+| everything else, net | **+32** | 23 → 191 real subtests, whole-contract assertions replacing `t.Logf`, and a rewritten `TestImageManager_Prune` that can now fail |
 
-Failure-name set diff (from `test.json` `"Action":"fail"` events, both directions):
-baseline `baseline-evidence-retake` has 0 failed test names; after-evidence, after-shuffle
-and after-repeat each have 0 failed test names — the two sets are equal (empty).
+Excluding the ADD and the EXTRACT — neither of which is compaction work — the suite the audit
+actually compacted is **+32 lines on 4 045**, against 168 more counted cases and 19 more covered
+blocks. That is a fair trade, not a compaction; the compaction the guideline asks for did not
+happen here, and the reason is in the TABLE ruling above: roughly half the rows recorded `TABLE`
+described cases that differ in *behaviour*, and forcing those into tables is the defect the review
+found in `bufferGrowCases`, not a saving.
 
-Covered-set gate (set-mode blocks, sorted):
-
-    $ LC_ALL=C comm -23 reviews/2026-09-14-clawee-go-headless-term-coverage/baseline-covered.txt \
-        reviews/2026-09-14-clawee-go-headless-term-coverage/after-evidence/covered.txt
-    (empty — after ⊇ baseline)
-
-Baseline 952 blocks, after 971. The reverse direction (`comm -13`, covered after but not in
-baseline) lists 19 gained blocks: 15 in `colors.go` (blink styles, underline colors,
-`colorToHex` paths from the folded `TestSnapshot_Styles`/`TestColorToHex` tables) and 4 in
-`image.go` (`DeletePlacementsByPosition`/`InRow`, prune paths, and the known
-non-deterministic `image.go:342.53,344.5`).
-
-Deliberately lost coverage: none — `comm -23` above is empty.
-New skips: 0 (baseline 0, after 0 — counted from `test.json` `"Action":"skip"` events)
+Deliberately lost coverage: none — the `comm -23` gate above is empty.
+New skips: none — 0 at baseline, 0 in all three after runs.
+Known flake, named and not chased: `image.go:342.53,344.5` covers non-deterministically
+(971/970); it is absent from the baseline set, so it never moves a gate.

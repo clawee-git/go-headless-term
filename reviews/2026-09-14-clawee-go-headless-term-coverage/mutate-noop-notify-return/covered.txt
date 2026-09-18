@@ -437,7 +437,6 @@ github.com/clawee-git/go-headless-term/image.go:334.22,336.4
 github.com/clawee-git/go-headless-term/image.go:340.2,340.41
 github.com/clawee-git/go-headless-term/image.go:340.41,341.44
 github.com/clawee-git/go-headless-term/image.go:341.44,342.53
-github.com/clawee-git/go-headless-term/image.go:342.53,344.5
 github.com/clawee-git/go-headless-term/image.go:349.2,349.31
 github.com/clawee-git/go-headless-term/image.go:349.31,350.34
 github.com/clawee-git/go-headless-term/image.go:350.34,351.9
@@ -670,7 +669,7 @@ github.com/clawee-git/go-headless-term/providers.go:130.46,130.58
 github.com/clawee-git/go-headless-term/providers.go:22.25,22.26
 github.com/clawee-git/go-headless-term/providers.go:264.38,264.39
 github.com/clawee-git/go-headless-term/providers.go:265.37,265.51
-github.com/clawee-git/go-headless-term/providers.go:316.69,316.82
+github.com/clawee-git/go-headless-term/providers.go:316.69,316.89
 github.com/clawee-git/go-headless-term/providers.go:39.42,39.43
 github.com/clawee-git/go-headless-term/semantic_prompt.go:104.2,104.11
 github.com/clawee-git/go-headless-term/semantic_prompt.go:110.97,115.47

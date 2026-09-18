@@ -277,7 +277,6 @@ github.com/clawee-git/go-headless-term/handler.go:1903.68,1906.3
 github.com/clawee-git/go-headless-term/handler.go:1907.2,1907.36
 github.com/clawee-git/go-headless-term/handler.go:1910.60,1914.2
 github.com/clawee-git/go-headless-term/handler.go:1917.51,1918.59
-github.com/clawee-git/go-headless-term/handler.go:1918.59,1921.3
 github.com/clawee-git/go-headless-term/handler.go:1922.2,1922.35
 github.com/clawee-git/go-headless-term/handler.go:1925.59,1929.2
 github.com/clawee-git/go-headless-term/handler.go:1932.51,1936.2
@@ -437,7 +436,6 @@ github.com/clawee-git/go-headless-term/image.go:334.22,336.4
 github.com/clawee-git/go-headless-term/image.go:340.2,340.41
 github.com/clawee-git/go-headless-term/image.go:340.41,341.44
 github.com/clawee-git/go-headless-term/image.go:341.44,342.53
-github.com/clawee-git/go-headless-term/image.go:342.53,344.5
 github.com/clawee-git/go-headless-term/image.go:349.2,349.31
 github.com/clawee-git/go-headless-term/image.go:349.31,350.34
 github.com/clawee-git/go-headless-term/image.go:350.34,351.9

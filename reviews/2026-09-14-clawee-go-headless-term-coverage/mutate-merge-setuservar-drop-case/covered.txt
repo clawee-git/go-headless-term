@@ -437,7 +437,6 @@ github.com/clawee-git/go-headless-term/image.go:334.22,336.4
 github.com/clawee-git/go-headless-term/image.go:340.2,340.41
 github.com/clawee-git/go-headless-term/image.go:340.41,341.44
 github.com/clawee-git/go-headless-term/image.go:341.44,342.53
-github.com/clawee-git/go-headless-term/image.go:342.53,344.5
 github.com/clawee-git/go-headless-term/image.go:349.2,349.31
 github.com/clawee-git/go-headless-term/image.go:349.31,350.34
 github.com/clawee-git/go-headless-term/image.go:350.34,351.9
