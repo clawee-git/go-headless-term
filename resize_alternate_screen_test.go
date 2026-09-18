@@ -96,9 +96,106 @@ const (
 	leaveAlternateScreen = "\x1b[?1049l"
 )
 
-// TestResizeOnAlternateScreenKeepsPrimary covers the resize pair a client sends
-// around a fullscreen program: shrink after ?1049h, grow after ?1049l.
 func TestResizeOnAlternateScreenKeepsPrimary(t *testing.T) {
+	t.Run("resize pair around fullscreen", resizePairAroundFullscreenCase)
+	t.Run("pairs like primary resize", resizePairsLikePrimaryCase)
+	for _, c := range alternateResizeCases {
+		t.Run(c.name, func(t *testing.T) { runAlternateResizeCase(t, c) })
+	}
+}
+
+// alternateResizeCase varies one fixed procedure by data alone: fill the
+// primary screen, enter the alternate screen, shrink, write something, and grow
+// back — with the grow landing either side of leaving the alternate screen. The
+// primary screen must come back exactly as a control terminal that was never
+// resized leaves it.
+type alternateResizeCase struct {
+	name               string
+	clearBeforeAlt     bool   // setup ends on a fresh prompt, with older lines in scrollback
+	growWhileAlternate bool   // the grow arrives before ?1049l rather than after
+	between            string // written after leaving the alternate screen, before the grow
+	after              string // written after the grow
+	wantEvents         string // "paired", "none", or "" for unchecked
+}
+
+var alternateResizeCases = []alternateResizeCase{
+	{name: "grow before leaving", growWhileAlternate: true, after: "$ ", wantEvents: "paired"},
+	{name: "primary cursor above shrink, grow after leaving", clearBeforeAlt: true, after: "$ ", wantEvents: "none"},
+	{name: "primary cursor above shrink, grow while alternate", clearBeforeAlt: true, growWhileAlternate: true, after: "$ ", wantEvents: "none"},
+	{name: "primary output before grow, lines=19", clearBeforeAlt: true, between: afterLines(19)},
+	{name: "primary output before grow, lines=20", clearBeforeAlt: true, between: afterLines(20)},
+	{name: "primary output before grow, lines=30", clearBeforeAlt: true, between: afterLines(30)},
+	{name: "height independent scroll, SU 3", clearBeforeAlt: true, between: "\x1b[3S", after: "$ "},
+	{name: "height independent scroll, region 1;10 scroll", clearBeforeAlt: true, between: regionScrollOutput(5), after: "$ "},
+}
+
+// afterLines is the shell output a case writes at the reduced height: n lines
+// and a prompt. At 18 rows, 19, 20 and 30 lines scroll 3, 4 and 14 lines off.
+func afterLines(n int) string {
+	var b strings.Builder
+	for i := 1; i <= n; i++ {
+		fmt.Fprintf(&b, "after %02d\r\n", i)
+	}
+	b.WriteString("$ ")
+	return b.String()
+}
+
+// regionScrollOutput is n lines written at the bottom of a 1;10 scroll region,
+// a scroll a terminal performs the same way at any height.
+func regionScrollOutput(n int) string {
+	var b strings.Builder
+	b.WriteString("\x1b[1;10r\x1b[10;1H")
+	for i := 1; i <= n; i++ {
+		fmt.Fprintf(&b, "region %02d\r\n", i)
+	}
+	b.WriteString("\x1b[r")
+	return b.String()
+}
+
+func runAlternateResizeCase(t *testing.T, c alternateResizeCase) {
+	setup := func(term *Terminal) {
+		writeShellOutput(term)
+		if c.clearBeforeAlt {
+			term.WriteString("\x1b[H\x1b[2J$ less log\r\n")
+		}
+	}
+
+	control, controlStorage := newResizeTerminal()
+	setup(control)
+	control.WriteString(enterAlternateScreen + leaveAlternateScreen + c.between + c.after)
+	want := capturePrimary(t, control, controlStorage)
+	if c.wantEvents == "none" && len(want.scrollback) == 0 {
+		t.Fatal("setup must leave lines in scrollback for the grow to wrongly pop")
+	}
+
+	term, storage := newResizeTerminal()
+	setup(term)
+	term.WriteString(enterAlternateScreen)
+	storage.events = nil
+	term.Resize(18, 80)
+	if c.growWhileAlternate {
+		term.Resize(24, 80)
+		term.WriteString(leaveAlternateScreen + c.between + c.after)
+	} else {
+		term.WriteString(leaveAlternateScreen + c.between)
+		term.Resize(24, 80)
+		term.WriteString(c.after)
+	}
+
+	diffPrimary(t, capturePrimary(t, term, storage), want)
+	switch c.wantEvents {
+	case "paired":
+		assertPushPopPairing(t, storage.events)
+	case "none":
+		if len(storage.events) != 0 {
+			t.Errorf("scrollback events = %v, want none", storage.events)
+		}
+	}
+}
+
+// resizePairAroundFullscreenCase covers the resize pair a client sends
+// around a fullscreen program: shrink after ?1049h, grow after ?1049l.
+func resizePairAroundFullscreenCase(t *testing.T) {
 	control, controlStorage := newResizeTerminal()
 	writeShellOutput(control)
 	control.WriteString(enterAlternateScreen + leaveAlternateScreen + "$ ")
@@ -122,70 +219,10 @@ func TestResizeOnAlternateScreenKeepsPrimary(t *testing.T) {
 	assertPushPopPairing(t, storage.events)
 }
 
-// TestResizeGrowBeforeLeavingAlternateScreenKeepsPrimary is the same pair with
-// the grow arriving while the fullscreen program is still running.
-func TestResizeGrowBeforeLeavingAlternateScreenKeepsPrimary(t *testing.T) {
-	control, controlStorage := newResizeTerminal()
-	writeShellOutput(control)
-	control.WriteString(enterAlternateScreen + leaveAlternateScreen + "$ ")
-	want := capturePrimary(t, control, controlStorage)
-
-	term, storage := newResizeTerminal()
-	writeShellOutput(term)
-	term.WriteString(enterAlternateScreen)
-	storage.events = nil
-	term.Resize(18, 80)
-	term.Resize(24, 80)
-	term.WriteString(leaveAlternateScreen + "$ ")
-
-	diffPrimary(t, capturePrimary(t, term, storage), want)
-	assertPushPopPairing(t, storage.events)
-}
-
-// TestResizeOnAlternateScreenWithPrimaryCursorAboveShrink has the primary's
-// cursor well above the rows a shrink removes: nothing scrolls, nothing is
-// popped back, even though the scrollback holds older lines.
-func TestResizeOnAlternateScreenWithPrimaryCursorAboveShrink(t *testing.T) {
-	for _, growWhileAlternate := range []bool{false, true} {
-		t.Run(fmt.Sprintf("growWhileAlternate=%v", growWhileAlternate), func(t *testing.T) {
-			setup := func(term *Terminal) {
-				writeShellOutput(term)
-				term.WriteString("\x1b[H\x1b[2J$ less log\r\n")
-			}
-			control, controlStorage := newResizeTerminal()
-			setup(control)
-			control.WriteString(enterAlternateScreen + leaveAlternateScreen + "$ ")
-			want := capturePrimary(t, control, controlStorage)
-			if len(want.scrollback) == 0 {
-				t.Fatal("setup must leave lines in scrollback for the grow to wrongly pop")
-			}
-
-			term, storage := newResizeTerminal()
-			setup(term)
-			term.WriteString(enterAlternateScreen)
-			storage.events = nil
-			term.Resize(18, 80)
-			if growWhileAlternate {
-				term.Resize(24, 80)
-				term.WriteString(leaveAlternateScreen)
-			} else {
-				term.WriteString(leaveAlternateScreen)
-				term.Resize(24, 80)
-			}
-			term.WriteString("$ ")
-
-			diffPrimary(t, capturePrimary(t, term, storage), want)
-			if len(storage.events) != 0 {
-				t.Errorf("scrollback events = %v, want none", storage.events)
-			}
-		})
-	}
-}
-
-// TestResizeOnAlternateScreenPairsLikePrimaryResize checks the scrollback sees
-// the same Push/Pop sequence as the identical shrink and grow with the primary
-// screen active, which the daemon's transcript tee depends on.
-func TestResizeOnAlternateScreenPairsLikePrimaryResize(t *testing.T) {
+// resizePairsLikePrimaryCase checks the scrollback sees the same Push/Pop
+// sequence as the identical shrink and grow with the primary screen active,
+// which the daemon's transcript tee depends on.
+func resizePairsLikePrimaryCase(t *testing.T) {
 	primary, primaryStorage := newResizeTerminal()
 	writeShellOutput(primary)
 	primaryStorage.events = nil
@@ -225,42 +262,6 @@ func assertPushPopPairing(t *testing.T, events []string) {
 	}
 }
 
-// TestResizeOnAlternateScreenThenPrimaryOutputKeepsPrimary lets the primary
-// scroll at the reduced height between leaving the alternate screen and the
-// grow. Lines output scrolls off the top use up the rows the shrink cut, so the
-// grow must pop those lines back rather than hand back blank rows.
-func TestResizeOnAlternateScreenThenPrimaryOutputKeepsPrimary(t *testing.T) {
-	for _, lines := range []int{19, 20, 30} { // scrolls 3, 4 and 14 lines at 18 rows
-		t.Run(fmt.Sprintf("lines=%d", lines), func(t *testing.T) {
-			setup := func(term *Terminal) {
-				writeShellOutput(term)
-				term.WriteString("\x1b[H\x1b[2J$ less log\r\n")
-			}
-			output := func(term *Terminal) {
-				for i := 1; i <= lines; i++ {
-					term.WriteString(fmt.Sprintf("after %02d\r\n", i))
-				}
-				term.WriteString("$ ")
-			}
-			control, controlStorage := newResizeTerminal()
-			setup(control)
-			control.WriteString(enterAlternateScreen + leaveAlternateScreen)
-			output(control)
-			want := capturePrimary(t, control, controlStorage)
-
-			term, storage := newResizeTerminal()
-			setup(term)
-			term.WriteString(enterAlternateScreen)
-			term.Resize(18, 80)
-			term.WriteString(leaveAlternateScreen)
-			output(term)
-			term.Resize(24, 80)
-
-			diffPrimary(t, capturePrimary(t, term, storage), want)
-		})
-	}
-}
-
 // TestResizeColumnsOnAlternateScreenClampsSavedCursor shrinks the columns while
 // the alternate screen is active: the primary resumes on the last column, not
 // past the edge of the grid.
@@ -277,43 +278,5 @@ func TestResizeColumnsOnAlternateScreenClampsSavedCursor(t *testing.T) {
 	term.WriteString("X")
 	if c := term.Cell(4, 39); c == nil || c.Char != 'X' {
 		t.Errorf("cell (4,39) = %v, want 'X'", c)
-	}
-}
-
-// TestResizeOnAlternateScreenThenHeightIndependentScrollKeepsPrimary runs
-// scrolls between leaving the alternate screen and the grow that a terminal
-// performs the same at any height: SU, and output at the bottom of a scroll
-// region that ends above the last row. They must not use up the rows the
-// shrink cut.
-func TestResizeOnAlternateScreenThenHeightIndependentScrollKeepsPrimary(t *testing.T) {
-	regionOutput := "\x1b[1;10r\x1b[10;1H"
-	for i := 1; i <= 5; i++ {
-		regionOutput += fmt.Sprintf("region %02d\r\n", i)
-	}
-	regionOutput += "\x1b[r"
-	for name, between := range map[string]string{
-		"SU 3":               "\x1b[3S",
-		"region 1;10 scroll": regionOutput,
-	} {
-		t.Run(name, func(t *testing.T) {
-			setup := func(term *Terminal) {
-				writeShellOutput(term)
-				term.WriteString("\x1b[H\x1b[2J$ less log\r\n")
-			}
-			control, controlStorage := newResizeTerminal()
-			setup(control)
-			control.WriteString(enterAlternateScreen + leaveAlternateScreen + between + "$ ")
-			want := capturePrimary(t, control, controlStorage)
-
-			term, storage := newResizeTerminal()
-			setup(term)
-			term.WriteString(enterAlternateScreen)
-			term.Resize(18, 80)
-			term.WriteString(leaveAlternateScreen + between)
-			term.Resize(24, 80)
-			term.WriteString("$ ")
-
-			diffPrimary(t, capturePrimary(t, term, storage), want)
-		})
 	}
 }

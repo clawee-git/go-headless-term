@@ -5,34 +5,46 @@ import (
 )
 
 func TestImageManager_Store(t *testing.T) {
-	m := NewImageManager()
-
-	data := make([]byte, 100)
-	id := m.Store(10, 10, data)
-
-	if id != 1 {
-		t.Errorf("expected id 1, got %d", id)
+	cases := []struct {
+		name       string
+		data       []byte
+		wantCount  int
+		wantMemory int64
+	}{
+		{
+			name:       "new image",
+			data:       make([]byte, 100),
+			wantCount:  1,
+			wantMemory: 100,
+		},
+		{
+			name:       "deduplicated image",
+			data:       []byte("test image data"),
+			wantCount:  1,
+			wantMemory: int64(len("test image data")),
+		},
 	}
-	if m.ImageCount() != 1 {
-		t.Errorf("expected 1 image, got %d", m.ImageCount())
-	}
-	if m.UsedMemory() != 100 {
-		t.Errorf("expected 100 bytes, got %d", m.UsedMemory())
-	}
-}
 
-func TestImageManager_Deduplication(t *testing.T) {
-	m := NewImageManager()
-
-	data := []byte("test image data")
-	id1 := m.Store(10, 10, data)
-	id2 := m.Store(10, 10, data) // Same data
-
-	if id1 != id2 {
-		t.Errorf("expected same id for duplicate, got %d and %d", id1, id2)
-	}
-	if m.ImageCount() != 1 {
-		t.Errorf("expected 1 image (deduplicated), got %d", m.ImageCount())
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			m := NewImageManager()
+			id1 := m.Store(10, 10, c.data)
+			if id1 != 1 {
+				t.Errorf("expected id 1, got %d", id1)
+			}
+			if c.name == "deduplicated image" {
+				id2 := m.Store(10, 10, c.data)
+				if id1 != id2 {
+					t.Errorf("expected same id for duplicate, got %d and %d", id1, id2)
+				}
+			}
+			if m.ImageCount() != c.wantCount {
+				t.Errorf("expected %d images, got %d", c.wantCount, m.ImageCount())
+			}
+			if m.UsedMemory() != c.wantMemory {
+				t.Errorf("expected %d bytes, got %d", c.wantMemory, m.UsedMemory())
+			}
+		})
 	}
 }
 
@@ -74,56 +86,123 @@ func TestImageManager_Place(t *testing.T) {
 	}
 }
 
-func TestImageManager_DeleteImage(t *testing.T) {
-	m := NewImageManager()
-
-	data := make([]byte, 100)
-	id := m.Store(10, 10, data)
-
-	m.DeleteImage(id)
-
-	if m.ImageCount() != 0 {
-		t.Errorf("expected 0 images after delete, got %d", m.ImageCount())
+func TestImageManager_Lifecycle(t *testing.T) {
+	cases := []struct {
+		name           string
+		operation      string
+		wantImages     int
+		wantPlacements int
+		wantMemory     int64
+	}{
+		{
+			name:           "delete image",
+			operation:      "delete",
+			wantImages:     0,
+			wantPlacements: 0,
+			wantMemory:     0,
+		},
+		{
+			name:           "clear all",
+			operation:      "clear",
+			wantImages:     0,
+			wantPlacements: 0,
+			wantMemory:     0,
+		},
 	}
-	if m.UsedMemory() != 0 {
-		t.Errorf("expected 0 bytes after delete, got %d", m.UsedMemory())
-	}
-}
 
-func TestImageManager_Clear(t *testing.T) {
-	m := NewImageManager()
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			m := NewImageManager()
+			data := make([]byte, 100)
+			imageID := m.Store(10, 10, data)
+			m.Place(&ImagePlacement{ImageID: imageID, Row: 0, Col: 0, Cols: 1, Rows: 1})
 
-	data := make([]byte, 100)
-	imageID := m.Store(10, 10, data)
-	m.Place(&ImagePlacement{ImageID: imageID, Row: 0, Col: 0, Cols: 1, Rows: 1})
+			if c.operation == "delete" {
+				m.DeleteImage(imageID)
+			} else {
+				m.Clear()
+			}
 
-	m.Clear()
-
-	if m.ImageCount() != 0 {
-		t.Errorf("expected 0 images after clear, got %d", m.ImageCount())
-	}
-	if m.PlacementCount() != 0 {
-		t.Errorf("expected 0 placements after clear, got %d", m.PlacementCount())
+			if m.ImageCount() != c.wantImages {
+				t.Errorf("expected %d images, got %d", c.wantImages, m.ImageCount())
+			}
+			if m.PlacementCount() != c.wantPlacements {
+				t.Errorf("expected %d placements, got %d", c.wantPlacements, m.PlacementCount())
+			}
+			if m.UsedMemory() != c.wantMemory {
+				t.Errorf("expected %d bytes, got %d", c.wantMemory, m.UsedMemory())
+			}
+		})
 	}
 }
 
 func TestImageManager_Prune(t *testing.T) {
+	t.Run("evicts oldest unreferenced", imageManagerPruneEvictsOldest)
+	t.Run("referenced image survives", imageManagerPruneKeepsReferenced)
+	t.Run("over-budget store is evicted immediately", imageManagerPruneOverBudgetStore)
+}
+
+func imageManagerPruneEvictsOldest(t *testing.T) {
 	m := NewImageManager()
-	m.SetMaxMemory(150) // Low limit
+	m.SetMaxMemory(150)
 
-	// Store 3 images of 100 bytes each - should trigger pruning
-	data := make([]byte, 100)
-	m.Store(10, 10, data)
+	dataA := make([]byte, 100)
+	idA := m.Store(10, 10, dataA)
 
-	data2 := make([]byte, 100)
-	data2[0] = 1 // Different data
-	m.Store(10, 10, data2)
+	dataB := make([]byte, 100)
+	dataB[0] = 1
+	idB := m.Store(10, 10, dataB)
 
-	// At this point, we're at 200 bytes with 150 limit
-	// Pruning should have removed unreferenced images
 	if m.UsedMemory() > 150 {
-		// This might not prune if images are still referenced
-		// Just verify it doesn't crash
+		t.Errorf("expected memory <= 150 after prune, got %d", m.UsedMemory())
+	}
+	if m.ImageCount() != 1 {
+		t.Errorf("expected 1 image after prune, got %d", m.ImageCount())
+	}
+	if m.Image(idA) != nil {
+		t.Error("expected oldest image evicted")
+	}
+	if m.Image(idB) == nil {
+		t.Error("expected newest image kept")
+	}
+}
+
+func imageManagerPruneKeepsReferenced(t *testing.T) {
+	m := NewImageManager()
+	m.SetMaxMemory(150)
+
+	idA := m.Store(10, 10, make([]byte, 100))
+	m.Place(&ImagePlacement{ImageID: idA, Row: 0, Col: 0, Cols: 1, Rows: 1})
+
+	dataB := make([]byte, 100)
+	dataB[0] = 1
+	idB := m.Store(10, 10, dataB)
+
+	if m.Image(idA) == nil {
+		t.Error("expected referenced image kept")
+	}
+	if m.Image(idB) != nil {
+		t.Error("expected unreferenced image evicted")
+	}
+	if m.UsedMemory() != 100 {
+		t.Errorf("expected 100 bytes after prune, got %d", m.UsedMemory())
+	}
+}
+
+// imageManagerPruneOverBudgetStore documents that Store prunes right after
+// adding: an image larger than the budget is evicted by its own store, before
+// any placement can reference it.
+func imageManagerPruneOverBudgetStore(t *testing.T) {
+	m := NewImageManager()
+	m.SetMaxMemory(50)
+
+	idA := m.Store(10, 10, make([]byte, 100))
+
+	if m.Image(idA) != nil {
+		t.Error("expected over-budget image evicted by its own store")
+	}
+	if m.UsedMemory() != 0 {
+		t.Errorf("expected 0 bytes after self-eviction, got %d", m.UsedMemory())
 	}
 }
 
@@ -142,35 +221,91 @@ func TestImageManager_Placements(t *testing.T) {
 	}
 }
 
-func TestImageManager_DeletePlacementsByPosition(t *testing.T) {
-	m := NewImageManager()
-
-	data := make([]byte, 100)
-	imageID := m.Store(10, 10, data)
-
-	m.Place(&ImagePlacement{ImageID: imageID, Row: 0, Col: 0, Cols: 2, Rows: 2})
-	m.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 5, Cols: 2, Rows: 2})
-
-	m.DeletePlacementsByPosition(0, 0) // Should delete first placement
-
-	if m.PlacementCount() != 1 {
-		t.Errorf("expected 1 placement after delete, got %d", m.PlacementCount())
-	}
+// deletePlacementsCases: every placement-deletion entry point is the same
+// contract with a different selector. The placements laid down, the selector
+// and its arguments, and the number of survivors are the data.
+var deletePlacementsCases = []struct {
+	name      string
+	places    []ImagePlacement // ImageID is filled in by the runner
+	del       string
+	args      [2]int
+	wantCount int
+}{
+	{
+		name: "by position",
+		places: []ImagePlacement{
+			{Row: 0, Col: 0, Cols: 2, Rows: 2},
+			{Row: 5, Col: 5, Cols: 2, Rows: 2},
+		},
+		del: "byPosition", args: [2]int{0, 0}, wantCount: 1,
+	},
+	{
+		name: "in row",
+		places: []ImagePlacement{
+			{Row: 0, Col: 0, Cols: 2, Rows: 2},
+			{Row: 5, Col: 5, Cols: 2, Rows: 2},
+		},
+		del: "inRow", args: [2]int{1, 0}, wantCount: 1,
+	},
+	{
+		name: "in row range",
+		places: []ImagePlacement{
+			{Row: 0, Col: 0, Cols: 2, Rows: 3},
+			{Row: 5, Col: 0, Cols: 2, Rows: 3},
+			{Row: 10, Col: 0, Cols: 2, Rows: 3},
+		},
+		del: "inRowRange", args: [2]int{4, 8}, wantCount: 2,
+	},
+	{
+		name: "below",
+		places: []ImagePlacement{
+			{Row: 0, Col: 0, Cols: 2, Rows: 3},
+			{Row: 5, Col: 0, Cols: 2, Rows: 3},
+			{Row: 10, Col: 0, Cols: 2, Rows: 3},
+		},
+		del: "below", args: [2]int{4, 0}, wantCount: 1,
+	},
+	{
+		name: "above",
+		places: []ImagePlacement{
+			{Row: 0, Col: 0, Cols: 2, Rows: 3},
+			{Row: 5, Col: 0, Cols: 2, Rows: 3},
+			{Row: 10, Col: 0, Cols: 2, Rows: 3},
+		},
+		del: "above", args: [2]int{7, 0}, wantCount: 1,
+	},
 }
 
-func TestImageManager_DeletePlacementsInRow(t *testing.T) {
-	m := NewImageManager()
+func TestImageManager_DeletePlacements(t *testing.T) {
+	for _, c := range deletePlacementsCases {
+		t.Run(c.name, func(t *testing.T) {
+			m := NewImageManager()
+			imageID := m.Store(10, 10, make([]byte, 100))
+			for _, place := range c.places {
+				p := place
+				p.ImageID = imageID
+				m.Place(&p)
+			}
 
-	data := make([]byte, 100)
-	imageID := m.Store(10, 10, data)
+			switch c.del {
+			case "byPosition":
+				m.DeletePlacementsByPosition(c.args[0], c.args[1])
+			case "inRow":
+				m.DeletePlacementsInRow(c.args[0])
+			case "inRowRange":
+				m.DeletePlacementsInRowRange(c.args[0], c.args[1])
+			case "below":
+				m.DeletePlacementsBelow(c.args[0])
+			case "above":
+				m.DeletePlacementsAbove(c.args[0])
+			default:
+				t.Fatalf("unknown selector %q", c.del)
+			}
 
-	m.Place(&ImagePlacement{ImageID: imageID, Row: 0, Col: 0, Cols: 2, Rows: 2})
-	m.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 5, Cols: 2, Rows: 2})
-
-	m.DeletePlacementsInRow(1) // Row 1 intersects first placement (rows 0-1)
-
-	if m.PlacementCount() != 1 {
-		t.Errorf("expected 1 placement after delete, got %d", m.PlacementCount())
+			if got := m.PlacementCount(); got != c.wantCount {
+				t.Errorf("PlacementCount() = %d, want %d", got, c.wantCount)
+			}
+		})
 	}
 }
 
@@ -202,178 +337,90 @@ func TestCellImage(t *testing.T) {
 	}
 }
 
-func TestImageManager_DeletePlacementsInRowRange(t *testing.T) {
-	m := NewImageManager()
-
-	data := make([]byte, 100)
-	imageID := m.Store(10, 10, data)
-
-	// Placement at rows 0-2
-	m.Place(&ImagePlacement{ImageID: imageID, Row: 0, Col: 0, Cols: 2, Rows: 3})
-	// Placement at rows 5-7
-	m.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 0, Cols: 2, Rows: 3})
-	// Placement at rows 10-12
-	m.Place(&ImagePlacement{ImageID: imageID, Row: 10, Col: 0, Cols: 2, Rows: 3})
-
-	// Delete placements in row range 4-8 (should only affect the second placement)
-	m.DeletePlacementsInRowRange(4, 8)
-
-	if m.PlacementCount() != 2 {
-		t.Errorf("expected 2 placements after delete, got %d", m.PlacementCount())
-	}
+var terminalImageClearingCases = []struct {
+	name           string
+	setup          func(*Terminal) (imageID uint32, preservedImageID uint32)
+	act            func(*Terminal)
+	wantPlacements int
+	wantImages     int
+}{
+	{
+		name: "CSI 2J clears placements preserves images",
+		setup: func(term *Terminal) (uint32, uint32) {
+			data := make([]byte, 100)
+			imageID := term.images.Store(10, 10, data)
+			term.images.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 5, Cols: 2, Rows: 2})
+			return imageID, 0
+		},
+		act: func(term *Terminal) {
+			term.WriteString("\x1b[2J")
+		},
+		wantPlacements: 0,
+		wantImages:     1,
+	},
+	{
+		name: "CSI 0J clears below cursor",
+		setup: func(term *Terminal) (uint32, uint32) {
+			data := make([]byte, 100)
+			imageID := term.images.Store(10, 10, data)
+			term.images.Place(&ImagePlacement{ImageID: imageID, Row: 2, Col: 0, Cols: 2, Rows: 2})  // Above
+			term.images.Place(&ImagePlacement{ImageID: imageID, Row: 10, Col: 0, Cols: 2, Rows: 2}) // Below
+			return imageID, 0
+		},
+		act: func(term *Terminal) {
+			term.WriteString("\x1b[6;1H")
+			term.WriteString("\x1b[0J")
+		},
+		wantPlacements: 1,
+		wantImages:     1,
+	},
+	{
+		name: "RIS clears images and placements",
+		setup: func(term *Terminal) (uint32, uint32) {
+			data := make([]byte, 100)
+			imageID := term.images.Store(10, 10, data)
+			term.images.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 5, Cols: 2, Rows: 2})
+			return imageID, 0
+		},
+		act: func(term *Terminal) {
+			term.WriteString("\x1bc")
+		},
+		wantPlacements: 0,
+		wantImages:     0,
+	},
+	{
+		name: "alternate screen clears placements on both switches",
+		setup: func(term *Terminal) (uint32, uint32) {
+			data := make([]byte, 100)
+			imageID := term.images.Store(10, 10, data)
+			term.images.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 5, Cols: 2, Rows: 2})
+			return imageID, 0
+		},
+		act: func(term *Terminal) {
+			term.WriteString("\x1b[?1049h")
+			data := make([]byte, 100)
+			data[0] = 1
+			imageID2 := term.images.Store(20, 20, data)
+			term.images.Place(&ImagePlacement{ImageID: imageID2, Row: 0, Col: 0, Cols: 3, Rows: 3})
+			term.WriteString("\x1b[?1049l")
+		},
+		wantPlacements: 0,
+		wantImages:     2,
+	},
 }
 
-func TestImageManager_DeletePlacementsBelow(t *testing.T) {
-	m := NewImageManager()
-
-	data := make([]byte, 100)
-	imageID := m.Store(10, 10, data)
-
-	// Placement at rows 0-2
-	m.Place(&ImagePlacement{ImageID: imageID, Row: 0, Col: 0, Cols: 2, Rows: 3})
-	// Placement at rows 5-7
-	m.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 0, Cols: 2, Rows: 3})
-	// Placement at rows 10-12
-	m.Place(&ImagePlacement{ImageID: imageID, Row: 10, Col: 0, Cols: 2, Rows: 3})
-
-	// Delete placements below row 4 (should delete second and third)
-	m.DeletePlacementsBelow(4)
-
-	if m.PlacementCount() != 1 {
-		t.Errorf("expected 1 placement after delete, got %d", m.PlacementCount())
-	}
-}
-
-func TestImageManager_DeletePlacementsAbove(t *testing.T) {
-	m := NewImageManager()
-
-	data := make([]byte, 100)
-	imageID := m.Store(10, 10, data)
-
-	// Placement at rows 0-2
-	m.Place(&ImagePlacement{ImageID: imageID, Row: 0, Col: 0, Cols: 2, Rows: 3})
-	// Placement at rows 5-7
-	m.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 0, Cols: 2, Rows: 3})
-	// Placement at rows 10-12
-	m.Place(&ImagePlacement{ImageID: imageID, Row: 10, Col: 0, Cols: 2, Rows: 3})
-
-	// Delete placements above row 7 (should delete first and second)
-	m.DeletePlacementsAbove(7)
-
-	if m.PlacementCount() != 1 {
-		t.Errorf("expected 1 placement after delete, got %d", m.PlacementCount())
-	}
-}
-
-// TestClearScreenClearsImages verifies that CSI 2J clears all image placements
-func TestClearScreenClearsImages(t *testing.T) {
-	term := New(WithSize(24, 80))
-
-	// Add an image
-	data := make([]byte, 100)
-	imageID := term.images.Store(10, 10, data)
-	term.images.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 5, Cols: 2, Rows: 2})
-
-	if term.ImagePlacementCount() != 1 {
-		t.Fatalf("expected 1 placement, got %d", term.ImagePlacementCount())
-	}
-
-	// Clear screen with CSI 2J
-	term.WriteString("\x1b[2J")
-
-	// All placements should be cleared
-	if term.ImagePlacementCount() != 0 {
-		t.Errorf("expected 0 placements after CSI 2J, got %d", term.ImagePlacementCount())
-	}
-
-	// Image data should still exist
-	if term.ImageCount() != 1 {
-		t.Errorf("expected 1 image (data preserved), got %d", term.ImageCount())
-	}
-}
-
-// TestClearScreenBelowClearsImages verifies that CSI 0J clears images below cursor
-func TestClearScreenBelowClearsImages(t *testing.T) {
-	term := New(WithSize(24, 80))
-
-	// Add images above and below cursor position
-	data := make([]byte, 100)
-	imageID := term.images.Store(10, 10, data)
-	term.images.Place(&ImagePlacement{ImageID: imageID, Row: 2, Col: 0, Cols: 2, Rows: 2})  // Above
-	term.images.Place(&ImagePlacement{ImageID: imageID, Row: 10, Col: 0, Cols: 2, Rows: 2}) // Below
-
-	// Position cursor at row 5
-	term.WriteString("\x1b[6;1H")
-
-	// Clear screen below (CSI 0J)
-	term.WriteString("\x1b[0J")
-
-	// Only placement below should be cleared
-	if term.ImagePlacementCount() != 1 {
-		t.Errorf("expected 1 placement after CSI 0J, got %d", term.ImagePlacementCount())
-	}
-}
-
-// TestResetStateClearsImagesAndCache verifies that terminal reset clears all images
-func TestResetStateClearsImagesAndCache(t *testing.T) {
-	term := New(WithSize(24, 80))
-
-	// Add an image
-	data := make([]byte, 100)
-	imageID := term.images.Store(10, 10, data)
-	term.images.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 5, Cols: 2, Rows: 2})
-
-	if term.ImageCount() != 1 || term.ImagePlacementCount() != 1 {
-		t.Fatalf("expected 1 image and 1 placement, got %d and %d", term.ImageCount(), term.ImagePlacementCount())
-	}
-
-	// Reset terminal (RIS - ESC c)
-	term.WriteString("\x1bc")
-
-	// Both images and placements should be cleared
-	if term.ImageCount() != 0 {
-		t.Errorf("expected 0 images after reset, got %d", term.ImageCount())
-	}
-	if term.ImagePlacementCount() != 0 {
-		t.Errorf("expected 0 placements after reset, got %d", term.ImagePlacementCount())
-	}
-}
-
-// TestAlternateScreenClearsImages verifies that switching screens clears placements
-func TestAlternateScreenClearsImages(t *testing.T) {
-	term := New(WithSize(24, 80))
-
-	// Add an image
-	data := make([]byte, 100)
-	imageID := term.images.Store(10, 10, data)
-	term.images.Place(&ImagePlacement{ImageID: imageID, Row: 5, Col: 5, Cols: 2, Rows: 2})
-
-	if term.ImagePlacementCount() != 1 {
-		t.Fatalf("expected 1 placement, got %d", term.ImagePlacementCount())
-	}
-
-	// Switch to alternate screen (CSI ? 1049 h)
-	term.WriteString("\x1b[?1049h")
-
-	// Placements should be cleared
-	if term.ImagePlacementCount() != 0 {
-		t.Errorf("expected 0 placements after switching to alternate screen, got %d", term.ImagePlacementCount())
-	}
-
-	// Image data should still exist
-	if term.ImageCount() != 1 {
-		t.Errorf("expected 1 image (data preserved), got %d", term.ImageCount())
-	}
-
-	// Add another image on alternate screen
-	imageID2 := term.images.Store(20, 20, data)
-	term.images.Place(&ImagePlacement{ImageID: imageID2, Row: 0, Col: 0, Cols: 3, Rows: 3})
-
-	// Switch back to primary screen (CSI ? 1049 l)
-	term.WriteString("\x1b[?1049l")
-
-	// Placements should be cleared again
-	if term.ImagePlacementCount() != 0 {
-		t.Errorf("expected 0 placements after switching back to primary screen, got %d", term.ImagePlacementCount())
+func TestTerminalImageClearing(t *testing.T) {
+	for _, c := range terminalImageClearingCases {
+		t.Run(c.name, func(t *testing.T) {
+			term := New(WithSize(24, 80))
+			c.setup(term)
+			c.act(term)
+			if term.ImagePlacementCount() != c.wantPlacements {
+				t.Errorf("expected %d placements, got %d", c.wantPlacements, term.ImagePlacementCount())
+			}
+			if term.ImageCount() != c.wantImages {
+				t.Errorf("expected %d images, got %d", c.wantImages, term.ImageCount())
+			}
+		})
 	}
 }

@@ -4,102 +4,94 @@ import (
 	"testing"
 )
 
-func TestWorkingDirectory_Basic(t *testing.T) {
-	term := New(WithSize(24, 80))
-
-	// OSC 7 ; file://hostname/path BEL
-	term.WriteString("\x1b]7;file://localhost/home/user\x07")
-
-	uri := term.WorkingDirectory()
-	expected := "file://localhost/home/user"
-	if uri != expected {
-		t.Errorf("expected %q, got %q", expected, uri)
+func TestWorkingDirectory(t *testing.T) {
+	cases := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "basic BEL terminator",
+			input:    "\x1b]7;file://localhost/home/user\x07",
+			expected: "file://localhost/home/user",
+		},
+		{
+			name:     "ST terminator",
+			input:    "\x1b]7;file://myhost/var/log\x1b\\",
+			expected: "file://myhost/var/log",
+		},
+		{
+			name:     "not set",
+			input:    "",
+			expected: "",
+		},
 	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			term := New(WithSize(24, 80))
+			if c.input != "" {
+				term.WriteString(c.input)
+			}
+			got := term.WorkingDirectory()
+			if got != c.expected {
+				t.Errorf("expected %q, got %q", c.expected, got)
+			}
+		})
+	}
+
+	t.Run("multiple updates", func(t *testing.T) {
+		term := New(WithSize(24, 80))
+		term.WriteString("\x1b]7;file://localhost/home/user\x07")
+		if got := term.WorkingDirectory(); got != "file://localhost/home/user" {
+			t.Errorf("expected file://localhost/home/user, got %q", got)
+		}
+		term.WriteString("\x1b]7;file://localhost/tmp\x07")
+		if got := term.WorkingDirectory(); got != "file://localhost/tmp" {
+			t.Errorf("expected file://localhost/tmp, got %q", got)
+		}
+	})
 }
 
-func TestWorkingDirectory_STTerminator(t *testing.T) {
-	term := New(WithSize(24, 80))
-
-	// OSC 7 ; file://hostname/path ST (ESC \)
-	term.WriteString("\x1b]7;file://myhost/var/log\x1b\\")
-
-	uri := term.WorkingDirectory()
-	expected := "file://myhost/var/log"
-	if uri != expected {
-		t.Errorf("expected %q, got %q", expected, uri)
+func TestWorkingDirectoryPath(t *testing.T) {
+	cases := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "basic localhost",
+			input:    "\x1b]7;file://localhost/home/user\x07",
+			expected: "/home/user",
+		},
+		{
+			name:     "with hostname",
+			input:    "\x1b]7;file://mycomputer.local/var/log/system\x07",
+			expected: "/var/log/system",
+		},
+		{
+			name:     "empty hostname",
+			input:    "\x1b]7;file:///home/user\x07",
+			expected: "/home/user",
+		},
+		{
+			name:     "not set",
+			input:    "",
+			expected: "",
+		},
 	}
-}
 
-func TestWorkingDirectory_Multiple(t *testing.T) {
-	term := New(WithSize(24, 80))
-
-	// Set first directory
-	term.WriteString("\x1b]7;file://localhost/home/user\x07")
-	uri := term.WorkingDirectory()
-	if uri != "file://localhost/home/user" {
-		t.Errorf("expected file://localhost/home/user, got %q", uri)
-	}
-
-	// Change directory
-	term.WriteString("\x1b]7;file://localhost/tmp\x07")
-	uri = term.WorkingDirectory()
-	if uri != "file://localhost/tmp" {
-		t.Errorf("expected file://localhost/tmp, got %q", uri)
-	}
-}
-
-func TestWorkingDirectory_NotSet(t *testing.T) {
-	term := New(WithSize(24, 80))
-
-	uri := term.WorkingDirectory()
-	if uri != "" {
-		t.Errorf("expected empty string, got %q", uri)
-	}
-}
-
-func TestWorkingDirectoryPath_Basic(t *testing.T) {
-	term := New(WithSize(24, 80))
-
-	term.WriteString("\x1b]7;file://localhost/home/user\x07")
-
-	path := term.WorkingDirectoryPath()
-	expected := "/home/user"
-	if path != expected {
-		t.Errorf("expected %q, got %q", expected, path)
-	}
-}
-
-func TestWorkingDirectoryPath_WithHostname(t *testing.T) {
-	term := New(WithSize(24, 80))
-
-	term.WriteString("\x1b]7;file://mycomputer.local/var/log/system\x07")
-
-	path := term.WorkingDirectoryPath()
-	expected := "/var/log/system"
-	if path != expected {
-		t.Errorf("expected %q, got %q", expected, path)
-	}
-}
-
-func TestWorkingDirectoryPath_EmptyHostname(t *testing.T) {
-	term := New(WithSize(24, 80))
-
-	// Some systems emit file:///path (empty hostname)
-	term.WriteString("\x1b]7;file:///home/user\x07")
-
-	path := term.WorkingDirectoryPath()
-	expected := "/home/user"
-	if path != expected {
-		t.Errorf("expected %q, got %q", expected, path)
-	}
-}
-
-func TestWorkingDirectoryPath_NotSet(t *testing.T) {
-	term := New(WithSize(24, 80))
-
-	path := term.WorkingDirectoryPath()
-	if path != "" {
-		t.Errorf("expected empty string, got %q", path)
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			term := New(WithSize(24, 80))
+			if c.input != "" {
+				term.WriteString(c.input)
+			}
+			got := term.WorkingDirectoryPath()
+			if got != c.expected {
+				t.Errorf("expected %q, got %q", c.expected, got)
+			}
+		})
 	}
 }
 

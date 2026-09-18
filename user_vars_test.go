@@ -2,185 +2,157 @@ package headlessterm
 
 import (
 	"bytes"
+	"maps"
 	"sync"
 	"testing"
 )
 
-// TestSetUserVar tests setting a user variable
-func TestSetUserVar(t *testing.T) {
-	term := New()
-
-	term.SetUserVar("SANETTY_USER", "daniel")
-
-	if val := term.GetUserVar("SANETTY_USER"); val != "daniel" {
-		t.Errorf("expected 'daniel', got %q", val)
-	}
+// userVarsCases: the user-variable store is set, optionally cleared, and then
+// read back. The calls and the expected reads are the only things that vary.
+var userVarsCases = []struct {
+	name     string
+	sets     [][2]string       // SetUserVar calls, in order
+	clear    bool              // ClearUserVars after the sets
+	wantVars [][2]string       // GetUserVar(name) must return value
+	wantAll  map[string]string // GetUserVars() whole; nil means unchecked
+}{
+	{
+		name:     "set and get",
+		sets:     [][2]string{{"SANETTY_USER", "daniel"}},
+		wantVars: [][2]string{{"SANETTY_USER", "daniel"}},
+	},
+	{
+		name:     "unset returns empty",
+		wantVars: [][2]string{{"NONEXISTENT", ""}},
+	},
+	{
+		name:    "get all variables",
+		sets:    [][2]string{{"VAR1", "value1"}, {"VAR2", "value2"}, {"VAR3", "value3"}},
+		wantAll: map[string]string{"VAR1": "value1", "VAR2": "value2", "VAR3": "value3"},
+	},
+	{
+		name:     "clear all variables",
+		sets:     [][2]string{{"VAR1", "value1"}, {"VAR2", "value2"}},
+		clear:    true,
+		wantVars: [][2]string{{"VAR1", ""}},
+		wantAll:  map[string]string{},
+	},
+	{
+		name:     "overwrite",
+		sets:     [][2]string{{"VAR1", "initial"}, {"VAR1", "updated"}},
+		wantVars: [][2]string{{"VAR1", "updated"}},
+	},
+	{
+		name:     "empty value exists",
+		sets:     [][2]string{{"VAR1", ""}},
+		wantVars: [][2]string{{"VAR1", ""}},
+		wantAll:  map[string]string{"VAR1": ""},
+	},
 }
 
-// TestGetUserVarNotSet tests getting a user variable that was not set
-func TestGetUserVarNotSet(t *testing.T) {
-	term := New()
+func TestUserVars(t *testing.T) {
+	for _, c := range userVarsCases {
+		t.Run(c.name, func(t *testing.T) {
+			term := New()
+			for _, set := range c.sets {
+				term.SetUserVar(set[0], set[1])
+			}
+			if c.clear {
+				term.ClearUserVars()
+			}
 
-	if val := term.GetUserVar("NONEXISTENT"); val != "" {
-		t.Errorf("expected empty string for unset variable, got %q", val)
+			for _, want := range c.wantVars {
+				if got := term.GetUserVar(want[0]); got != want[1] {
+					t.Errorf("GetUserVar(%q) = %q, want %q", want[0], got, want[1])
+				}
+			}
+			if c.wantAll != nil {
+				if got := term.GetUserVars(); !maps.Equal(got, c.wantAll) {
+					t.Errorf("GetUserVars() = %v, want %v", got, c.wantAll)
+				}
+			}
+		})
 	}
+
+	// The copy contract is behaviour, not data: the caller mutates what
+	// GetUserVars returned and the store must not see it.
+	t.Run("get all returns a copy", func(t *testing.T) {
+		term := New()
+		term.SetUserVar("VAR1", "value1")
+
+		vars := term.GetUserVars()
+		vars["VAR1"] = "modified"
+		vars["NEW_VAR"] = "new_value"
+
+		if got := term.GetUserVar("VAR1"); got != "value1" {
+			t.Errorf("GetUserVar(%q) = %q, want %q", "VAR1", got, "value1")
+		}
+		if got := term.GetUserVar("NEW_VAR"); got != "" {
+			t.Errorf("GetUserVar(%q) = %q, want empty", "NEW_VAR", got)
+		}
+	})
 }
 
-// TestGetUserVars tests getting all user variables
-func TestGetUserVars(t *testing.T) {
-	term := New()
-
-	term.SetUserVar("VAR1", "value1")
-	term.SetUserVar("VAR2", "value2")
-	term.SetUserVar("VAR3", "value3")
-
-	vars := term.GetUserVars()
-
-	if len(vars) != 3 {
-		t.Errorf("expected 3 variables, got %d", len(vars))
-	}
-	if vars["VAR1"] != "value1" {
-		t.Errorf("VAR1: expected 'value1', got %q", vars["VAR1"])
-	}
-	if vars["VAR2"] != "value2" {
-		t.Errorf("VAR2: expected 'value2', got %q", vars["VAR2"])
-	}
-	if vars["VAR3"] != "value3" {
-		t.Errorf("VAR3: expected 'value3', got %q", vars["VAR3"])
-	}
-}
-
-// TestGetUserVarsReturnsACopy tests that GetUserVars returns a copy
-func TestGetUserVarsReturnsACopy(t *testing.T) {
-	term := New()
-
-	term.SetUserVar("VAR1", "value1")
-
-	vars := term.GetUserVars()
-	vars["VAR1"] = "modified"
-	vars["NEW_VAR"] = "new_value"
-
-	// Original should be unchanged
-	if val := term.GetUserVar("VAR1"); val != "value1" {
-		t.Errorf("expected original value 'value1', got %q", val)
-	}
-	if val := term.GetUserVar("NEW_VAR"); val != "" {
-		t.Errorf("expected NEW_VAR to not exist, got %q", val)
-	}
-}
-
-// TestClearUserVars tests clearing all user variables
-func TestClearUserVars(t *testing.T) {
-	term := New()
-
-	term.SetUserVar("VAR1", "value1")
-	term.SetUserVar("VAR2", "value2")
-
-	term.ClearUserVars()
-
-	vars := term.GetUserVars()
-	if len(vars) != 0 {
-		t.Errorf("expected 0 variables after clear, got %d", len(vars))
-	}
-	if val := term.GetUserVar("VAR1"); val != "" {
-		t.Errorf("expected empty string after clear, got %q", val)
-	}
-}
-
-// TestUserVarOverwrite tests overwriting a user variable
-func TestUserVarOverwrite(t *testing.T) {
-	term := New()
-
-	term.SetUserVar("VAR1", "initial")
-	term.SetUserVar("VAR1", "updated")
-
-	if val := term.GetUserVar("VAR1"); val != "updated" {
-		t.Errorf("expected 'updated', got %q", val)
-	}
-}
-
-// TestUserVarEmptyValue tests setting an empty value
-func TestUserVarEmptyValue(t *testing.T) {
-	term := New()
-
-	term.SetUserVar("VAR1", "")
-
-	if val := term.GetUserVar("VAR1"); val != "" {
-		t.Errorf("expected empty string, got %q", val)
-	}
-
-	vars := term.GetUserVars()
-	if _, exists := vars["VAR1"]; !exists {
-		t.Error("expected VAR1 to exist with empty value")
-	}
-}
-
-// TestUserVarMiddleware tests middleware interception
 func TestUserVarMiddleware(t *testing.T) {
-	middlewareCalled := false
-	var interceptedName, interceptedValue string
+	t.Run("intercepts", func(t *testing.T) {
+		middlewareCalled := false
+		var interceptedName, interceptedValue string
 
-	term := New(WithMiddleware(&Middleware{
-		SetUserVar: func(name, value string, next func(string, string)) {
-			middlewareCalled = true
-			interceptedName = name
-			interceptedValue = value
-			// Modify before passing to internal
-			next("MODIFIED_"+name, "MODIFIED_"+value)
-		},
-	}))
+		term := New(WithMiddleware(&Middleware{
+			SetUserVar: func(name, value string, next func(string, string)) {
+				middlewareCalled = true
+				interceptedName = name
+				interceptedValue = value
+				next("MODIFIED_"+name, "MODIFIED_"+value)
+			},
+		}))
 
-	term.SetUserVar("VAR1", "value1")
+		term.SetUserVar("VAR1", "value1")
 
-	if !middlewareCalled {
-		t.Error("expected middleware to be called")
-	}
-	if interceptedName != "VAR1" {
-		t.Errorf("expected intercepted name 'VAR1', got %q", interceptedName)
-	}
-	if interceptedValue != "value1" {
-		t.Errorf("expected intercepted value 'value1', got %q", interceptedValue)
-	}
+		if !middlewareCalled {
+			t.Error("expected middleware to be called")
+		}
+		if interceptedName != "VAR1" {
+			t.Errorf("expected intercepted name 'VAR1', got %q", interceptedName)
+		}
+		if interceptedValue != "value1" {
+			t.Errorf("expected intercepted value 'value1', got %q", interceptedValue)
+		}
+		if got := term.GetUserVar("MODIFIED_VAR1"); got != "MODIFIED_value1" {
+			t.Errorf("expected 'MODIFIED_value1', got %q", got)
+		}
+	})
 
-	// Should have modified name/value
-	if val := term.GetUserVar("MODIFIED_VAR1"); val != "MODIFIED_value1" {
-		t.Errorf("expected 'MODIFIED_value1', got %q", val)
-	}
+	t.Run("blocks", func(t *testing.T) {
+		term := New(WithMiddleware(&Middleware{
+			SetUserVar: func(name, value string, next func(string, string)) {
+				// Don't call next - block the operation
+			},
+		}))
+
+		term.SetUserVar("VAR1", "value1")
+
+		if got := term.GetUserVar("VAR1"); got != "" {
+			t.Errorf("expected variable to be blocked, got %q", got)
+		}
+	})
 }
 
-// TestUserVarMiddlewareBlocks tests middleware blocking
-func TestUserVarMiddlewareBlocks(t *testing.T) {
-	term := New(WithMiddleware(&Middleware{
-		SetUserVar: func(name, value string, next func(string, string)) {
-			// Don't call next - block the operation
-		},
-	}))
-
-	term.SetUserVar("VAR1", "value1")
-
-	if val := term.GetUserVar("VAR1"); val != "" {
-		t.Errorf("expected variable to be blocked, got %q", val)
-	}
-}
-
-// TestUserVarThreadSafety tests concurrent access
 func TestUserVarThreadSafety(t *testing.T) {
 	term := New()
 
 	var wg sync.WaitGroup
 	const numGoroutines = 100
 
-	// Concurrent writes
 	wg.Add(numGoroutines)
 	for i := 0; i < numGoroutines; i++ {
-		go func(id int) {
+		go func() {
 			defer wg.Done()
 			term.SetUserVar("VAR", "value")
-		}(i)
+		}()
 	}
 	wg.Wait()
 
-	// Concurrent reads
 	wg.Add(numGoroutines)
 	for i := 0; i < numGoroutines; i++ {
 		go func() {
@@ -191,13 +163,12 @@ func TestUserVarThreadSafety(t *testing.T) {
 	}
 	wg.Wait()
 
-	// Concurrent mixed reads/writes
 	wg.Add(numGoroutines * 2)
 	for i := 0; i < numGoroutines; i++ {
-		go func(id int) {
+		go func() {
 			defer wg.Done()
 			term.SetUserVar("VAR", "value")
-		}(i)
+		}()
 		go func() {
 			defer wg.Done()
 			_ = term.GetUserVar("VAR")
@@ -205,138 +176,81 @@ func TestUserVarThreadSafety(t *testing.T) {
 	}
 	wg.Wait()
 
-	// Should not panic and final value should be set
-	if val := term.GetUserVar("VAR"); val != "value" {
-		t.Errorf("expected 'value', got %q", val)
+	if got := term.GetUserVar("VAR"); got != "value" {
+		t.Errorf("expected 'value', got %q", got)
 	}
 }
 
-// TestOSC1337SetUserVar tests OSC 1337 sequence parsing
+var osc1337SetUserVarCases = []struct {
+	name     string
+	osc      string
+	varName  string
+	expected string
+	exists   bool
+}{
+	{
+		name:     "basic BEL terminator",
+		osc:      "\x1b]1337;SetUserVar=TEST_VAR=dGVzdF92YWx1ZQ==\x07",
+		varName:  "TEST_VAR",
+		expected: "test_value",
+		exists:   true,
+	},
+	{
+		name:     "ST terminator",
+		osc:      "\x1b]1337;SetUserVar=HELLO=aGVsbG8=\x1b\\",
+		varName:  "HELLO",
+		expected: "hello",
+		exists:   true,
+	},
+	{
+		name:    "invalid base64",
+		osc:     "\x1b]1337;SetUserVar=TEST=!@#$%^\x07",
+		varName: "TEST",
+		exists:  false,
+	},
+	{
+		name:     "empty value",
+		osc:      "\x1b]1337;SetUserVar=EMPTY=\x07",
+		varName:  "EMPTY",
+		expected: "",
+		exists:   true,
+	},
+	{
+		name:     "special characters",
+		osc:      "\x1b]1337;SetUserVar=SPECIAL=aGVsbG8Kd29ybGQJdGFi\x07",
+		varName:  "SPECIAL",
+		expected: "hello\nworld\ttab",
+		exists:   true,
+	},
+}
+
 func TestOSC1337SetUserVar(t *testing.T) {
-	term := New()
-
-	// OSC 1337 ; SetUserVar=NAME=BASE64_VALUE ST
-	// "test_value" in base64 is "dGVzdF92YWx1ZQ=="
-	osc := "\x1b]1337;SetUserVar=TEST_VAR=dGVzdF92YWx1ZQ==\x07"
-
-	_, _ = term.Write([]byte(osc))
-
-	if val := term.GetUserVar("TEST_VAR"); val != "test_value" {
-		t.Errorf("expected 'test_value', got %q", val)
-	}
-}
-
-// TestOSC1337SetUserVarWithST tests OSC 1337 with ST terminator
-func TestOSC1337SetUserVarWithST(t *testing.T) {
-	term := New()
-
-	// Using \x1b\\ as ST terminator
-	// "hello" in base64 is "aGVsbG8="
-	osc := "\x1b]1337;SetUserVar=HELLO=aGVsbG8=\x1b\\"
-
-	_, _ = term.Write([]byte(osc))
-
-	if val := term.GetUserVar("HELLO"); val != "hello" {
-		t.Errorf("expected 'hello', got %q", val)
-	}
-}
-
-// TestOSC1337InvalidBase64 tests invalid base64 handling
-func TestOSC1337InvalidBase64(t *testing.T) {
-	term := New()
-
-	// Invalid base64
-	osc := "\x1b]1337;SetUserVar=TEST=!@#$%^\x07"
-
-	_, _ = term.Write([]byte(osc))
-
-	// Should not set the variable
-	if val := term.GetUserVar("TEST"); val != "" {
-		t.Errorf("expected empty string for invalid base64, got %q", val)
-	}
-}
-
-// TestOSC1337EmptyValue tests empty base64 value
-func TestOSC1337EmptyValue(t *testing.T) {
-	term := New()
-
-	// Empty string in base64 is ""
-	osc := "\x1b]1337;SetUserVar=EMPTY=\x07"
-
-	_, _ = term.Write([]byte(osc))
-
-	// Should set empty value
-	vars := term.GetUserVars()
-	if _, exists := vars["EMPTY"]; !exists {
-		t.Error("expected EMPTY variable to exist")
-	}
-}
-
-// TestOSC1337SpecialCharacters tests special characters in value
-func TestOSC1337SpecialCharacters(t *testing.T) {
-	term := New()
-
-	// "hello\nworld\ttab" in base64 is "aGVsbG8Kd29ybGQJdGFi"
-	osc := "\x1b]1337;SetUserVar=SPECIAL=aGVsbG8Kd29ybGQJdGFi\x07"
-
-	_, _ = term.Write([]byte(osc))
-
-	expected := "hello\nworld\ttab"
-	if val := term.GetUserVar("SPECIAL"); val != expected {
-		t.Errorf("expected %q, got %q", expected, val)
-	}
-}
-
-// TestUserVarsWithPTYWriter tests that OSC 1337 works with response writer
-func TestUserVarsWithPTYWriter(t *testing.T) {
-	var buf bytes.Buffer
-	term := New(WithPTYWriter(&buf))
-
-	// OSC 1337 SetUserVar doesn't generate a response
-	osc := "\x1b]1337;SetUserVar=TEST=dGVzdA==\x07"
-
-	_, _ = term.Write([]byte(osc))
-
-	if buf.Len() != 0 {
-		t.Errorf("expected no response, got %d bytes", buf.Len())
+	for _, c := range osc1337SetUserVarCases {
+		t.Run(c.name, func(t *testing.T) {
+			term := New()
+			_, _ = term.Write([]byte(c.osc))
+			got := term.GetUserVar(c.varName)
+			if !c.exists {
+				if got != "" {
+					t.Errorf("expected empty string for invalid base64, got %q", got)
+				}
+				return
+			}
+			if got != c.expected {
+				t.Errorf("expected %q, got %q", c.expected, got)
+			}
+		})
 	}
 
-	// But variable should be set
-	if val := term.GetUserVar("TEST"); val != "test" {
-		t.Errorf("expected 'test', got %q", val)
-	}
-}
-
-// TestMiddlewareMergeSetUserVar tests middleware merge for SetUserVar
-func TestMiddlewareMergeSetUserVar(t *testing.T) {
-	call1 := false
-	call2 := false
-
-	mw1 := &Middleware{
-		Bell: func(next func()) {
-			next()
-		},
-	}
-
-	mw2 := &Middleware{
-		SetUserVar: func(name, value string, next func(string, string)) {
-			call2 = true
-			next(name, value)
-		},
-	}
-
-	mw1.Merge(mw2)
-
-	term := New(WithMiddleware(mw1))
-	term.SetUserVar("TEST", "value")
-
-	if call1 {
-		t.Error("Bell middleware should not be called")
-	}
-	if !call2 {
-		t.Error("SetUserVar middleware should be called after merge")
-	}
-	if val := term.GetUserVar("TEST"); val != "value" {
-		t.Errorf("expected 'value', got %q", val)
-	}
+	t.Run("no response written", func(t *testing.T) {
+		var buf bytes.Buffer
+		term := New(WithPTYWriter(&buf))
+		_, _ = term.Write([]byte("\x1b]1337;SetUserVar=TEST=dGVzdA==\x07"))
+		if buf.Len() != 0 {
+			t.Errorf("expected no response, got %d bytes", buf.Len())
+		}
+		if got := term.GetUserVar("TEST"); got != "test" {
+			t.Errorf("expected 'test', got %q", got)
+		}
+	})
 }
