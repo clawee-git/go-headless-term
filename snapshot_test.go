@@ -6,51 +6,46 @@ import (
 	"testing"
 )
 
+// snapshotTextCases: a text snapshot carries the line text and nothing else.
+var snapshotTextCases = []struct {
+	name      string
+	writes    []string
+	wantLines []string
+}{
+	{name: "content", writes: []string{"Hello", "\x1b[2;1H", "World"}, wantLines: []string{"Hello", "World", ""}},
+	{name: "empty terminal", wantLines: []string{"", "", ""}},
+}
+
 func TestSnapshot_Text(t *testing.T) {
-	t.Run("content", snapshotTextContentCase)
-	t.Run("empty terminal", snapshotTextEmptyCase)
+	for _, c := range snapshotTextCases {
+		t.Run(c.name, func(t *testing.T) {
+			term := New(WithSize(3, 10))
+			for _, w := range c.writes {
+				term.WriteString(w)
+			}
+
+			snap := term.Snapshot(SnapshotDetailText)
+
+			if snap.Size.Rows != 3 || snap.Size.Cols != 10 {
+				t.Errorf("Size = %dx%d, want 3x10", snap.Size.Rows, snap.Size.Cols)
+			}
+			if len(snap.Lines) != len(c.wantLines) {
+				t.Fatalf("len(Lines) = %d, want %d", len(snap.Lines), len(c.wantLines))
+			}
+			for i, want := range c.wantLines {
+				if snap.Lines[i].Text != want {
+					t.Errorf("Lines[%d].Text = %q, want %q", i, snap.Lines[i].Text, want)
+				}
+				if snap.Lines[i].Segments != nil {
+					t.Errorf("Lines[%d]: text mode must not carry segments", i)
+				}
+				if snap.Lines[i].Cells != nil {
+					t.Errorf("Lines[%d]: text mode must not carry cells", i)
+				}
+			}
+		})
+	}
 	t.Run("cursor", snapshotTextCursorCase)
-}
-
-func snapshotTextContentCase(t *testing.T) {
-	term := New(WithSize(3, 10))
-	term.WriteString("Hello")
-	term.WriteString("\x1b[2;1H")
-	term.WriteString("World")
-
-	snap := term.Snapshot(SnapshotDetailText)
-
-	if snap.Size.Rows != 3 || snap.Size.Cols != 10 {
-		t.Errorf("Size = %dx%d, want 3x10", snap.Size.Rows, snap.Size.Cols)
-	}
-	if len(snap.Lines) != 3 {
-		t.Fatalf("len(Lines) = %d, want 3", len(snap.Lines))
-	}
-	if snap.Lines[0].Text != "Hello" {
-		t.Errorf("Lines[0].Text = %q, want %q", snap.Lines[0].Text, "Hello")
-	}
-	if snap.Lines[1].Text != "World" {
-		t.Errorf("Lines[1].Text = %q, want %q", snap.Lines[1].Text, "World")
-	}
-	if snap.Lines[0].Segments != nil {
-		t.Error("Text mode should not have segments")
-	}
-	if snap.Lines[0].Cells != nil {
-		t.Error("Text mode should not have cells")
-	}
-}
-
-func snapshotTextEmptyCase(t *testing.T) {
-	term := New(WithSize(3, 10))
-	snap := term.Snapshot(SnapshotDetailText)
-	if snap.Size.Rows != 3 || len(snap.Lines) != 3 {
-		t.Fatalf("Size.Rows = %d, len(Lines) = %d, want 3/3", snap.Size.Rows, len(snap.Lines))
-	}
-	for i, line := range snap.Lines {
-		if line.Text != "" {
-			t.Errorf("Lines[%d].Text = %q, want empty", i, line.Text)
-		}
-	}
 }
 
 func snapshotTextCursorCase(t *testing.T) {

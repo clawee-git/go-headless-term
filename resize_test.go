@@ -90,77 +90,90 @@ func TestTerminalAutoResizeNoScrollback(t *testing.T) {
 // TestResizeInvalidDimensions tests that Resize ignores invalid dimensions
 func TestTerminalResizeBounds(t *testing.T) {
 	t.Run("invalid dimensions", resizeInvalidDimensionsCase)
-	t.Run("cursor clamped after resize", resizeCursorBoundsCase)
 	t.Run("bounds after grow cols", cursorBoundsAfterGrowColsCase)
-	t.Run("bounds after wrap", cursorBoundsAfterWrapCase)
-	t.Run("invalid cursor position", inputWithInvalidCursorPositionCase)
+	for _, c := range cursorInBoundsCases {
+		t.Run(c.name, func(t *testing.T) {
+			term := New(WithSize(c.rows, c.cols))
+			for _, w := range c.writes {
+				term.WriteString(w)
+			}
+			if c.resizeRows > 0 {
+				term.Resize(c.resizeRows, c.resizeCols)
+			}
+			maxCol := term.Cols()
+			if !c.allowPendingWrap {
+				maxCol--
+			}
+			row, col := term.CursorPos()
+			if row < 0 || row >= term.Rows() {
+				t.Errorf("cursor row = %d, want 0..%d", row, term.Rows()-1)
+			}
+			if col < 0 || col > maxCol {
+				t.Errorf("cursor col = %d, want 0..%d", col, maxCol)
+			}
+		})
+	}
 }
 
+// resizeInvalidDimensionsCase: Resize ignores any non-positive dimension and
+// applies a valid pair. The cases run in order on one terminal, so each want is
+// the size the previous case left.
 func resizeInvalidDimensionsCase(t *testing.T) {
 	term := New(WithSize(24, 80))
-
-	originalRows := term.Rows()
-	originalCols := term.Cols()
-
-	// Test with zero dimensions
-	term.Resize(0, 0)
-	if term.Rows() != originalRows || term.Cols() != originalCols {
-		t.Errorf("Resize(0, 0) should be ignored, got %dx%d", term.Rows(), term.Cols())
-	}
-
-	// Test with negative dimensions
-	term.Resize(-10, -20)
-	if term.Rows() != originalRows || term.Cols() != originalCols {
-		t.Errorf("Resize(-10, -20) should be ignored, got %dx%d", term.Rows(), term.Cols())
-	}
-
-	// Test with zero rows
-	term.Resize(0, 100)
-	if term.Rows() != originalRows || term.Cols() != originalCols {
-		t.Errorf("Resize(0, 100) should be ignored, got %dx%d", term.Rows(), term.Cols())
-	}
-
-	// Test with zero cols
-	term.Resize(50, 0)
-	if term.Rows() != originalRows || term.Cols() != originalCols {
-		t.Errorf("Resize(50, 0) should be ignored, got %dx%d", term.Rows(), term.Cols())
-	}
-
-	// Test with valid dimensions
-	term.Resize(30, 100)
-	if term.Rows() != 30 || term.Cols() != 100 {
-		t.Errorf("Resize(30, 100) should work, got %dx%d", term.Rows(), term.Cols())
+	for _, c := range []struct {
+		rows, cols         int
+		wantRows, wantCols int
+	}{
+		{rows: 0, cols: 0, wantRows: 24, wantCols: 80},
+		{rows: -10, cols: -20, wantRows: 24, wantCols: 80},
+		{rows: 0, cols: 100, wantRows: 24, wantCols: 80},
+		{rows: 50, cols: 0, wantRows: 24, wantCols: 80},
+		{rows: 30, cols: 100, wantRows: 30, wantCols: 100},
+	} {
+		term.Resize(c.rows, c.cols)
+		if term.Rows() != c.wantRows || term.Cols() != c.wantCols {
+			t.Errorf("after Resize(%d, %d): size = %dx%d, want %dx%d",
+				c.rows, c.cols, term.Rows(), term.Cols(), c.wantRows, c.wantCols)
+		}
 	}
 }
 
-// resizeCursorBoundsCase tests that cursor is properly clamped after resize
-func resizeCursorBoundsCase(t *testing.T) {
-	term := New(WithSize(24, 80))
-
-	// Move cursor to end
-	term.WriteString(strings.Repeat("A", 80))
-	term.WriteString("\r\n")
-	term.WriteString(strings.Repeat("B", 80))
-
-	// Resize to smaller dimensions
-	term.Resize(10, 40)
-
-	row, col := term.CursorPos()
-	if row < 0 || row >= 10 {
-		t.Errorf("cursor row out of bounds after resize: %d (expected 0-9)", row)
-	}
-	if col < 0 || col >= 40 {
-		t.Errorf("cursor col out of bounds after resize: %d (expected 0-39)", col)
-	}
+// cursorInBoundsCases each drive the terminal into a state that has historically
+// left the cursor off the grid. The contract they share is the whole assertion:
+// the cursor row is a real row and the column is a real column, or the
+// just-past-the-end column a pending wrap parks on.
+var cursorInBoundsCases = []struct {
+	name                   string
+	rows, cols             int
+	writes                 []string
+	resizeRows, resizeCols int
+	allowPendingWrap       bool
+}{
+	{
+		name: "cursor clamped after resize", rows: 24, cols: 80,
+		writes:     []string{strings.Repeat("A", 80), "\r\n", strings.Repeat("B", 80)},
+		resizeRows: 10, resizeCols: 40,
+	},
+	{
+		name: "bounds after wrap", rows: 5, cols: 10,
+		writes:           []string{strings.Repeat("123456789A", 10)},
+		allowPendingWrap: true,
+	},
+	{
+		name: "bounds after overfilling the grid", rows: 5, cols: 10,
+		writes:           []string{strings.Repeat("A", 100), "X"},
+		allowPendingWrap: true,
+	},
 }
 
-// cursorBoundsAfterGrowColsCase tests that cursor stays within bounds after auto-resize
+// cursorBoundsAfterGrowColsCase is not a bounds case like the ones above: it
+// also asserts that the auto-resize grew the line, which is the behaviour that
+// puts the cursor at risk in the first place.
 func cursorBoundsAfterGrowColsCase(t *testing.T) {
 	term := New(WithSize(5, 10), WithAutoResize())
 
-	// Write a wide character at the end of line (should trigger GrowCols)
-	term.WriteString(strings.Repeat("A", 9)) // Fill 9 columns
-	term.WriteString("中")                    // Wide character (2 columns) at position 9
+	term.WriteString(strings.Repeat("A", 9)) // fill 9 columns
+	term.WriteString("\u4e2d")               // a wide character at position 9 grows the line
 
 	row, col := term.CursorPos()
 	if row < 0 || row >= term.Rows() {
@@ -170,58 +183,8 @@ func cursorBoundsAfterGrowColsCase(t *testing.T) {
 		t.Errorf("cursor col out of bounds after GrowCols: %d (cols: %d)", col, term.Cols())
 	}
 
-	// Verify the character was written
-	content := term.LineContent(0)
-	if len(content) < 10 {
+	if content := term.LineContent(0); len(content) < 10 {
 		t.Errorf("expected line to grow, got length %d", len(content))
-	}
-}
-
-// cursorBoundsAfterWrapCase tests that cursor row is validated after line wrap
-func cursorBoundsAfterWrapCase(t *testing.T) {
-	term := New(WithSize(5, 10))
-
-	// Fill terminal with text to trigger wrapping
-	for i := 0; i < 10; i++ {
-		term.WriteString("123456789") // 9 chars, will wrap on next char
-		term.WriteString("A")         // Triggers wrap
-	}
-
-	row, col := term.CursorPos()
-	if row < 0 || row >= term.Rows() {
-		t.Errorf("cursor row out of bounds after wrap: %d (rows: %d)", row, term.Rows())
-	}
-	if col < 0 || col > term.Cols() {
-		t.Errorf("cursor col out of bounds after wrap: %d (cols: %d)", col, term.Cols())
-	}
-}
-
-// inputWithInvalidCursorPositionCase tests that input handles invalid cursor positions gracefully
-func inputWithInvalidCursorPositionCase(t *testing.T) {
-	term := New(WithSize(5, 10))
-
-	// Manually set cursor to invalid position (would require reflection, but we test indirectly)
-	// by writing characters that would cause cursor to go out of bounds
-
-	// Write to fill terminal
-	for i := 0; i < 100; i++ {
-		term.WriteString("A")
-	}
-
-	// Cursor should still be within bounds (allow col == cols for edge case)
-	row, col := term.CursorPos()
-	if row < 0 || row >= term.Rows() {
-		t.Errorf("cursor row out of bounds: %d (rows: %d)", row, term.Rows())
-	}
-	if col < 0 || col > term.Cols() {
-		t.Errorf("cursor col out of bounds: %d (cols: %d)", col, term.Cols())
-	}
-
-	// Verify we can still write without panic
-	term.WriteString("X")
-	row2, col2 := term.CursorPos()
-	if row2 < 0 || row2 >= term.Rows() || col2 < 0 || col2 > term.Cols() {
-		t.Errorf("cursor out of bounds after write: (%d, %d)", row2, col2)
 	}
 }
 
@@ -496,95 +459,76 @@ func TestRowCoordinateConversion(t *testing.T) {
 	t.Run("round trip", rowConversionRoundTripCase)
 }
 
-func viewportRowToAbsoluteCase(t *testing.T) {
-	term, _ := newScrollbackTerm(5)
-
-	// Without scrollback, viewport row equals absolute row
-	if got := term.ViewportRowToAbsolute(0); got != 0 {
-		t.Errorf("without scrollback: expected 0, got %d", got)
-	}
-	if got := term.ViewportRowToAbsolute(3); got != 3 {
-		t.Errorf("without scrollback: expected 3, got %d", got)
-	}
-
-	// Create scrollback by writing more lines than terminal height
+// fillScrollback writes ten lines into a five-row terminal so the top lines
+// leave the viewport, and returns the resulting scrollback length.
+func fillScrollback(t *testing.T, term *Terminal) int {
+	t.Helper()
 	for i := 0; i < 10; i++ {
 		term.WriteString("Line\n")
 	}
-
-	scrollbackLen := term.ScrollbackLen()
-	if scrollbackLen == 0 {
+	n := term.ScrollbackLen()
+	if n == 0 {
 		t.Fatal("expected scrollback to exist")
 	}
+	return n
+}
 
-	// Viewport row 0 should now be at absolute row = scrollbackLen
-	if got := term.ViewportRowToAbsolute(0); got != scrollbackLen {
-		t.Errorf("with scrollback: expected %d, got %d", scrollbackLen, got)
+func viewportRowToAbsoluteCase(t *testing.T) {
+	term, _ := newScrollbackTerm(5)
+
+	for _, c := range []struct{ in, want int }{{in: 0, want: 0}, {in: 3, want: 3}} {
+		if got := term.ViewportRowToAbsolute(c.in); got != c.want {
+			t.Errorf("without scrollback: ViewportRowToAbsolute(%d) = %d, want %d", c.in, got, c.want)
+		}
 	}
 
-	// Viewport row 2 should be at absolute row = scrollbackLen + 2
-	if got := term.ViewportRowToAbsolute(2); got != scrollbackLen+2 {
-		t.Errorf("with scrollback: expected %d, got %d", scrollbackLen+2, got)
+	n := fillScrollback(t, term)
+
+	for _, c := range []struct{ in, want int }{{in: 0, want: n}, {in: 2, want: n + 2}} {
+		if got := term.ViewportRowToAbsolute(c.in); got != c.want {
+			t.Errorf("with scrollback: ViewportRowToAbsolute(%d) = %d, want %d", c.in, got, c.want)
+		}
 	}
 }
 
 func absoluteRowToViewportCase(t *testing.T) {
 	term, _ := newScrollbackTerm(5)
 
-	// Without scrollback, absolute row equals viewport row
-	if got := term.AbsoluteRowToViewport(0); got != 0 {
-		t.Errorf("without scrollback: expected 0, got %d", got)
-	}
-	if got := term.AbsoluteRowToViewport(3); got != 3 {
-		t.Errorf("without scrollback: expected 3, got %d", got)
-	}
-
-	// Out of bounds should return -1
-	if got := term.AbsoluteRowToViewport(5); got != -1 {
-		t.Errorf("out of bounds: expected -1, got %d", got)
-	}
-	if got := term.AbsoluteRowToViewport(-1); got != -1 {
-		t.Errorf("negative: expected -1, got %d", got)
+	for _, c := range []struct {
+		name     string
+		in, want int
+	}{
+		{name: "first row", in: 0, want: 0},
+		{name: "inside the viewport", in: 3, want: 3},
+		{name: "past the last row", in: 5, want: -1},
+		{name: "negative", in: -1, want: -1},
+	} {
+		if got := term.AbsoluteRowToViewport(c.in); got != c.want {
+			t.Errorf("without scrollback, %s: AbsoluteRowToViewport(%d) = %d, want %d", c.name, c.in, got, c.want)
+		}
 	}
 
-	// Create scrollback
-	for i := 0; i < 10; i++ {
-		term.WriteString("Line\n")
-	}
+	n := fillScrollback(t, term)
 
-	scrollbackLen := term.ScrollbackLen()
-
-	// Rows in scrollback should return -1
-	if got := term.AbsoluteRowToViewport(0); got != -1 {
-		t.Errorf("scrollback row: expected -1, got %d", got)
-	}
-	if got := term.AbsoluteRowToViewport(scrollbackLen - 1); got != -1 {
-		t.Errorf("last scrollback row: expected -1, got %d", got)
-	}
-
-	// First visible row
-	if got := term.AbsoluteRowToViewport(scrollbackLen); got != 0 {
-		t.Errorf("first visible: expected 0, got %d", got)
-	}
-
-	// Row in middle of viewport
-	if got := term.AbsoluteRowToViewport(scrollbackLen + 2); got != 2 {
-		t.Errorf("middle viewport: expected 2, got %d", got)
-	}
-
-	// Row beyond viewport
-	if got := term.AbsoluteRowToViewport(scrollbackLen + 10); got != -1 {
-		t.Errorf("beyond viewport: expected -1, got %d", got)
+	for _, c := range []struct {
+		name     string
+		in, want int
+	}{
+		{name: "first scrollback row", in: 0, want: -1},
+		{name: "last scrollback row", in: n - 1, want: -1},
+		{name: "first visible row", in: n, want: 0},
+		{name: "middle of the viewport", in: n + 2, want: 2},
+		{name: "beyond the viewport", in: n + 10, want: -1},
+	} {
+		if got := term.AbsoluteRowToViewport(c.in); got != c.want {
+			t.Errorf("with scrollback, %s: AbsoluteRowToViewport(%d) = %d, want %d", c.name, c.in, got, c.want)
+		}
 	}
 }
 
 func rowConversionRoundTripCase(t *testing.T) {
 	term, _ := newScrollbackTerm(5)
-
-	// Create some scrollback
-	for i := 0; i < 10; i++ {
-		term.WriteString("Line\n")
-	}
+	fillScrollback(t, term)
 
 	// Round trip: viewport -> absolute -> viewport should return original
 	for viewportRow := 0; viewportRow < 5; viewportRow++ {

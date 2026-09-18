@@ -732,42 +732,33 @@ func (r *testRecording) Clear() {
 	r.data = nil
 }
 
+// terminalRecordingCases: the recorder captures exactly the bytes written,
+// escape sequences included.
+var terminalRecordingCases = []struct {
+	name   string
+	writes []string
+	want   string
+}{
+	{name: "basic", writes: []string{"Hello", " World"}, want: "Hello World"},
+	{name: "with ansi", writes: []string{"\x1b[31mRed\x1b[0m"}, want: "\x1b[31mRed\x1b[0m"},
+}
+
 func TestTerminalRecording(t *testing.T) {
-	t.Run("basic", terminalRecordingBasicCase)
-	t.Run("with ansi", terminalRecordingWithANSICase)
+	for _, c := range terminalRecordingCases {
+		t.Run(c.name, func(t *testing.T) {
+			rec := &testRecording{}
+			term := New(WithRecording(rec))
+			for _, w := range c.writes {
+				term.WriteString(w)
+			}
+			if got := string(rec.Data()); got != c.want {
+				t.Errorf("recorded = %q, want %q", got, c.want)
+			}
+		})
+	}
 	t.Run("clear", terminalRecordingClearCase)
 	t.Run("replay", terminalRecordingReplayCase)
 	t.Run("set provider", terminalRecordingSetProviderCase)
-}
-
-func terminalRecordingBasicCase(t *testing.T) {
-	rec := &testRecording{}
-	term := New(WithRecording(rec))
-
-	// Write some data
-	term.WriteString("Hello")
-	term.WriteString(" World")
-
-	// Check recorded data
-	recorded := string(rec.Data())
-	if recorded != "Hello World" {
-		t.Errorf("expected 'Hello World', got '%s'", recorded)
-	}
-}
-
-func terminalRecordingWithANSICase(t *testing.T) {
-	rec := &testRecording{}
-	term := New(WithRecording(rec))
-
-	// Write data with ANSI sequences
-	input := "\x1b[31mRed\x1b[0m"
-	term.WriteString(input)
-
-	// Recording should capture raw bytes including ANSI
-	recorded := string(rec.Data())
-	if recorded != input {
-		t.Errorf("expected '%s', got '%s'", input, recorded)
-	}
 }
 
 func terminalRecordingClearCase(t *testing.T) {
