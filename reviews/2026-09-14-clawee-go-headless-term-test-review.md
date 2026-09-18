@@ -132,14 +132,23 @@ regroup, not "variation is data" (guideline §2.2) — and that the suite had gr
 Every one of those rows was re-examined, one at a time, and resolved one of two ways:
 
 - **folded** into a real data table where the cases genuinely differ only in input and expectation
-  (commit `f8679b4`): the eight alternate-screen resize scenarios, three of the five resize-bounds
-  cases, the two recording-capture cases, the two snapshot-text cases, and the two row-conversion
-  assertion runs. **20 rows.**
+  (commit `f8679b4`) — **16 rows**: the eight alternate-screen resize scenarios (R01/PR1) plus the
+  three parent funcs they collapse, three of the five resize-bounds cases (T31), the ANSI recording
+  capture case (T30) and the empty-terminal snapshot case (SN01).
 - **re-verdicted `RENAME`** where the cases differ in *behaviour* rather than data: a different API,
   a different assertion, a different contract. They stay separate named subtests under their host,
-  and their rows now say so. **19 rows.** Forcing these into a table is the mistake the same review
-  found in `bufferGrowCases` — three assertions collapsed into one boolean — and it is not repeated
-  to improve a number.
+  and their rows now carry that verdict with the reason — **20 rows**: four kitty end-to-end cases,
+  three recording cases, five resize-scrollback cases, the grow-cols bounds case, both row-conversion
+  cases, the wide-character cursor case, two semantic-prompt scrollback cases, the alternate-screen
+  event-pairing case, and the snapshot cursor case. Forcing these into a table is the mistake the
+  same review found in `bufferGrowCases` — three assertions collapsed into one boolean — and it is
+  not repeated to improve a number.
+
+Two clusters were compacted *inside* their subtests without changing the row's verdict: the
+`AbsoluteRowToViewport` and `ViewportRowToAbsolute` assertion runs became in/want tables within the
+subtest that owns them (nine hand-written if/Errorf blocks became two tables). `f8679b4`'s commit
+message lists those as folded rows ("T34 x2") and over-counts the recording and snapshot folds
+("T30 x2", "SN01 x2"); the counts above, taken from this table, are the record.
 
 Fixture sprawl found on the way is extracted rather than tabled (`1c024cb`, rows X01-X03), and the
 four tables carrying `func`-typed fields are dealt with in `b2dd063` (rows below). The resulting
