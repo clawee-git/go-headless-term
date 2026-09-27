@@ -6,17 +6,21 @@ MACHINE="${CLAWEE_CI_MACHINE:-burrowee-ci}"
 SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 REMOTE_PREFIX="/tmp/clawee-ght-"
-REMOTE_DIR="${CLAWEE_CI_DIR:-$REMOTE_PREFIX$(id -un)-$(printf '%s' "$SRC" | cksum | cut -d' ' -f1)}"
+SEED_DIR="${CLAWEE_CI_DIR:-$REMOTE_PREFIX$(id -un)-$(printf '%s' "$SRC" | cksum | cut -d' ' -f1)}"
+SEED_DEPS_DIR="$SEED_DIR.deps"
+USER_TAG="$(id -un | tr -c 'A-Za-z0-9\n' '_')"
+RUN_ID="$USER_TAG-$$-$(date +%s)"
+case "$RUN_ID" in "$USER_TAG"-[0-9]*-[0-9]*) ;; *) echo "$PROG: could not form a run id ('$RUN_ID'); refusing to run" >&2; exit 1 ;; esac
+REMOTE_DIR="$SEED_DIR.t-$RUN_ID"
 DEPS_DIR="$REMOTE_DIR.deps"
+RUN_DIR="$REMOTE_DIR.run"
+RUN_BASE="$RUN_DIR/run"
 
-LOCK_ROOT="/tmp/ci-lock"
-LOCK="$LOCK_ROOT/clawee"
-LOCK_HEARTBEAT_S="${CLAWEE_CI_LOCK_HEARTBEAT_S:-30}"
-LOCK_STALE_MULTIPLE=4
+CI_LOCK_PRODUCT=clawee-go-headless-term
+CI_LOCK_BIN=/usr/local/bin/ci-lock
+SUITE_BOUND_S=600
 LOCK_PROJECT="${CLAWEE_CI_LOCK_PROJECT:-$(git -C "$SRC" rev-parse --abbrev-ref HEAD 2>/dev/null || echo unknown)}"
 LOCK_SESSION="${CLAWEE_CI_LOCK_SESSION:-unrecorded}"
-RUN_ID="$(id -un | tr -c 'A-Za-z0-9\n' '_')-$$-$(date +%s)"
-RUN_BASE="$REMOTE_DIR.run.$RUN_ID"
 POLL_S="${CLAWEE_CI_POLL_S:-3}"
 FOLLOW_MAX_MISSES="${CLAWEE_CI_FOLLOW_MAX_MISSES:-40}"
 DEAD_POLLS=3
@@ -26,15 +30,16 @@ ARTIFACTS_DIR=""
 SHUFFLE=0
 REPEAT=1
 PACKAGES=(./...)
-LOCK_STATE=""
+TREE_TOUCHED=0
+LOCK_EXIT=""
 WS_DIRS=()
 WS_MODULES=()
 WS_DESTS=()
+WS_SEED_DESTS=()
 WS_RSYNC_PATHS=()
 FOLLOW_OUTCOME=""
 
-usage() {
-    cat <<'USAGE'
+IFS= read -r -d '' USAGE_TEXT <<'USAGE' || true
 Usage:
   ci/run-tests.sh [options] [pkg...]   the suite; packages default to ./...
   ci/run-tests.sh -h|--help            this text
@@ -56,53 +61,64 @@ shuffle seed. Without options the plain suite runs, unchanged.
 
 Environment:
   CLAWEE_CI_MACHINE             the machine (default burrowee-ci)
-  CLAWEE_CI_DIR                 remote tree (default /tmp/clawee-ght-<user>-<cksum
-                                of this checkout>); must be /tmp/clawee-ght-<name>,
-                                <name> of letters, digits and ._- with no '..'
-                                and not ending in '.'
-  CLAWEE_CI_LOCK_PROJECT        project id recorded on the lock (default: the branch)
-  CLAWEE_CI_LOCK_SESSION        session id recorded on the lock (default: unrecorded)
-  CLAWEE_CI_LOCK_HEARTBEAT_S    heartbeat interval in seconds (default 30); stale after 4
+  CLAWEE_CI_DIR                 the checkout's seed tree (default
+                                /tmp/clawee-ght-<user>-<cksum of this checkout>);
+                                must be /tmp/clawee-ght-<name>, <name> of letters,
+                                digits and ._- with no '..' and not ending in '.'.
+                                Each run syncs into its own tree <seed>.t-<run id>,
+                                seeded from the seed (rsync --copy-dest: own
+                                files), and removes it when it ends
+  CLAWEE_CI_LOCK_PROJECT        project recorded on the lock (default: the branch)
+  CLAWEE_CI_LOCK_SESSION        session recorded on the lock (default: unrecorded)
   CLAWEE_CI_POLL_S              seconds between log polls (default 3)
   CLAWEE_CI_FOLLOW_MAX_MISSES   failed polls in a row before following gives up (default 40)
-The three numbers must be whole numbers of at least 1; anything else is a
+The two numbers must be whole numbers of at least 1; anything else is a
 usage error before the machine is contacted.
 
+The CI lock: the suite runs on the machine under
+  ci-lock run clawee-go-headless-term --timeout 600 --project <p> --session <s> -- …
+which holds the clawee-go-headless-term product lock and a shared hold on
+clawee for as long as the run's processes live. A held lock is waited on, up
+to the suite bound (go test's default -timeout, 600s); ci-lock's waiting and
+acquired lines are in the followed log, and `ci-lock status
+clawee-go-headless-term` on the machine names the holder. Other Clawee
+products run beside it. The run gets its own user scope where the machine's
+user manager runs; its end stops the group and the scope, then kills (TERM,
+then KILL) every process still carrying CLAWEE_CI_RUN_ID=<run id>.
+
 Exit status (a closed stderr never changes it):
-  0        the build and every test passed, and this run's lock was released —
-           or the release found the lock no longer naming this run (warned):
-           this run then holds no lock
+  0        the build and every test passed
   1        the build or a test failed (any non-zero status from go is reported
-           as 1, so 2 and 3 below always mean this script), or the machine
-           could not be reached, the tree not synced, the run ended without a
-           status, or its evidence could not be copied home — or the suite
-           passed but this run's lock is or may be left held: its remote kill
-           could not be confirmed, or its release went unanswered (the
-           commands to clear it are on stderr)
+           as 1, so 2 and 75 below always mean this script), or the machine
+           could not be reached, the tree not synced, clawee-go-headless-term
+           not provisioned on the machine (the operator runs `ci-lock
+           install`), the run ended without a status, or its evidence could
+           not be copied home — or the suite passed but its stop could not be
+           confirmed (the check command is on stderr)
   2        usage error, refused before any contact: bad option, option after
            packages, existing --artifacts directory, bad environment value
            (CLAWEE_CI_DIR outside /tmp/clawee-ght-<name>, or a <name> ending
            in '.'), a derived remote path the machine guard would refuse, or
            a local go.work whose `use` is not a directory or names a module
            that cannot be mirrored safely (empty, a '.' segment, '..')
-  3        the Clawee CI lock is held by another run, was released while this
-           run checked it, or its root is not writable — never waited for,
-           never broken; a MISSING root is exit 1: it is the machine's to
-           create, not this script's
+  75       the clawee-go-headless-term lock was not acquired within the suite
+           bound
   130/143/129  interrupted by INT/TERM/HUP; 141  stdout closed with SIGPIPE.
-           The run is stopped and the lock released first. While the run is
-           followed a signal is acted on at once, also when it is sent to this
-           script's pid alone. These remote steps are bounded and finish
-           before the signal is acted on: the probe, the lock take, the sync,
-           the launch and the evidence copy-back. The stop that follows the
-           signal can itself take up to about 22 s before the release.
-Once the teardown (stop, then release) has begun, further signals are
-ignored and the exit is the run's own status: a signal replaces the run's
+           The run is stopped first. While the run is followed (the wait for
+           the lock included) a signal is acted on at once, also when it is
+           sent to this script's pid alone. These remote steps are bounded and
+           finish before the signal is acted on: the probe, the stale-tree
+           cleanup, the sync, the launch and the evidence copy-back. The stop
+           that follows the signal can itself take up to about 35 s.
+Once the teardown (stop, then the tree's removal) has begun, further signals
+are ignored and the exit is the run's own status: a signal replaces the run's
 status only when it lands before the teardown, the copy-back included.
 A closed stdout WITHOUT SIGPIPE (`>&-`, or a caller that ignores SIGPIPE) does
 not stop the run: messages continue on stderr and the status is the run's.
-The lock outcome never replaces a failing status.
 USAGE
+
+usage() {
+    printf '%s' "$USAGE_TEXT"
 }
 
 usage_error() {
@@ -184,21 +200,21 @@ set_repeat() {
 }
 
 check_remote_dir() {
-    local name="${REMOTE_DIR#$REMOTE_PREFIX}"
-    case "$REMOTE_DIR" in
+    local name="${SEED_DIR#$REMOTE_PREFIX}"
+    case "$SEED_DIR" in
         $REMOTE_PREFIX?*) ;;
-        *) usage_error "CLAWEE_CI_DIR must be ${REMOTE_PREFIX}<name>: '$REMOTE_DIR'" ;;
+        *) usage_error "CLAWEE_CI_DIR must be ${REMOTE_PREFIX}<name>: '$SEED_DIR'" ;;
     esac
     case "$name" in
-        *[!A-Za-z0-9._-]* | *..* | *.) usage_error "CLAWEE_CI_DIR's <name> may hold only letters, digits and ._-, no '..', and may not end in '.': '$REMOTE_DIR'" ;;
+        *[!A-Za-z0-9._-]* | *..* | *.) usage_error "CLAWEE_CI_DIR's <name> may hold only letters, digits and ._-, no '..', and may not end in '.': '$SEED_DIR'" ;;
     esac
 }
 
 check_derived_paths() {
     local p i=0
-    set -- "$REMOTE_DIR" "$REMOTE_DIR/go.work" "$DEPS_DIR" "$RUN_BASE" "$RUN_BASE.pid" "$RUN_BASE.log" "$RUN_BASE.rc" "$RUN_BASE.sh"
+    set -- "$SEED_DIR" "$SEED_DEPS_DIR" "$REMOTE_DIR" "$REMOTE_DIR/go.work" "$DEPS_DIR" "$RUN_DIR" "$RUN_BASE.sh"
     while [ "$i" -lt "${#WS_DESTS[@]}" ]; do
-        set -- "$@" "${WS_DESTS[$i]}"
+        set -- "$@" "${WS_DESTS[$i]}" "${WS_SEED_DESTS[$i]}"
         i=$((i + 1))
     done
     for p in "$@"; do
@@ -214,8 +230,7 @@ check_derived_paths() {
 
 check_numeric_env() {
     local pair name value
-    for pair in "CLAWEE_CI_LOCK_HEARTBEAT_S=$LOCK_HEARTBEAT_S" "CLAWEE_CI_POLL_S=$POLL_S" \
-        "CLAWEE_CI_FOLLOW_MAX_MISSES=$FOLLOW_MAX_MISSES"; do
+    for pair in "CLAWEE_CI_POLL_S=$POLL_S" "CLAWEE_CI_FOLLOW_MAX_MISSES=$FOLLOW_MAX_MISSES"; do
         name="${pair%%=*}"
         value="${pair#*=}"
         case "$value" in
@@ -246,114 +261,16 @@ probe_machine() {
     exit 1
 }
 
-take_lock() {
-    printf 'project=%s\nsession=%s\nuser=%s\ntaken=%s\nrepo=%s\nrun=%s\nheartbeat_s=%s\n' "$LOCK_PROJECT" "$LOCK_SESSION" \
-        "$(id -un)" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$SRC" "$RUN_ID" "$LOCK_HEARTBEAT_S" |
-        remote_stdin "$TAKE_CMD"
-}
-
-TAKE_BODY='
-            [ -d "$root" ] || exit 5
-            if mkdir "$lock" 2>/dev/null; then
-                cat > "$lock/holder" && date -u +%Y-%m-%dT%H:%M:%SZ > "$lock/heartbeat" && exit 0
-                rm -rf -- "$lock"; exit 4
-            fi
-            if [ -d "$lock" ]; then
-                cat "$lock/holder" 2>/dev/null
-                hb=$(cat "$lock/heartbeat" 2>/dev/null)
-                if [ -n "$hb" ] && t=$(date -d "$hb" +%s 2>/dev/null); then
-                    echo "heartbeat=$hb age=$(( $(date +%s) - t ))s"
-                else
-                    echo "heartbeat=none age=unknown"
-                fi
-                exit 3
-            fi
-            if [ -d "$root" ] && [ -w "$root" ]; then echo changed; exit 3; fi
-            stat -c "root %n is %U:%G mode %a" "$root"; exit 4'
-
-refuse_lock() {
-    local rc="$1" out="$2" age interval source="holder's" stale rule
-    interval="$(printf '%s\n' "$out" | sed -n 's/^heartbeat_s=\([0-9][0-9]*\)$/\1/p' | head -1)"
-    [ -n "$interval" ] || { interval="$LOCK_HEARTBEAT_S"; source="this run's"; }
-    stale=$((interval * LOCK_STALE_MULTIPLE))
-    rule="stale after ${stale}s ($source interval ${interval}s x $LOCK_STALE_MULTIPLE)"
-    if [ "$rc" != 3 ]; then
-        warn "cannot take $MACHINE:$LOCK — the lock root is not writable by $(id -un):"
-        printf '%s\n' "$out" | sed "s|^|$PROG:   |" >&2 2>/dev/null || true
-        exit 3
-    fi
-    if [ "$out" = changed ]; then
-        warn "the Clawee CI lock $MACHINE:$LOCK was released while this run checked it — re-run"
-        exit 3
-    fi
-    age="$(printf '%s\n' "$out" | sed -n 's/.* age=\([0-9-]*\)s$/\1/p')"
-    warn "the Clawee CI lock $MACHINE:$LOCK is held:"
-    printf '%s\n' "$out" | sed "s|^|$PROG:   |" >&2 2>/dev/null || true
-    if [ -z "$age" ]; then
-        warn "no heartbeat recorded — its age cannot be judged ($rule). Ask the holder; breaking it is an operator decision."
-    elif [ "$age" -gt "$stale" ]; then
-        warn "STALE — no heartbeat for ${age}s, $rule."
-        warn "breaking it is an operator decision; this script never does."
-    else
-        warn "live — heartbeat ${age}s old, $rule. Wait for it."
-    fi
-    exit 3
-}
-
-heartbeat_cmd() {
-    printf 'grep -qx %q %q && date -u +%%Y-%%m-%%dT%%H:%%M:%%SZ > %q' "run=$RUN_ID" "$LOCK/holder" "$LOCK/heartbeat"
-}
-
-start_heartbeat() {
-    local cmd parent=$$
-    cmd="$(heartbeat_cmd)"
-    (
-        child=""
-        trap '[ -z "$child" ] || kill "$child" 2>/dev/null; exit 0' TERM
-        while :; do
-            sleep "$LOCK_HEARTBEAT_S" & child=$!; wait "$child" || true
-            kill -0 "$parent" 2>/dev/null || exit 0
-            ssh -n "${SSH_OPTS[@]}" "$MACHINE" "$cmd" >/dev/null 2>&1 & child=$!; wait "$child" || true
-        done
-    ) &
-    HEARTBEAT_PID=$!
-}
-
-stop_heartbeat() {
-    if [ -n "${HEARTBEAT_PID:-}" ]; then
-        kill "$HEARTBEAT_PID" 2>/dev/null || true
-        wait "$HEARTBEAT_PID" 2>/dev/null || true
-        HEARTBEAT_PID=""
-    fi
-}
-
-release_lock() {
-    local rc=0 KEPT=0
-    remote_n "$RELEASE_CMD" 2>/dev/null || rc=$?
-    case "$rc" in
-        0) say "released $MACHINE:$LOCK" ;;
-        3) [ "${1:-}" = quiet ] || warn "lock $MACHINE:$LOCK not released: its holder does not name run $RUN_ID — check it" ;;
-        *) warn "could not release $MACHINE:$LOCK (ssh status $rc): it may still be held by run $RUN_ID"
-           KEPT=1
-           warn "  check the holder:"
-           print_command "ssh $MACHINE cat $LOCK/holder"
-           warn "  release, only if the holder names run $RUN_ID:"
-           print_command "ssh $MACHINE '$RELEASE_CMD'" ;;
-    esac
-    [ "$KEPT" = 0 ]
-}
-
 sync_tree() {
     say "sync $SRC -> $MACHINE:$REMOTE_DIR"
     rsync -a -e "$RSYNC_SSH" --rsync-path="$TREE_RSYNC_PATH" --delete --exclude '.git' --exclude '.codegraph' \
-        --exclude '/dist' --exclude 'go.work' --exclude 'go.work.sum' "$SRC/" "$MACHINE:$REMOTE_DIR/" ||
+        --copy-dest="$SEED_DIR" --exclude '/dist' --exclude 'go.work' --exclude 'go.work.sum' "$SRC/" "$MACHINE:$REMOTE_DIR/" ||
         { warn "rsync of $SRC to $MACHINE failed"; return 1; }
     if [ -f "$SRC/go.work" ]; then
         mirror_workspace || return 1
-    else
-        remote_n "$GOWORK_RM_CMD" ||
-            { warn "could not remove a stale go.work on $MACHINE"; return 1; }
     fi
+    remote_n "$SEED_REFRESH_CMD" ||
+        warn "could not refresh the seed $MACHINE:$SEED_DIR from this run's tree; the next run copies more, nothing else changes"
 }
 
 workspace_uses() {
@@ -388,6 +305,7 @@ plan_workspace() {
         module="$(workspace_module "$dep")" || return 1
         dest="$DEPS_DIR/$(printf '%s' "$module" | tr '/' '_')"
         WS_DIRS+=("$dep"); WS_MODULES+=("$module"); WS_DESTS+=("$dest")
+        WS_SEED_DESTS+=("$SEED_DEPS_DIR/${dest##*/}")
         WS_RSYNC_PATHS+=("$(remote_guard "$dest" "$REMOTE_PREFIX?*")rsync")
     done
 }
@@ -398,7 +316,7 @@ mirror_workspace() {
     remote_n "$(printf 'mkdir -p %q' "$DEPS_DIR")" || { warn "could not create $DEPS_DIR on $MACHINE"; return 1; }
     while [ "$i" -lt "${#WS_DIRS[@]}" ]; do
         rsync -a -e "$RSYNC_SSH" --rsync-path="${WS_RSYNC_PATHS[$i]}" --delete --exclude '.git' --exclude '.codegraph' \
-            --exclude '/dist' --exclude 'go.work' --exclude 'go.work.sum' "${WS_DIRS[$i]}/" "$MACHINE:${WS_DESTS[$i]}/" ||
+            --copy-dest="${WS_SEED_DESTS[$i]}" --exclude '/dist' --exclude 'go.work' --exclude 'go.work.sum' "${WS_DIRS[$i]}/" "$MACHINE:${WS_DESTS[$i]}/" ||
             { warn "rsync of ${WS_DIRS[$i]} to $MACHINE failed"; return 1; }
         uses="$uses	${WS_DESTS[$i]}
 "
@@ -424,11 +342,9 @@ remote_suite() {
     local pkgs flags
     pkgs="$(printf '%q ' "${PACKAGES[@]}")"
     flags="$(go_test_flags)"
-    remote_guard "$RUN_BASE" "$REMOTE_PREFIX?*"
+    remote_guard "$RUN_DIR" "$REMOTE_PREFIX?*"
     printf '\n'
-    printf 'echo $$ > %q\n' "$RUN_BASE.pid"
-    printf '( while grep -qx %q %q 2>/dev/null; do date -u +%%Y-%%m-%%dT%%H:%%M:%%SZ > %q; sleep %q; done ) &\nbeat=$!\n' \
-        "run=$RUN_ID" "$LOCK/holder" "$LOCK/heartbeat" "$LOCK_HEARTBEAT_S"
+    printf ': > %q\n' "$RUN_DIR/started"
     printf 'export GOTOOLCHAIN=auto TMPDIR=/tmp\nrc=0\n'
     printf 'if ! cd %q; then echo "=== cannot cd to %q"; rc=1\n' "$REMOTE_DIR" "$REMOTE_DIR"
     printf 'elif [ %q = 1 ] && ! command -v jq >/dev/null; then echo "=== jq is not installed; the evidence mode needs it"; rc=1\n' "$EVIDENCE"
@@ -441,8 +357,7 @@ remote_suite() {
         evidence_test_cmd "$flags" "$pkgs"
     fi
     printf 'else rc=$?; echo "=== build FAILED ($rc)"\nfi\nfi\n'
-    printf 'kill $beat 2>/dev/null\necho $rc > %q && mv -- %q %q\nrm -f -- %q\nexit $rc\n' \
-        "$RUN_BASE.rc.tmp" "$RUN_BASE.rc.tmp" "$RUN_BASE.rc" "$RUN_BASE.pid"
+    printf 'echo $rc > %q && mv -- %q %q\nexit $rc\n' "$RUN_BASE.rc.tmp" "$RUN_BASE.rc.tmp" "$RUN_BASE.rc"
 }
 
 evidence_test_cmd() {
@@ -493,17 +408,26 @@ launch() {
     printf '%s\n' "$SUITE_SCRIPT" | remote_stdin "$LAUNCH_CMD"
 }
 
+LOCKED_RUN="$CI_LOCK_BIN run $CI_LOCK_PRODUCT --timeout $SUITE_BOUND_S --project \"\$1\" --session \"\$2\" -- bash \"\$3/run.sh\"; c=\$?; [ -f \"\$3/run.rc\" ] || [ -f \"\$3/started\" ] || { echo \"\$c\" > \"\$3/lock_rc.tmp\" && mv -- \"\$3/lock_rc.tmp\" \"\$3/lock_rc\"; }; exit \$c"
+EMPTY_ID_REFUSAL='[ -n "$id" ] || { echo "ci/run-tests.sh: refusing to act on an empty run id" >&2; exit 5; }; '
 LAUNCH_BODY='
-            rm -f -- "$base".* || exit 1
-            cat > "$base.sh" || exit 1
-            setsid nohup bash "$base.sh" > "$base.log" 2>&1 < /dev/null &
-            echo $! > "$base.pid"'
+            rm -rf -- "$run" && mkdir -m 700 "$run" && echo "$id" > "$run/id" || exit 1
+            cat > "$run/run.sh" || exit 1
+            export CLAWEE_CI_RUN_ID="$id"
+            scope=""
+            case "$(systemctl --user is-system-running 2>/dev/null)" in
+                running | degraded) command -v systemd-run >/dev/null && scope="clawee-go-headless-term-run-$id.scope" ;;
+            esac
+            printf "%s\n" "$scope" > "$run/scope"
+            setsid nohup ${scope:+systemd-run --user --scope --quiet --collect --unit="$scope" --} bash -c "$locked" ci-lock-run "$project" "$session" "$run" > "$run/run.log" 2>&1 < /dev/null &
+            echo $! > "$run/run.pid"'
 
 poll_cmd() {
-    printf 'base=%q off=%q; ' "$RUN_BASE" "$1"
-    printf '%s' 'alive=dead; [ -f "$base.pid" ] && kill -0 "$(cat "$base.pid")" 2>/dev/null && alive=alive; '
-    printf '%s' 'rc=$(cat "$base.rc" 2>/dev/null); size=$(stat -c %s "$base.log" 2>/dev/null || echo 0); '
-    printf '%s' 'echo "$alive $rc $size"; tail -c +$((off + 1)) "$base.log" 2>/dev/null | head -c $((size - off)); printf .'
+    printf 'run=%q off=%q; ' "$RUN_DIR" "$1"
+    printf '%s' 'alive=dead; [ -f "$run/run.pid" ] && kill -0 "$(cat "$run/run.pid")" 2>/dev/null && alive=alive; '
+    printf '%s' 'rc=$(cat "$run/run.rc" 2>/dev/null); [ -n "$rc" ] || { [ -f "$run/lock_rc" ] && rc="lock$(cat "$run/lock_rc")"; }; '
+    printf '%s' 'size=$(stat -c %s "$run/run.log" 2>/dev/null || echo 0); '
+    printf '%s' 'echo "$alive $rc $size"; tail -c +$((off + 1)) "$run/run.log" 2>/dev/null | head -c $((size - off)); printf .'
 }
 
 follow() {
@@ -521,6 +445,7 @@ follow() {
             read -r alive rc size <<<"$header"
             if [ -z "$size" ]; then size="$rc"; rc=""; fi
             offset="$size"
+            case "$rc" in lock*) FOLLOW_OUTCOME=lock; LOCK_EXIT="${rc#lock}"; return 1 ;; esac
             if [ -n "$rc" ]; then FOLLOW_OUTCOME=status; return "$rc"; fi
             if [ "$alive" = dead ]; then dead=$((dead + 1)); else dead=0; fi
             if [ "$dead" -ge "$DEAD_POLLS" ]; then
@@ -542,32 +467,87 @@ follow() {
 }
 
 stop_runner_cmd() {
-    remote_guard "$RUN_BASE.pid" "$REMOTE_PREFIX?*"
-    printf 'pidf=%q script=%q; ' "$RUN_BASE.pid" "$RUN_BASE.sh"
+    remote_guard "$RUN_DIR" "$REMOTE_PREFIX?*"
+    printf 'run=%q id=%q; %s' "$RUN_DIR" "$RUN_ID" "$EMPTY_ID_REFUSAL"
     printf '%s' '
-        if [ -f "$pidf" ]; then
-            pg=$(cat "$pidf")
-        else
-            pid=$(pgrep -f -- "^bash $script\$"); r=$?
-            [ "$r" -eq 1 ] && exit 0
-            [ "$r" -eq 0 ] || exit 1
-            pg=$(ps -o pgid= -p "${pid%%[!0-9]*}" | tr -d " ")
+proc=/proc
+survivors() { grep -lzxF -- "CLAWEE_CI_RUN_ID=$id" "$proc"/[0-9]*/environ 2>/dev/null | sed "s|^$proc/||; s|/environ\$||" | grep -vx "$$"; }
+unconfirmed=0
+if grep -qxF -- "$id" "$run/id" 2>/dev/null; then
+    pg=$(cat "$run/run.pid" 2>/dev/null)
+    case "$pg" in "" | 0* | *[!0-9]* | 1) pg="" ;; esac
+    if [ -n "$pg" ]; then
+        pgrep -g "$pg" >/dev/null; r=$?
+        if [ "$r" -eq 0 ]; then
+            echo "ci/run-tests.sh: stopping the run on the machine (process group $pg)"
+            kill -TERM -- "-$pg" 2>/dev/null
+            for i in $(seq 1 20); do pgrep -g "$pg" >/dev/null; r=$?; [ "$r" -eq 0 ] || break; sleep 1; done
+            if [ "$r" -eq 0 ]; then kill -KILL -- "-$pg" 2>/dev/null; sleep 1; pgrep -g "$pg" >/dev/null; r=$?; fi
         fi
-        case "$pg" in ""|0*|*[!0-9]*|1) echo unusable process group: "[$pg]" >&2; exit 1 ;; esac
-        kill -TERM -- "-$pg" 2>/dev/null
-        for i in $(seq 1 20); do
-            pgrep -g "$pg" >/dev/null; r=$?
-            [ "$r" -eq 1 ] && { rm -f -- "$pidf"; exit 0; }
-            [ "$r" -eq 0 ] || exit 1
-            sleep 1
-        done
-        kill -KILL -- "-$pg" 2>/dev/null; sleep 1
-        pgrep -g "$pg" >/dev/null; [ "$?" -eq 1 ] || exit 1
-        rm -f -- "$pidf"'
+        [ "$r" -eq 1 ] || { echo "ci/run-tests.sh: process group $pg is not confirmed gone (pgrep $r)"; unconfirmed=1; }
+    fi
+    unit=$(cat "$run/scope" 2>/dev/null)
+    [ "$unit" != "clawee-go-headless-term-run-$id.scope" ] || systemctl --user stop "$unit" 2>/dev/null
+fi
+left=$(survivors)
+[ -n "$left" ] || exit "$unconfirmed"
+for p in $left; do echo "ci/run-tests.sh: survivor of run $id outside its group: pid $p $(tr "\0" " " < "$proc/$p/cmdline" 2>/dev/null)"; done
+kill -TERM $left 2>/dev/null
+for i in $(seq 1 10); do left=$(survivors); [ -n "$left" ] || break; sleep 1; done
+if [ -n "$left" ]; then kill -KILL $left 2>/dev/null; sleep 1; left=$(survivors); fi
+[ -z "$left" ] || { echo "ci/run-tests.sh: run $id still has processes after KILL: $left"; exit 1; }
+echo "ci/run-tests.sh: killed the survivors of run $id (TERM, then KILL after 10s)"
+exit "$unconfirmed"'
+}
+
+prep_cmd() {
+    remote_guard "$SEED_DIR" "$REMOTE_PREFIX?*"
+    remote_guard "$SEED_DEPS_DIR" "$REMOTE_PREFIX?*"
+    printf '\nseed=%q seeddeps=%q me=%q\n' "$SEED_DIR" "$SEED_DEPS_DIR" "$USER_TAG"
+    printf '%s' 'mkdir -p -- "$seed" "$seeddeps" || exit 1
+proc=/proc
+for t in "$seed".t-?*; do
+    id=${t#"$seed".t-}
+    case "$id" in *[!A-Za-z0-9_-]*) continue ;; "$me"-[0-9]*-[0-9]*) ;; *) continue ;; esac
+    [ -d "$t" ] && [ -O "$t" ] || continue
+    grep -qxF -- "$id" "$t.run/id" 2>/dev/null || continue
+    [ -n "$(find "$t.run/id" -mmin +1 2>/dev/null)" ] || continue
+    grep -qzxF -- "CLAWEE_CI_RUN_ID=$id" "$proc"/[0-9]*/environ 2>/dev/null && continue
+    rm -rf -- "$t" "$t.run" "$t.deps" && echo "ci/run-tests.sh: removed the finished run tree $t (run $id) and its .run / .deps"
+done
+exit 0'
 }
 
 stop_runner() {
-    remote_n "$STOP_CMD" 2>/dev/null
+    local attempt rc
+    for attempt in 1 2 3; do
+        rc=0
+        remote_n "$STOP_CMD" || rc=$?
+        [ "$rc" = 255 ] || return "$rc"
+        warn "$MACHINE refused the stop (attempt $attempt of 3)"
+        [ "$attempt" = 3 ] || sleep 10
+    done
+    return 1
+}
+
+remove_tree() {
+    local attempt
+    for attempt in 1 2 3; do
+        remote_n "$REMOVE_CMD" && return 0
+        [ "$attempt" = 3 ] || sleep 5
+    done
+    warn "could not remove this run's tree on $MACHINE; remove it by hand:"
+    print_command "ssh $MACHINE '$REMOVE_CMD'"
+}
+
+lock_failed() {
+    case "$1" in
+        75) warn "the $CI_LOCK_PRODUCT lock was not acquired within ${SUITE_BOUND_S}s; ssh $MACHINE ci-lock status $CI_LOCK_PRODUCT names the holder"
+            return 75 ;;
+        2) warn "$CI_LOCK_PRODUCT is not provisioned on $MACHINE; the operator runs \`ci-lock install\`" ;;
+        *) warn "ci-lock exited $1 before the suite ran; its lines are in the log above" ;;
+    esac
+    return 1
 }
 
 remote_guard() {
@@ -576,20 +556,20 @@ remote_guard() {
 }
 
 build_teardown_cmds() {
-    local gone="$LOCK.released.$RUN_ID" run_pattern="$REMOTE_PREFIX?*"
+    local run_pattern="$REMOTE_PREFIX?*"
     STOP_CMD="$(stop_runner_cmd)"
-    RELEASE_CMD="$(remote_guard "$LOCK" /tmp/ci-lock/clawee)$(remote_guard "$gone" '/tmp/ci-lock/clawee.released.?*')"
-    RELEASE_CMD="$RELEASE_CMD$(printf 'grep -qx %q %q 2>/dev/null || exit 3; mv -- %q %q && rm -rf -- %q' \
-        "run=$RUN_ID" "$LOCK/holder" "$LOCK" "$gone" "$gone")"
-    TAKE_CMD="$(remote_guard "$LOCK" /tmp/ci-lock/clawee)$(printf 'root=%q lock=%q; ' "$LOCK_ROOT" "$LOCK")$TAKE_BODY"
-    CLEAN_CMD="$(remote_guard "$REMOTE_DIR" "$run_pattern")rm -f -- $(printf %q "$REMOTE_DIR").run.*"
-    GOWORK_RM_CMD="$(remote_guard "$REMOTE_DIR" "$run_pattern")$(printf 'rm -f -- %q %q' "$REMOTE_DIR/go.work" "$REMOTE_DIR/go.work.sum")"
+    PREP_CMD="$(prep_cmd)"
+    REMOVE_CMD="$(printf 't=%q id=%q; %s' "$REMOTE_DIR" "$RUN_ID" "$EMPTY_ID_REFUSAL")$(remote_guard "$REMOTE_DIR" "$run_pattern")"
+    REMOVE_CMD="$REMOVE_CMD"'case "$t" in *.t-"$id") ;; *) echo "ci/run-tests.sh: $t is not the tree of run $id" >&2; exit 5 ;; esac; rm -rf -- "$t" "$t.run" "$t.deps"'
+    SEED_REFRESH_CMD="$(remote_guard "$REMOTE_DIR" "$run_pattern")$(remote_guard "$SEED_DIR" "$run_pattern")$(remote_guard "$SEED_DEPS_DIR" "$run_pattern")"
+    SEED_REFRESH_CMD="$SEED_REFRESH_CMD$(printf 't=%q seed=%q seeddeps=%q; ' "$REMOTE_DIR" "$SEED_DIR" "$SEED_DEPS_DIR")"'rsync -a --delete -- "$t/" "$seed/" || exit 1; [ ! -d "$t.deps" ] || rsync -a --delete -- "$t.deps/" "$seeddeps/"'
     GOWORK_WRITE_CMD="$(remote_guard "$REMOTE_DIR/go.work" "$run_pattern")$(printf 'cat > %q' "$REMOTE_DIR/go.work")"
     TREE_RSYNC_PATH="$(remote_guard "$REMOTE_DIR" "$run_pattern")rsync"
-    LAUNCH_CMD="$(remote_guard "$RUN_BASE" "$run_pattern")$(printf 'base=%q; ' "$RUN_BASE")$LAUNCH_BODY"
+    LAUNCH_CMD="$(printf 'run=%q id=%q project=%q session=%q; %s' "$RUN_DIR" "$RUN_ID" "$LOCK_PROJECT" "$LOCK_SESSION" "$EMPTY_ID_REFUSAL")"
+    LAUNCH_CMD="$LAUNCH_CMD$(remote_guard "$RUN_DIR" "$run_pattern")"$'\n'"locked='$LOCKED_RUN'$LAUNCH_BODY"
     SUITE_SCRIPT="$(remote_suite)"
-    RUN_CHECK_CMD="$(printf 'ls -l %q.pid %q.rc %q.log; tail -5 %q.log; if [ -f %q.pid ]; then pg=$(cat %q.pid); case "$pg" in ""|0*|*[!0-9]*|1) echo "unusable process group: [$pg]"; pgrep -af "^bash %q.sh\\$" ;; *) pgrep -ag "$pg" ;; esac; else pgrep -af "^bash %q.sh\\$"; fi' \
-        "$RUN_BASE" "$RUN_BASE" "$RUN_BASE" "$RUN_BASE" "$RUN_BASE" "$RUN_BASE" "$RUN_BASE" "$RUN_BASE")"
+    RUN_CHECK_CMD="$(printf 'cat %q %q; tail -5 %q; pg=$(cat %q); case "$pg" in ""|0*|*[!0-9]*|1) echo "no usable process group: [$pg]" ;; *) pgrep -ag "$pg" ;; esac; grep -lzxF CLAWEE_CI_RUN_ID=%q /proc/[0-9]*/environ' \
+        "$RUN_BASE.rc" "$RUN_DIR/lock_rc" "$RUN_BASE.log" "$RUN_BASE.pid" "$RUN_ID")"
 }
 
 fetch_artifacts() {
@@ -610,14 +590,12 @@ fetch_artifacts() {
     (cd "$ARTIFACTS_DIR" && wc -c test.json cover.out covered.txt | sed "s|^|$PROG:   |") 2>/dev/null || true
 }
 
-report_kept_lock() {
-    warn "could not confirm the run on $MACHINE is gone — $MACHINE:$LOCK is left held (it goes STALE); not released"
+report_unstopped() {
+    warn "could not confirm the run on $MACHINE stopped. While any of its processes live they hold the $CI_LOCK_PRODUCT lock, and its tree is left in place."
     warn "  run id:  $RUN_ID"
-    warn "  files:   $MACHINE:$RUN_BASE.{pid,log,rc}"
+    warn "  files:   $MACHINE:$RUN_DIR/{run.pid,run.log,run.rc,lock_rc}"
     warn "  check what is left of the run:"
     print_command "ssh $MACHINE '$RUN_CHECK_CMD'"
-    warn "  release, only once the check shows nothing left running:"
-    print_command "ssh $MACHINE '$RELEASE_CMD'"
 }
 
 cleanup() {
@@ -629,22 +607,16 @@ cleanup() {
     [ "$rc" != 141 ] || stdout_closed
     [ -z "${FOLLOW_CHILD:-}" ] || kill "$FOLLOW_CHILD" 2>/dev/null
     [ -z "${POLL_OUT:-}" ] || rm -f "$POLL_OUT"
-    if [ "${LAUNCHED:-0}" = 1 ] && [ "$FOLLOW_OUTCOME" != status ] && ! stop_runner; then
-        stop_heartbeat
-        report_kept_lock
+    if [ "${LAUNCHED:-0}" = 1 ] && ! stop_runner; then
+        report_unstopped
         exit "$(( rc == 0 ? 1 : rc ))"
     fi
-    stop_heartbeat
-    case "$LOCK_STATE" in
-        taken) release_lock || [ "$rc" -ne 0 ] || rc=1 ;;
-        trying) release_lock quiet || [ "$rc" -ne 0 ] || rc=1 ;;
-    esac
+    [ "$TREE_TOUCHED" = 0 ] || remove_tree
     exit "$rc"
 }
 
 run_suite() {
     local rc=0
-    remote_n "$CLEAN_CMD" || true
     sync_tree || return 1
     LAUNCHED=1
     if ! launch; then
@@ -654,6 +626,10 @@ run_suite() {
     fi
     say "started on $MACHINE (log $RUN_BASE.log)"
     follow || rc=$?
+    if [ "$FOLLOW_OUTCOME" = lock ]; then
+        lock_failed "$LOCK_EXIT"
+        return
+    fi
     [ "$rc" -eq 0 ] || rc=1
     if [ "$FOLLOW_OUTCOME" = status ] && [ -n "$ARTIFACTS_DIR" ] && ! fetch_artifacts; then
         [ "$rc" -ne 0 ] || rc=1
@@ -663,7 +639,7 @@ run_suite() {
 }
 
 main() {
-    local lock_out lock_rc=0 rc=0
+    local prep_out rc=0
     parse_args "$@"
     check_remote_dir
     check_numeric_env
@@ -678,17 +654,9 @@ main() {
     trap 'exit 141' PIPE
     probe_machine
     trap cleanup EXIT
-    LOCK_STATE=trying
-    lock_out="$(take_lock)" || lock_rc=$?
-    case "$lock_rc" in
-        0) LOCK_STATE=taken; say "took $MACHINE:$LOCK (project $LOCK_PROJECT, session $LOCK_SESSION)" ;;
-        3|4) LOCK_STATE=""; refuse_lock "$lock_rc" "$lock_out" ;;
-        5) LOCK_STATE=""
-           warn "$MACHINE:$LOCK_ROOT does not exist — the machine's tmpfiles.d entry creates it; this script never does. Ask the machine's owner to run systemd-tmpfiles --create."
-           exit 1 ;;
-        *) warn "could not reach $MACHINE to take the lock (ssh $lock_rc)"; exit 1 ;;
-    esac
-    start_heartbeat
+    TREE_TOUCHED=1
+    prep_out="$(remote_n "$PREP_CMD")" || { warn "could not prepare $MACHINE:$SEED_DIR"; exit 1; }
+    [ -z "$prep_out" ] || say "$prep_out"
     run_suite || rc=$?
     exit "$rc"
 }
