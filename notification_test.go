@@ -34,6 +34,8 @@ func (p *testNotificationProvider) Reset() {
 	p.notifyCount = 0
 }
 
+var _ NotificationProvider = NoopNotification{}
+
 func TestNotificationProviderWiring(t *testing.T) {
 	t.Run("default is NoopNotification", func(t *testing.T) {
 		term := New()
