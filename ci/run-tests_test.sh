@@ -23,6 +23,11 @@ printf '%s\n' "$cmd" > "$STUB_DIR/call.$n.ssh"
 case "$cmd" in
     true) exit 0 ;;
     *"kill -0"*) printf 'dead %s 0\n.' "$STUB_STATE"; exit 0 ;;
+    *survivor*)
+        s=$(( $(cat "$STUB_DIR/stops" 2>/dev/null || echo 0) + 1 ))
+        echo "$s" > "$STUB_DIR/stops"
+        [ "$s" -gt "${STUB_STOP_255:-0}" ] || exit 255
+        [ -z "${STUB_STOP_FAIL:-}" ] || exit 1 ;;
 esac
 exit 0
 STUB
@@ -41,7 +46,7 @@ run_runner() {
     STUB_DIR="$WORK/run.$state"
     rm -rf "$STUB_DIR"; mkdir -p "$STUB_DIR"
     RC=0
-    env PATH="$WORK/bin:$PATH" STUB_DIR="$STUB_DIR" STUB_STATE="$state" CLAWEE_CI_POLL_S=1 \
+    env PATH="$WORK/bin:$PATH" STUB_STOP_255="${STUB_STOP_255:-0}" STUB_STOP_FAIL="${STUB_STOP_FAIL:-}" STUB_DIR="$STUB_DIR" STUB_STATE="$state" CLAWEE_CI_POLL_S=1 \
         CLAWEE_CI_DIR="$SEED" CLAWEE_CI_LOCK_PROJECT=proj-x CLAWEE_CI_LOCK_SESSION=sess-y \
         perl -e 'alarm 30; exec @ARGV' "$RUNNER" ./internal/nothing \
         > "$STUB_DIR/out" 2> "$STUB_DIR/err" < /dev/null || RC=$?
@@ -334,6 +339,80 @@ test_stop_terms_the_group_first() {
     pass $t
 }
 
+test_stop_retries_a_refused_connection() {
+    local t=stop_retries_a_refused_connection
+    STUB_STOP_255=1 run_runner 0
+    [ "$(cat "$STUB_DIR/stops" 2>/dev/null)" = 2 ] || { fail $t "the stop was sent $(cat "$STUB_DIR/stops" 2>/dev/null) times after one 255, not 2"; return; }
+    [ "$RC" = 0 ] || { fail $t "a passing run exited $RC after one refused stop"; return; }
+    pass $t
+}
+
+test_unconfirmed_stop_keeps_the_tree_and_fails_the_run() {
+    local t=unconfirmed_stop_keeps_the_tree_and_fails_the_run
+    STUB_STOP_FAIL=1 run_runner 0
+    [ "$RC" = 1 ] || { fail $t "a passing run whose stop failed exited $RC, not 1"; return; }
+    grep -q 'could not confirm the run on burrowee-ci stopped' "$STUB_DIR/err" && grep -q 'run id:' "$STUB_DIR/err" ||
+        { fail $t "no unconfirmed-stop report: $(tail -3 "$STUB_DIR/err")"; return; }
+    if grep -l -F 'is not the tree of run' "$STUB_DIR"/call.*.ssh >/dev/null 2>&1; then
+        fail $t "the tree of an unconfirmed run was removed"; return
+    fi
+    pass $t
+}
+
+group_stop_with_pgrep() {
+    local code="$1" f id run
+    run_runner 0
+    f="$(stop_call)"
+    [ -n "$f" ] || return 1
+    id="$(sed -n 's/.* id=\([A-Za-z0-9_-]*\);.*/\1/p' "$f" | head -1)"
+    run="$(sed -n 's/.*run=\([^ ]*\) id=.*/\1/p' "$f" | head -1)"
+    FAKE="$WORK/proc.pgrep$code"
+    rm -rf "$FAKE" "$run"; mkdir -p "$FAKE" "$run"
+    printf '%s\n' "$id" > "$run/id"
+    echo 4242 > "$run/run.pid"
+    printf 'clawee-go-headless-term-run-%s.scope\n' "$id" > "$run/scope"
+    sed "s|^proc=/proc\$|proc=$FAKE|" "$f" > "$WORK/stop.pgrep$code.sh"
+    SWEEP_RC=0
+    SWEEP_OUT="$(FAKE="$FAKE" CODE="$code" bash -c '
+        kill() { echo "kill $*" >> "$FAKE/kills"; }
+        sleep() { :; }
+        systemctl() { echo "systemctl $*" >> "$FAKE/kills"; }
+        pgrep() { [ -s "$FAKE/kills" ] && return "$CODE"; return 0; }
+        source "$0"' "$WORK/stop.pgrep$code.sh" 2>&1)" || SWEEP_RC=$?
+    rm -rf "$run"
+}
+
+test_stop_counts_only_pgrep_1_as_gone() {
+    local t=stop_counts_only_pgrep_1_as_gone code
+    for code in 2 3; do
+        group_stop_with_pgrep "$code" || { fail $t "no stop call"; return; }
+        [ "$SWEEP_RC" = 1 ] || { fail $t "pgrep exit $code after TERM: stop exited $SWEEP_RC, not 1"; return; }
+        case "$SWEEP_OUT" in *"not confirmed gone"*) ;; *) fail $t "no 'not confirmed gone' line: $SWEEP_OUT"; return ;; esac
+    done
+    pass $t
+}
+
+test_stop_stops_the_run_scope_after_proof() {
+    local t=stop_stops_the_run_scope_after_proof
+    group_stop_with_pgrep 1 || { fail $t "no stop call"; return; }
+    [ "$SWEEP_RC" = 0 ] || { fail $t "stop exited $SWEEP_RC: $SWEEP_OUT"; return; }
+    grep -q '^systemctl --user stop clawee-go-headless-term-run-.*\.scope$' "$FAKE/kills" ||
+        { fail $t "the run's scope was not stopped: $(tr '\n' ';' < "$FAKE/kills")"; return; }
+    pass $t
+}
+
+test_go_failure_codes_exit_1() {
+    local t=go_failure_codes_exit_1 code
+    for code in 2 75; do
+        run_runner "$code"
+        [ "$RC" = 1 ] || { fail $t "a suite rc $code exited $RC, not 1"; return; }
+        if grep -q -e 'not provisioned' -e 'not acquired' -e 'ci-lock exited' "$STUB_DIR/out" "$STUB_DIR/err"; then
+            fail $t "a suite rc $code is reported as a lock failure"; return
+        fi
+    done
+    pass $t
+}
+
 write_stubs
 test_launch_runs_under_product_lock
 test_no_command_names_the_brand_lock
@@ -352,4 +431,9 @@ test_wrapper_records_lock_exit_only_when_the_suite_never_started
 test_suite_script_marks_started_first
 test_suite_dead_without_status_is_not_a_lock_failure
 test_stop_terms_the_group_first
+test_stop_retries_a_refused_connection
+test_unconfirmed_stop_keeps_the_tree_and_fails_the_run
+test_stop_counts_only_pgrep_1_as_gone
+test_stop_stops_the_run_scope_after_proof
+test_go_failure_codes_exit_1
 exit "$FAILED"
