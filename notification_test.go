@@ -2,6 +2,8 @@ package headlessterm
 
 import (
 	"bytes"
+	"reflect"
+	"slices"
 	"testing"
 )
 
@@ -33,6 +35,8 @@ func (p *testNotificationProvider) Reset() {
 	p.payloads = nil
 	p.notifyCount = 0
 }
+
+var _ NotificationProvider = NoopNotification{}
 
 func TestNotificationProviderWiring(t *testing.T) {
 	t.Run("default is NoopNotification", func(t *testing.T) {
@@ -73,8 +77,6 @@ var desktopNotificationCases = []struct {
 	checkLast    bool
 	wantID       string
 	wantData     string
-	wantField    string
-	fieldValue   interface{}
 }{
 	{
 		name:         "basic handler",
@@ -136,6 +138,9 @@ func TestDesktopNotification_Cases(t *testing.T) {
 			provider := &testNotificationProvider{}
 			term.SetNotificationProvider(provider)
 
+			want := *c.payload
+			want.Actions = slices.Clone(c.payload.Actions)
+			want.Data = bytes.Clone(c.payload.Data)
 			term.DesktopNotification(c.payload)
 
 			if provider.notifyCount != c.wantCount {
@@ -153,6 +158,9 @@ func TestDesktopNotification_Cases(t *testing.T) {
 			}
 			if string(last.Data) != c.wantData {
 				t.Errorf("expected data %q, got %q", c.wantData, string(last.Data))
+			}
+			if !reflect.DeepEqual(*last, want) {
+				t.Errorf("forwarded payload %+v, want %+v", *last, want)
 			}
 		})
 	}
