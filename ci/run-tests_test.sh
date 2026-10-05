@@ -112,7 +112,7 @@ test_unprovisioned_lock_names_install() {
     local t=unprovisioned_lock_names_install
     run_runner lock2
     [ "$RC" = 1 ] || { fail $t "an unprovisioned lock exited $RC, not 1 (2 is usage here): $(tail -3 "$STUB_DIR/err")"; return; }
-    if ! grep -q "$PRODUCT is not provisioned on burrowee-ci" "$STUB_DIR/out" "$STUB_DIR/err" ||
+    if ! grep -q "$PRODUCT is not provisioned on masdetta-ci" "$STUB_DIR/out" "$STUB_DIR/err" ||
         ! grep -q 'ci-lock install' "$STUB_DIR/out" "$STUB_DIR/err"; then
         fail $t "no not-provisioned message naming ci-lock install: $(tail -3 "$STUB_DIR/err")"; return
     fi
@@ -127,7 +127,7 @@ test_each_run_gets_its_own_tree() {
     if grep -q -- '--link-dest' "$STUB_DIR"/call.* "$RUNNER"; then
         fail $t "a sync still hard-links with --link-dest; the seed and the run trees must not share inodes"; return
     fi
-    tree="$(sed -n "s|^burrowee-ci:\\($SEED\\.t-[A-Za-z0-9_-]*\\)/\$|\\1|p" "$f")"
+    tree="$(sed -n "s|^masdetta-ci:\\($SEED\\.t-[A-Za-z0-9_-]*\\)/\$|\\1|p" "$f")"
     [ -n "$tree" ] || { fail $t "the tree sync does not target a per-run tree $SEED.t-<run id>: $(tr '\n' ' ' < "$f")"; return; }
     id="${tree#"$SEED".t-}"
     grep -l -F "t=$tree id=$id;" "$STUB_DIR"/call.*.ssh | xargs grep -l -F 'rm -rf -- "$t" "$t.run" "$t.deps"' >/dev/null 2>&1 ||
@@ -351,7 +351,7 @@ test_unconfirmed_stop_keeps_the_tree_and_fails_the_run() {
     local t=unconfirmed_stop_keeps_the_tree_and_fails_the_run
     STUB_STOP_FAIL=1 run_runner 0
     [ "$RC" = 1 ] || { fail $t "a passing run whose stop failed exited $RC, not 1"; return; }
-    grep -q 'could not confirm the run on burrowee-ci stopped' "$STUB_DIR/err" && grep -q 'run id:' "$STUB_DIR/err" ||
+    grep -q 'could not confirm the run on masdetta-ci stopped' "$STUB_DIR/err" && grep -q 'run id:' "$STUB_DIR/err" ||
         { fail $t "no unconfirmed-stop report: $(tail -3 "$STUB_DIR/err")"; return; }
     if grep -l -F 'is not the tree of run' "$STUB_DIR"/call.*.ssh >/dev/null 2>&1; then
         fail $t "the tree of an unconfirmed run was removed"; return

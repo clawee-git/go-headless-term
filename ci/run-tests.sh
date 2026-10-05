@@ -2,7 +2,7 @@
 set -euo pipefail
 
 PROG="ci/run-tests.sh"
-MACHINE="${CLAWEE_CI_MACHINE:-burrowee-ci}"
+MACHINE="${CLAWEE_CI_MACHINE:-masdetta-ci}"
 SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 REMOTE_PREFIX="/tmp/clawee-ght-"
@@ -60,7 +60,7 @@ shuffle seed. Without options the plain suite runs, unchanged.
   --repeat <n>        -count=<n> instead of -count=1
 
 Environment:
-  CLAWEE_CI_MACHINE             the machine (default burrowee-ci)
+  CLAWEE_CI_MACHINE             the machine (default masdetta-ci)
   CLAWEE_CI_DIR                 the checkout's seed tree (default
                                 /tmp/clawee-ght-<user>-<cksum of this checkout>);
                                 must be /tmp/clawee-ght-<name>, <name> of letters,
