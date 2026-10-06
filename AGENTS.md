@@ -3,7 +3,7 @@
 ## Tests
 
 The suite is **`ci/run-tests.sh [options] [pkg...]`**, and it runs on the shared CI machine
-(`burrowee-ci`), never on the workstation. Packages default to `./...` — the root module's three:
+(`masdetta-ci`), never on the workstation. Packages default to `./...` — the root module's three:
 `github.com/clawee-git/go-headless-term`, `internal/generate_width_table`, and `examples/basic`
 (no test files). `wasm/` is a separate `js/wasm` module with no tests and is not part of the run.
 
@@ -22,7 +22,7 @@ The suite is **`ci/run-tests.sh [options] [pkg...]`**, and it runs on the shared
   Clawee products run beside it. The name is the constant `CI_LOCK_PRODUCT`, and
   `ci/run-tests_test.sh` asserts it equals `ci-lock products --path <checkout>`. A held lock is
   **waited on**, up to the suite bound (600 s, go test's default `-timeout`); ci-lock's `waiting`
-  / `acquired` lines are in the followed log, and `ssh burrowee-ci ci-lock status
+  / `acquired` lines are in the followed log, and `ssh masdetta-ci ci-lock status
   clawee-go-headless-term` names the holder. Not acquired in time → **exit 75**; not provisioned
   → exit 1, naming `ci-lock install` (the operator's). The run script writes a `started` marker
   first, so a suite that dies without a status is reported as that, never as a lock failure.

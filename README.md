@@ -104,7 +104,7 @@ Shows:
 - Screen clearing
 - Reading terminal state
 
-## Core concepts / API overview
+## Concepts / API overview
 
 ### Terminal
 
