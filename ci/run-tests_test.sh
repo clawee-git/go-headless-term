@@ -38,7 +38,14 @@ echo "$n" > "$STUB_DIR/seq"
 printf '%s\n' "$@" > "$STUB_DIR/call.$n.rsync"
 exit 0
 STUB
-    chmod +x "$WORK/bin/ssh" "$WORK/bin/rsync"
+    cat > "$WORK/bin/ci-watch" <<'STUB'
+#!/usr/bin/env bash
+n=$(( $(cat "$STUB_DIR/seq" 2>/dev/null || echo 0) + 1 ))
+echo "$n" > "$STUB_DIR/seq"
+printf '%s\n' "$*" > "$STUB_DIR/call.$n.ciwatch"
+exit "${STUB_ENSURE_RC:-0}"
+STUB
+    chmod +x "$WORK/bin/ssh" "$WORK/bin/rsync" "$WORK/bin/ci-watch"
 }
 
 run_runner() {
@@ -46,7 +53,7 @@ run_runner() {
     STUB_DIR="$WORK/run.$state"
     rm -rf "$STUB_DIR"; mkdir -p "$STUB_DIR"
     RC=0
-    env PATH="$WORK/bin:$PATH" STUB_STOP_255="${STUB_STOP_255:-0}" STUB_STOP_FAIL="${STUB_STOP_FAIL:-}" STUB_DIR="$STUB_DIR" STUB_STATE="$state" CLAWEE_CI_POLL_S=1 \
+    env PATH="$WORK/bin:$PATH" STUB_ENSURE_RC="${STUB_ENSURE_RC:-0}" STUB_STOP_255="${STUB_STOP_255:-0}" STUB_STOP_FAIL="${STUB_STOP_FAIL:-}" STUB_DIR="$STUB_DIR" STUB_STATE="$state" CLAWEE_CI_POLL_S=1 \
         CLAWEE_CI_DIR="$SEED" CLAWEE_CI_LOCK_PROJECT=proj-x CLAWEE_CI_LOCK_SESSION=sess-y \
         perl -e 'alarm 30; exec @ARGV' "$RUNNER" ./internal/nothing \
         > "$STUB_DIR/out" 2> "$STUB_DIR/err" < /dev/null || RC=$?
@@ -116,6 +123,36 @@ test_unprovisioned_lock_names_install() {
         ! grep -q 'ci-lock install' "$STUB_DIR/out" "$STUB_DIR/err"; then
         fail $t "no not-provisioned message naming ci-lock install: $(tail -3 "$STUB_DIR/err")"; return
     fi
+    pass $t
+}
+
+test_machine_is_ensured_before_first_ssh() {
+    local t=machine_is_ensured_before_first_ssh w first_ssh
+    run_runner 0
+    w="$(ls "$STUB_DIR"/call.*.ciwatch 2>/dev/null | head -1)"
+    [ -n "$w" ] || { fail $t "ci-watch was not called"; return; }
+    [ "$(cat "$w")" = "ensure masdetta-ci" ] || { fail $t "ci-watch was called with '$(cat "$w")', not 'ensure masdetta-ci'"; return; }
+    first_ssh="$(ls "$STUB_DIR"/call.*.ssh | sed 's|.*/call\.\([0-9]*\)\.ssh|\1|' | sort -n | head -1)"
+    w="${w##*/call.}"; w="${w%.ciwatch}"
+    [ "$w" -lt "$first_ssh" ] || { fail $t "ci-watch (call $w) did not precede the first ssh (call $first_ssh)"; return; }
+    CI_MACHINE=other-ci run_runner 0
+    [ "$(cat "$STUB_DIR"/call.*.ciwatch)" = "ensure other-ci" ] || { fail $t "CI_MACHINE was not honoured: $(cat "$STUB_DIR"/call.*.ciwatch)"; return; }
+    pass $t
+}
+
+test_no_autostart_skips_ensure() {
+    local t=no_autostart_skips_ensure
+    CI_NO_AUTOSTART=1 run_runner 0
+    ls "$STUB_DIR"/call.*.ciwatch >/dev/null 2>&1 && { fail $t "ci-watch was called under CI_NO_AUTOSTART"; return; }
+    ls "$STUB_DIR"/call.*.ssh >/dev/null 2>&1 || { fail $t "the run did not proceed to ssh"; return; }
+    pass $t
+}
+
+test_failed_ensure_stops_before_ssh() {
+    local t=failed_ensure_stops_before_ssh
+    STUB_ENSURE_RC=1 run_runner 0
+    [ "$RC" != 0 ] || { fail $t "a failed ensure exited 0"; return; }
+    ls "$STUB_DIR"/call.*.ssh >/dev/null 2>&1 && { fail $t "ssh ran after a failed ensure"; return; }
     pass $t
 }
 
@@ -419,6 +456,9 @@ test_no_command_names_the_brand_lock
 test_help_describes_the_product_lock
 test_lock_timeout_is_reported
 test_unprovisioned_lock_names_install
+test_machine_is_ensured_before_first_ssh
+test_no_autostart_skips_ensure
+test_failed_ensure_stops_before_ssh
 test_each_run_gets_its_own_tree
 test_product_name_matches_registry
 test_stop_sweeps_survivors_by_run_id
