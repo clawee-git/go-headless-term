@@ -2,7 +2,7 @@
 set -euo pipefail
 
 PROG="ci/run-tests.sh"
-MACHINE="${CLAWEE_CI_MACHINE:-masdetta-ci}"
+MACHINE="${CI_MACHINE:-masdetta-ci}"
 SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 REMOTE_PREFIX="/tmp/clawee-ght-"
@@ -60,7 +60,8 @@ shuffle seed. Without options the plain suite runs, unchanged.
   --repeat <n>        -count=<n> instead of -count=1
 
 Environment:
-  CLAWEE_CI_MACHINE             the machine (default masdetta-ci)
+  CI_MACHINE                    the machine (default masdetta-ci)
+  CI_NO_AUTOSTART               set: do not run ci-watch ensure before the first ssh
   CLAWEE_CI_DIR                 the checkout's seed tree (default
                                 /tmp/clawee-ght-<user>-<cksum of this checkout>);
                                 must be /tmp/clawee-ght-<name>, <name> of letters,
@@ -250,7 +251,13 @@ remote_stdin() {
     ssh "${SSH_OPTS[@]}" "$MACHINE" "$@"
 }
 
+ensure_machine() {
+    [ -z "${CI_NO_AUTOSTART:-}" ] || return 0
+    ci-watch ensure "$MACHINE" || { warn "ci-watch could not bring $MACHINE up."; exit 1; }
+}
+
 probe_machine() {
+    ensure_machine
     remote_n true 2>/dev/null && return 0
     warn "$MACHINE is not answering ssh."
     if (exec 3<>"/dev/tcp/$MACHINE/22") 2>/dev/null; then
