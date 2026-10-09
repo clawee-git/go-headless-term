@@ -3,7 +3,7 @@
 ## Tests
 
 The suite is **`ci/run-tests.sh [options] [pkg...]`**, and it runs on the shared CI machine
-(`masdetta-ci`), never on the workstation. Packages default to `./...` — the root module's three:
+(the overlay's `CI_MACHINE`, `masdetta-ci` by default), never on the workstation. Packages default to `./...` — the root module's three:
 `github.com/clawee-git/go-headless-term`, `internal/generate_width_table`, and `examples/basic`
 (no test files). `wasm/` is a separate `js/wasm` module with no tests and is not part of the run.
 
@@ -45,7 +45,7 @@ The suite is **`ci/run-tests.sh [options] [pkg...]`**, and it runs on the shared
   stated gap. A stop that cannot be confirmed is reported with the run id, its files and a check
   command; its tree is left, and while any of its processes live they hold the lock — never
   break it, stop the run.
-- Environment: `CLAWEE_CI_MACHINE`, `CLAWEE_CI_DIR`, `CLAWEE_CI_LOCK_PROJECT`,
+- Environment: `CI_MACHINE` (the overlay's machine name; `ci-watch ensure "$CI_MACHINE"` runs before the first ssh unless `CI_NO_AUTOSTART` is set), `CLAWEE_CI_DIR`, `CLAWEE_CI_LOCK_PROJECT`,
   `CLAWEE_CI_LOCK_SESSION`, `CLAWEE_CI_POLL_S`, `CLAWEE_CI_FOLLOW_MAX_MISSES`; the numbers must
   be whole numbers of at least 1, and `CLAWEE_CI_DIR` must be `/tmp/clawee-ght-<name>` (letters,
   digits, `._-`, no `..`, not ending in `.`). Every command that deletes or overwrites on the
