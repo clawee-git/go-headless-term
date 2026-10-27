@@ -105,7 +105,7 @@ func (c *Cell) IsWideSpacer() bool {
 }
 
 func (c *Cell) IsWrapPad() bool {
-	return false
+	return c.wrapPad
 }
 
 // Copy returns a deep copy of the cell, including the hyperlink and image pointers.
