@@ -111,3 +111,19 @@ func TestProviderWithoutReplaceKeepsScrollback(t *testing.T) {
 		t.Fatalf("screen not reflowed: %q", got)
 	}
 }
+
+func TestProviderWithoutReplaceKeepsEveryLine(t *testing.T) {
+	sb := &testScrollback{}
+	sb.SetMaxLines(100)
+	term := newReflowTerm(3, 80, sb)
+	lines := []string{"A" + digits(78) + "z", "B" + digits(78) + "z", "C" + digits(78) + "z"}
+	term.WriteString(lines[0] + "\r\n" + lines[1] + "\r\n" + lines[2])
+	term.Resize(3, 40)
+	got := strings.Join(append(cellsText(sb.lines), screenText(term)...), "")
+	if want := strings.Join(lines, ""); got != want {
+		t.Fatalf("lines lost after narrowing:\n%q\n%q", want, got)
+	}
+	if sb.pushCount != 3 {
+		t.Fatalf("pushCount %d, want 3 (append-only)", sb.pushCount)
+	}
+}
