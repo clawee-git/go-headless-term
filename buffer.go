@@ -170,7 +170,7 @@ func (b *Buffer) ScrollUp(top, bottom, n int) {
 	// Save lines to scrollback if enabled and scrolling from top
 	if b.scrollback != nil && b.scrollback.MaxLines() > 0 && top == 0 {
 		for i := 0; i < n; i++ {
-			b.scrollback.Push(b.cells[i])
+			pushScrollbackLine(b.scrollback, b.cells[i], b.wrapped[i])
 		}
 	}
 
