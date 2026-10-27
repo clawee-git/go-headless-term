@@ -155,7 +155,7 @@ type Terminal struct {
 	middleware *Middleware
 
 	// Providers for external data/actions
-	ptyWriter PTYWriter
+	ptyWriter         PTYWriter
 	bellProvider      BellProvider
 	titleProvider     TitleProvider
 	apcProvider       APCProvider
