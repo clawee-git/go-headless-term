@@ -36,6 +36,8 @@ func (t *Terminal) reflowPrimary(rows, cols int) {
 	b.installRows(placed, start)
 	if wp != nil {
 		replaceScrollback(wp, placed, start)
+	} else {
+		pushAbove(b.scrollback, placed, start)
 	}
 	for _, p := range points {
 		p.settle(start, rows, cols)
@@ -79,4 +81,13 @@ func replaceScrollback(wp WrapScrollbackProvider, placed *placedRows, start int)
 		above, flags = above[len(above)-limit:], flags[len(flags)-limit:]
 	}
 	wp.ReplaceWrapped(above, flags)
+}
+
+func pushAbove(sb ScrollbackProvider, placed *placedRows, start int) {
+	if sb == nil {
+		return
+	}
+	for _, row := range placed.cells[:start] {
+		sb.Push(row)
+	}
 }

@@ -171,11 +171,12 @@ With `WithReflow(true)`, a `Resize` that changes the column count re-lays the pr
 from its wrap flags: a soft-wrapped line rejoins and rewraps at the new width, a hard-ended
 line keeps its break, wide characters never split, and the cursor (and the saved cursor)
 follow their cell. The screen holds the last `rows` lines ending at the cursor's line; the
-lines above go back into scrollback.
+lines above go into scrollback.
 
 - Scrollback reflows too when its provider implements `WrapScrollbackProvider`; it is
   rewritten by one `ReplaceWrapped` call, never through `Push`/`Pop`. A provider without the
-  interface keeps its scrollback as it is and only the screen is reflowed.
+  interface keeps its scrollback as it is, never rewritten, and the screen rows that no longer
+  fit are appended to it with `Push`, as a scroll-off does.
 - The alternate screen is never reflowed (full-screen programs redraw themselves). A column
   change while it is active reflows the primary underneath.
 - With reflow off (the default) `Resize` truncates and pads as before. A resize that changes
