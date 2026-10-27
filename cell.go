@@ -104,6 +104,10 @@ func (c *Cell) IsWideSpacer() bool {
 	return c.HasFlag(CellFlagWideCharSpacer)
 }
 
+func (c *Cell) IsWrapPad() bool {
+	return false
+}
+
 // Copy returns a deep copy of the cell, including the hyperlink and image pointers.
 func (c *Cell) Copy() Cell {
 	return Cell{
