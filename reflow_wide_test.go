@@ -24,7 +24,7 @@ func TestLayoutPadDroppedOnWiden(t *testing.T) {
 	term := newReflowTerm(4, 20, NewMemoryScrollback(100))
 	term.WriteString("abcdefghijklmnopqrs你")
 	term.Resize(4, 10)
-	term.Resize(4, 20)
+	term.Resize(4, 22)
 	if got := term.LineContent(0); got != "abcdefghijklmnopqrs你" {
 		t.Fatalf("layout pad not dropped: %q", got)
 	}
