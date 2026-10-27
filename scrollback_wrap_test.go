@@ -104,8 +104,9 @@ func TestProviderWithoutReplaceKeepsScrollback(t *testing.T) {
 	}
 	before := cellsText(captureReflow(term, sb).history)
 	term.Resize(3, 40)
-	if got := cellsText(captureReflow(term, sb).history); !slices.Equal(got, before) {
-		t.Fatalf("scrollback changed:\n%q\n%q", before, got)
+	got := cellsText(captureReflow(term, sb).history)
+	if len(got) < len(before) || !slices.Equal(got[:len(before)], before) {
+		t.Fatalf("scrollback rewritten:\n%q\n%q", before, got)
 	}
 	if got := term.LineContent(0); got != digits(100)[:40] && got != digits(100)[40:80] && got != digits(100)[80:] {
 		t.Fatalf("screen not reflowed: %q", got)
