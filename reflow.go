@@ -91,3 +91,12 @@ func pushAbove(sb ScrollbackProvider, placed *placedRows, start int) {
 		sb.Push(row)
 	}
 }
+
+func (t *Terminal) markWidePad(width int) {
+	if !t.reflow || width != 2 || t.cursor.Col >= t.cols {
+		return
+	}
+	if cell := t.activeBuffer.Cell(t.cursor.Row, t.cursor.Col); cell != nil {
+		cell.wrapPad = true
+	}
+}

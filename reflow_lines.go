@@ -56,7 +56,7 @@ func reflowSourceRows(b *Buffer, wp WrapScrollbackProvider) []reflowRow {
 }
 
 func dropWidePad(cur, next []Cell) []Cell {
-	if len(cur) > 0 && len(next) > 0 && next[0].HasFlag(CellFlagWideChar) && isBlankCell(cur[len(cur)-1]) {
+	if len(cur) > 0 && len(next) > 0 && next[0].HasFlag(CellFlagWideChar) && cur[len(cur)-1].wrapPad && isBlankCell(cur[len(cur)-1]) {
 		return cur[:len(cur)-1]
 	}
 	return cur

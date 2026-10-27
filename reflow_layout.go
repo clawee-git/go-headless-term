@@ -47,6 +47,7 @@ func (p *placedRows) layout(cells []Cell, pos []cellPos) {
 	for i := 0; i < len(cells); {
 		count, width := unitAt(cells, i, p.cols)
 		if col+width > p.cols {
+			p.markPad(col, width)
 			p.wrapped[len(p.wrapped)-1] = true
 			p.openRow()
 			col = 0
@@ -68,5 +69,11 @@ func layoutLines(placed *placedRows, lines []reflowLine, points []*reflowPoint) 
 				p.newRow, p.newCol, p.placed = pos[p.offset].row, pos[p.offset].col, true
 			}
 		}
+	}
+}
+
+func (p *placedRows) markPad(col, width int) {
+	if width == 2 && col < p.cols {
+		p.cells[len(p.cells)-1][col].wrapPad = true
 	}
 }

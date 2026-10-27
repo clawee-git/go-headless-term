@@ -685,6 +685,7 @@ func (t *Terminal) inputInternal(r rune) {
 			}
 		} else if t.modes&ModeLineWrap != 0 {
 			// Mark the current line as wrapped (not explicit newline)
+			t.markWidePad(width)
 			t.activeBuffer.SetWrapped(t.cursor.Row, true)
 			t.cursor.Col = 0
 			t.cursor.Row++
@@ -721,6 +722,7 @@ func (t *Terminal) inputInternal(r rune) {
 			cell.UnderlineColor = t.template.UnderlineColor
 			cell.Flags = t.template.Flags
 			cell.Hyperlink = t.currentHyperlink
+			cell.wrapPad = false
 
 			// Mark as wide character if needed
 			if width == 2 {
