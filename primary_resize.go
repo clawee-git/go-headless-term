@@ -39,7 +39,7 @@ func (t *Terminal) growPrimaryRows(oldRows, rows int) {
 	restored := min(growth, t.primaryRowsCutOnAlternate)
 	t.primaryRowsCutOnAlternate -= restored
 
-	lines := t.popScrollbackLines(growth - restored)
+	lines, flags := t.popScrollbackLines(growth - restored)
 	if len(lines) == 0 {
 		return
 	}
@@ -51,6 +51,9 @@ func (t *Terminal) growPrimaryRows(oldRows, rows int) {
 			}
 		}
 	}
+	for i, wrapped := range flags {
+		t.primaryBuffer.SetWrapped(i, wrapped)
+	}
 	if cursorRow := t.primaryCursorRow(); cursorRow != nil {
 		*cursorRow += len(lines)
 	}
@@ -58,22 +61,32 @@ func (t *Terminal) growPrimaryRows(oldRows, rows int) {
 
 // popScrollbackLines pops up to n lines from the primary scrollback and returns
 // them oldest first.
-func (t *Terminal) popScrollbackLines(n int) [][]Cell {
+func (t *Terminal) popScrollbackLines(n int) ([][]Cell, []bool) {
 	scrollback := t.primaryBuffer.ScrollbackProvider()
 	if scrollback == nil || n <= 0 {
-		return nil
+		return nil, nil
 	}
+	wrapScrollback, _ := scrollback.(WrapScrollbackProvider)
 	n = min(n, scrollback.Len())
 	lines := make([][]Cell, 0, n)
+	flags := make([]bool, 0, n)
 	for range n {
-		line := scrollback.Pop()
+		var line []Cell
+		wrapped := false
+		if wrapScrollback != nil && t.reflow {
+			line, wrapped = wrapScrollback.PopWrapped()
+		} else {
+			line = scrollback.Pop()
+		}
 		if line == nil {
 			break
 		}
 		lines = append(lines, line)
+		flags = append(flags, wrapped)
 	}
 	slices.Reverse(lines)
-	return lines
+	slices.Reverse(flags)
+	return lines, flags
 }
 
 // scrollActiveRegionUp scrolls the active buffer's scroll region up by n lines
