@@ -490,24 +490,31 @@ func (t *Terminal) Resize(rows, cols int) {
 	defer t.mu.Unlock()
 
 	oldRows := t.rows
+	reflowing := t.reflow && cols != t.cols
 
-	if rows < oldRows {
+	if rows < oldRows && !reflowing {
 		t.shrinkPrimaryRows(oldRows, rows)
 	}
 
 	t.rows = rows
 	t.cols = cols
-	t.primaryBuffer.Resize(rows, cols)
+	if reflowing {
+		t.reflowPrimary(rows, cols)
+	} else {
+		t.primaryBuffer.Resize(rows, cols)
+	}
 	t.alternateBuffer.Resize(rows, cols)
 
 	// Growing must follow the buffer resize so ScrollDown has room to shift content.
-	if rows > oldRows {
+	if rows > oldRows && !reflowing {
 		t.growPrimaryRows(oldRows, rows)
 	}
 
-	t.cursor.Row = clamp(t.cursor.Row, 0, rows-1)
-	t.cursor.Col = clamp(t.cursor.Col, 0, cols-1)
-	if t.activeBuffer != t.primaryBuffer && t.savedCursor != nil {
+	if !(reflowing && t.activeBuffer == t.primaryBuffer) {
+		t.cursor.Row = clamp(t.cursor.Row, 0, rows-1)
+		t.cursor.Col = clamp(t.cursor.Col, 0, cols-1)
+	}
+	if t.activeBuffer != t.primaryBuffer && t.savedCursor != nil && !reflowing {
 		// The resize helpers already keep the saved row inside the new height;
 		// the row clamp only guards that invariant. The column clamp is needed.
 		t.savedCursor.Row = clamp(t.savedCursor.Row, 0, rows-1)

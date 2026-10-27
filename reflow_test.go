@@ -145,3 +145,13 @@ func TestRowAndColumnChangeTogether(t *testing.T) {
 		t.Fatalf("cursor %d,%d want 3,4", row, col)
 	}
 }
+
+func TestRowGrowRestoresWrapFlags(t *testing.T) {
+	sb := newWrapCounting(100)
+	term := newReflowTerm(3, 80, sb)
+	term.WriteString(digits(100) + "\r\na\r\nb")
+	term.Resize(5, 80)
+	if !term.IsWrapped(0) {
+		t.Fatal("popped scrollback line lost its wrap flag")
+	}
+}
