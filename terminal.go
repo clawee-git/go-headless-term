@@ -166,6 +166,8 @@ type Terminal struct {
 	// AutoResize mode: terminal grows instead of scrolling/wrapping
 	autoResize bool
 
+	reflow bool
+
 	// Recording provider for capturing raw input
 	recordingProvider RecordingProvider
 
@@ -301,6 +303,12 @@ func WithAutoResize() Option {
 func WithRecording(p RecordingProvider) Option {
 	return func(t *Terminal) {
 		t.recordingProvider = p
+	}
+}
+
+func WithReflow(enabled bool) Option {
+	return func(t *Terminal) {
+		t.reflow = enabled
 	}
 }
 
