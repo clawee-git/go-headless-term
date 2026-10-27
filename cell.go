@@ -34,6 +34,7 @@ type Cell struct {
 	Flags          CellFlags
 	Hyperlink      *Hyperlink
 	Image          *CellImage // Image reference, nil if no image
+	wrapPad        bool
 }
 
 // Hyperlink associates a cell with a clickable link (OSC 8).
@@ -60,6 +61,7 @@ func (c *Cell) Reset() {
 	c.Flags = 0
 	c.Hyperlink = nil
 	c.Image = nil
+	c.wrapPad = false
 }
 
 // HasFlag returns true if the specified flag is set.
@@ -100,6 +102,10 @@ func (c *Cell) IsWide() bool {
 // IsWideSpacer returns true if this is the second cell of a wide character (should be skipped during rendering).
 func (c *Cell) IsWideSpacer() bool {
 	return c.HasFlag(CellFlagWideCharSpacer)
+}
+
+func (c *Cell) IsWrapPad() bool {
+	return c.wrapPad
 }
 
 // Copy returns a deep copy of the cell, including the hyperlink and image pointers.

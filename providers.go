@@ -79,7 +79,6 @@ type NoopSOS struct{}
 
 func (NoopSOS) Receive(data []byte) {}
 
-
 // ClipboardProvider handles clipboard read/write operations (OSC 52).
 type ClipboardProvider interface {
 	// Read returns content from the specified clipboard ('c' for clipboard, 'p' for primary selection).
@@ -138,6 +137,7 @@ func (NoopScrollback) MaxLines() int         { return 0 }
 //	term := headlessterm.New(headlessterm.WithScrollback(storage))
 type MemoryScrollback struct {
 	lines    [][]Cell
+	wrapped  []bool
 	maxLines int
 }
 
@@ -157,12 +157,10 @@ func (m *MemoryScrollback) Push(line []Cell) {
 	copy(lineCopy, line)
 
 	m.lines = append(m.lines, lineCopy)
+	m.wrapped = append(m.wrapped, false)
 
 	// Trim oldest lines if over capacity
-	if m.maxLines > 0 && len(m.lines) > m.maxLines {
-		excess := len(m.lines) - m.maxLines
-		m.lines = m.lines[excess:]
-	}
+	m.trimToMax()
 }
 
 // Pop removes and returns the most recent (newest) line from scrollback.
@@ -173,6 +171,7 @@ func (m *MemoryScrollback) Pop() []Cell {
 	}
 	line := m.lines[len(m.lines)-1]
 	m.lines = m.lines[:len(m.lines)-1]
+	m.wrapped = m.wrapped[:len(m.wrapped)-1]
 	return line
 }
 
@@ -193,16 +192,14 @@ func (m *MemoryScrollback) Line(index int) []Cell {
 // Clear removes all stored lines.
 func (m *MemoryScrollback) Clear() {
 	m.lines = make([][]Cell, 0)
+	m.wrapped = nil
 }
 
 // SetMaxLines sets the maximum capacity. If the current length exceeds the new max,
 // the oldest lines are removed.
 func (m *MemoryScrollback) SetMaxLines(max int) {
 	m.maxLines = max
-	if max > 0 && len(m.lines) > max {
-		excess := len(m.lines) - max
-		m.lines = m.lines[excess:]
-	}
+	m.trimToMax()
 }
 
 // MaxLines returns the current maximum capacity.
