@@ -172,6 +172,22 @@ test_each_run_gets_its_own_tree() {
     pass $t
 }
 
+test_launch_pins_the_toolchain_and_checks_it() {
+    local t=launch_pins_the_toolchain_and_checks_it f script check first
+    run_runner 0
+    f="$(launch_call)"
+    [ -n "$f" ] || { fail $t "no launch command was sent (exit $RC)"; return; }
+    script="${f%.ssh}.stdin"
+    grep -q 'export GOTOOLCHAIN=go1.26.11 ' "$script" || { fail $t "the launch does not export GOTOOLCHAIN=go1.26.11: $(grep GOTOOLCHAIN "$script")"; return; }
+    if grep -q 'GOTOOLCHAIN=auto' "$script"; then fail $t "the launch still exports GOTOOLCHAIN=auto"; return; fi
+    grep -q 'GOPROXY=off go version' "$script" || { fail $t "the launch does not print go version offline"; return; }
+    check="$(grep -n -F "grep -q '^go version go1.26.11 '" "$script" | head -1 | cut -d: -f1)"
+    first="$(grep -n -E '(^| )go (build|test) ' "$script" | head -1 | cut -d: -f1)"
+    [ -n "$check" ] || { fail $t "the launch does not refuse a go version other than go1.26.11"; return; }
+    [ -n "$first" ] && [ "$check" -lt "$first" ] || { fail $t "the version check does not precede the first go build or go test"; return; }
+    pass $t
+}
+
 test_product_name_matches_registry() {
     local t=product_name_matches_registry want got
     if ! command -v ci-lock >/dev/null || [ ! -f "${CODING_ROOT:-/nonexistent}/PROJECTS.md" ]; then
@@ -476,4 +492,5 @@ test_unconfirmed_stop_keeps_the_tree_and_fails_the_run
 test_stop_counts_only_pgrep_1_as_gone
 test_stop_stops_the_run_scope_after_proof
 test_go_failure_codes_exit_1
+test_launch_pins_the_toolchain_and_checks_it
 exit "$FAILED"
