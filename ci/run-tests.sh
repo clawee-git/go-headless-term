@@ -2,6 +2,7 @@
 set -euo pipefail
 
 PROG="ci/run-tests.sh"
+GO_TOOLCHAIN=go1.26.11
 MACHINE="${CI_MACHINE:-masdetta-ci}"
 SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -352,9 +353,10 @@ remote_suite() {
     remote_guard "$RUN_DIR" "$REMOTE_PREFIX?*"
     printf '\n'
     printf ': > %q\n' "$RUN_DIR/started"
-    printf 'export GOTOOLCHAIN=auto TMPDIR=/tmp\nrc=0\n'
+    printf 'export GOTOOLCHAIN=%s TMPDIR=/tmp\nrc=0\n' "$GO_TOOLCHAIN"
     printf 'if ! cd %q; then echo "=== cannot cd to %q"; rc=1\n' "$REMOTE_DIR" "$REMOTE_DIR"
     printf 'elif [ %q = 1 ] && ! command -v jq >/dev/null; then echo "=== jq is not installed; the evidence mode needs it"; rc=1\n' "$EVIDENCE"
+    printf "elif ! { gv=\$(GOPROXY=off go version 2>&1 </dev/null); echo \"\$gv\"; echo \"\$gv\" | grep -q '^go version %s '; }; then echo %q; rc=1\n" "$GO_TOOLCHAIN" "=== wanted $GO_TOOLCHAIN, refusing to test"
     printf 'else\necho "=== go build ./..."\n'
     printf 'if go build ./...; then\n'
     if [ "$EVIDENCE" = 0 ]; then
